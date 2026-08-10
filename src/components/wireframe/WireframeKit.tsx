@@ -8,6 +8,15 @@ export interface KpiItem {
   highlight?: boolean
 }
 
+const KPI_COLOR_VARIANTS = [
+  { bg: '#F4EFFE', borderColor: '#E9D8FD', iconBg: '#8B5CF6' }, // purple
+  { bg: '#E6F8F0', borderColor: '#A7F3D0', iconBg: '#00BA7C' }, // mint/green
+  { bg: '#FDE8EC', borderColor: '#FECDD3', iconBg: '#FF3B68' }, // rose/red
+  { bg: '#EBF3FF', borderColor: '#BFDBFE', iconBg: '#2F80ED' }, // blue
+  { bg: '#FFF8E7', borderColor: '#FDE68A', iconBg: '#F2994A' }, // amber/orange
+  { bg: '#EEF2FF', borderColor: '#C7D2FE', iconBg: '#5B51D8' }, // indigo
+]
+
 export function KpiGrid({ items, columns = 4 }: { items: KpiItem[]; columns?: 2 | 3 | 4 | 6 }) {
   const gridClass =
     columns === 6
@@ -19,29 +28,42 @@ export function KpiGrid({ items, columns = 4 }: { items: KpiItem[]; columns?: 2 
           : 'grid-cols-2 lg:grid-cols-4'
 
   return (
-    <div className={`grid ${gridClass} gap-3`}>
-      {items.map((kpi, i) => (
-        <div
-          key={i}
-          className="rounded-lg border p-4"
-          style={{
-            background: kpi.highlight ? brand.primaryLight : brand.surface,
-            borderColor: brand.border,
-          }}
-        >
-          <p className="text-xs font-medium" style={{ color: brand.textSecondary }}>
-            {kpi.label}
-          </p>
-          <p className="text-xl font-semibold mt-1 tabular-nums" style={{ color: brand.text }}>
-            {kpi.value}
-          </p>
-          {kpi.sub && (
-            <p className="text-xs mt-1" style={{ color: brand.textMuted }}>
-              {kpi.sub}
-            </p>
-          )}
-        </div>
-      ))}
+    <div className={`grid ${gridClass} gap-3.5`}>
+      {items.map((kpi, i) => {
+        const theme = KPI_COLOR_VARIANTS[i % KPI_COLOR_VARIANTS.length]
+        return (
+          <div
+            key={i}
+            className="rounded-2xl border p-4 sm:p-5 shadow-sm transition-all duration-200 hover:shadow-md"
+            style={{
+              background: theme.bg,
+              borderColor: theme.borderColor,
+            }}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="text-xs sm:text-sm font-semibold text-slate-700">
+                  {kpi.label}
+                </p>
+                <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1.5 tabular-nums">
+                  {kpi.value}
+                </p>
+                {kpi.sub && (
+                  <p className="text-xs text-slate-500 mt-1 font-medium">
+                    {kpi.sub}
+                  </p>
+                )}
+              </div>
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white shadow-sm shrink-0"
+                style={{ background: theme.iconBg }}
+              >
+                <span className="text-xs font-bold">✓</span>
+              </div>
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

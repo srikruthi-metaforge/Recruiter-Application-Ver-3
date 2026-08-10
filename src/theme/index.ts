@@ -22,6 +22,52 @@ export const brand = {
   dangerLight: '#FEF2F2',
 } as const
 
+export interface CardThemeColor {
+  bg: string
+  borderColor: string
+  iconBg: string
+  textColor: string
+}
+
+export const cardThemeColors: Record<string, CardThemeColor> = {
+  purple: {
+    bg: '#F4EFFE',
+    borderColor: '#E9D8FD',
+    iconBg: '#8B5CF6',
+    textColor: '#4C1D95',
+  },
+  mint: {
+    bg: '#E6F8F0',
+    borderColor: '#A7F3D0',
+    iconBg: '#00BA7C',
+    textColor: '#047857',
+  },
+  rose: {
+    bg: '#FDE8EC',
+    borderColor: '#FECDD3',
+    iconBg: '#FF3B68',
+    textColor: '#BE123C',
+  },
+  blue: {
+    bg: '#EBF3FF',
+    borderColor: '#BFDBFE',
+    iconBg: '#2F80ED',
+    textColor: '#1D4ED8',
+  },
+  amber: {
+    bg: '#FFF8E7',
+    borderColor: '#FDE68A',
+    iconBg: '#F2994A',
+    textColor: '#B45309',
+  },
+  indigo: {
+    bg: '#EEF2FF',
+    borderColor: '#C7D2FE',
+    iconBg: '#5B51D8',
+    textColor: '#4338CA',
+  },
+}
+
 export const roleTheme: Record<
   Role,
   {
