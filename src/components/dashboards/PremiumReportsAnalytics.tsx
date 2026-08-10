@@ -59,17 +59,39 @@ export function PremiumReportsAnalytics({ recruiters, role = 'admin' }: PremiumR
         </button>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-        {KPI_DATA.map((kpi, i) => (
-          <div
-            key={i}
-            className="rounded-lg border p-4"
-            style={{ background: brand.surface, borderColor: brand.border }}
-          >
-            <p className="text-xs" style={{ color: brand.textSecondary }}>{kpi.title}</p>
-            <p className="text-xl font-semibold mt-1 tabular-nums" style={{ color: brand.text }}>{kpi.value}</p>
-          </div>
-        ))}
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
+        {KPI_DATA.map((kpi, i) => {
+          const themes = [
+            { bg: '#F4EFFE', borderColor: '#E9D8FD', iconBg: '#8B5CF6' },
+            { bg: '#E6F8F0', borderColor: '#A7F3D0', iconBg: '#00BA7C' },
+            { bg: '#FDE8EC', borderColor: '#FECDD3', iconBg: '#FF3B68' },
+            { bg: '#EBF3FF', borderColor: '#BFDBFE', iconBg: '#2F80ED' },
+            { bg: '#FFF8E7', borderColor: '#FDE68A', iconBg: '#F2994A' },
+            { bg: '#EEF2FF', borderColor: '#C7D2FE', iconBg: '#5B51D8' },
+          ]
+          const theme = themes[i % themes.length]
+
+          return (
+            <div
+              key={i}
+              className="rounded-2xl border p-4 shadow-sm transition-all duration-200 hover:shadow-md"
+              style={{ background: theme.bg, borderColor: theme.borderColor }}
+            >
+              <div className="flex items-start justify-between gap-1.5">
+                <div>
+                  <p className="text-xs font-semibold text-slate-700 truncate">{kpi.title}</p>
+                  <p className="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">{kpi.value}</p>
+                </div>
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5"
+                  style={{ background: theme.iconBg }}
+                >
+                  ✓
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       <div

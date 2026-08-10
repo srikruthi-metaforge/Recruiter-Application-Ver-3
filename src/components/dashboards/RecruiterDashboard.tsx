@@ -93,51 +93,51 @@ export function RecruiterDashboard({
         <h2 className="text-base font-semibold text-slate-800 mb-3">Performance Summary</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Total Submissions */}
-          <div className="bg-[#E6F8F0] border border-emerald-100/80 rounded-2xl p-5 flex items-center justify-between shadow-sm">
+          <div className="bg-[#E6F8F0] border border-[#A7F3D0] rounded-2xl p-5 flex items-center justify-between shadow-sm transition-all duration-200 hover:shadow-md">
             <div>
-              <p className="text-xs font-semibold text-slate-600">Total Submissions</p>
-              <p className="text-3xl font-extrabold text-slate-900 mt-2">
+              <p className="text-xs sm:text-sm font-semibold text-slate-700">Total Submissions</p>
+              <p className="text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">
                 {submissions.length > 0 ? submissions.length : 6}
               </p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-[#00BA7C] text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
+            <div className="w-10 h-10 rounded-full bg-[#00BA7C] text-white flex items-center justify-center shadow-sm shrink-0">
               <Send className="w-5 h-5" />
             </div>
           </div>
 
           {/* Card 2: Interviews Handled */}
-          <div className="bg-[#FFF8E7] border border-amber-100/80 rounded-2xl p-5 flex items-center justify-between shadow-sm">
+          <div className="bg-[#EEF2FF] border border-[#C7D2FE] rounded-2xl p-5 flex items-center justify-between shadow-sm transition-all duration-200 hover:shadow-md">
             <div>
-              <p className="text-xs font-semibold text-slate-600">Interviews Handled</p>
-              <p className="text-3xl font-extrabold text-slate-900 mt-2">
+              <p className="text-xs sm:text-sm font-semibold text-slate-700">Interviews Handled</p>
+              <p className="text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">
                 {interviews.length}
               </p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-[#E69900] text-white flex items-center justify-center shadow-md shadow-amber-500/20">
+            <div className="w-10 h-10 rounded-full bg-[#5B51D8] text-white flex items-center justify-center shadow-sm shrink-0">
               <MessageSquare className="w-5 h-5" />
             </div>
           </div>
 
           {/* Card 3: Selections Achieved */}
-          <div className="bg-[#F6EEFF] border border-purple-100/80 rounded-2xl p-5 flex items-center justify-between shadow-sm">
+          <div className="bg-[#F4EFFE] border border-[#E9D8FD] rounded-2xl p-5 flex items-center justify-between shadow-sm transition-all duration-200 hover:shadow-md">
             <div>
-              <p className="text-xs font-semibold text-slate-600">Selections Achieved</p>
-              <p className="text-3xl font-extrabold text-slate-900 mt-2">0</p>
+              <p className="text-xs sm:text-sm font-semibold text-slate-700">Selections Achieved</p>
+              <p className="text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">0</p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-[#A855F7] text-white flex items-center justify-center shadow-md shadow-purple-500/20">
+            <div className="w-10 h-10 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center shadow-sm shrink-0">
               <CheckCircle2 className="w-5 h-5" />
             </div>
           </div>
 
           {/* Card 4: Assigned Requirements */}
-          <div className="bg-[#EBF3FF] border border-blue-100/80 rounded-2xl p-5 flex items-center justify-between shadow-sm">
+          <div className="bg-[#EBF3FF] border border-[#BFDBFE] rounded-2xl p-5 flex items-center justify-between shadow-sm transition-all duration-200 hover:shadow-md">
             <div>
-              <p className="text-xs font-semibold text-slate-600">Assigned Requirements</p>
-              <p className="text-3xl font-extrabold text-slate-900 mt-2">
+              <p className="text-xs sm:text-sm font-semibold text-slate-700">Assigned Requirements</p>
+              <p className="text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">
                 {filteredReqs.length > 0 ? filteredReqs.length : 1}
               </p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-[#3B82F6] text-white flex items-center justify-center shadow-md shadow-blue-500/20">
+            <div className="w-10 h-10 rounded-full bg-[#2F80ED] text-white flex items-center justify-center shadow-sm shrink-0">
               <ClipboardList className="w-5 h-5" />
             </div>
           </div>
