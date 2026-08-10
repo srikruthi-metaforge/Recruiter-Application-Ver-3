@@ -1,0 +1,10 @@
+{
+  "description": "Streamline recruitment processes with role-based dashboards for super admins, admins, leads, and recruiters to manage submissions and interviews efficiently.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
