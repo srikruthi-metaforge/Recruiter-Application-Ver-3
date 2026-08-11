@@ -46,7 +46,7 @@ export function PremiumReportsAnalytics({ recruiters, role = 'admin' }: PremiumR
   })
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="space-y-6 w-full">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <p className="text-sm" style={{ color: brand.textSecondary }}>
           Performance overview for your team

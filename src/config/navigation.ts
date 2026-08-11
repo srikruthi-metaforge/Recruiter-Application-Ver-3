@@ -23,7 +23,6 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
     {
       title: 'Overview',
       items: [
-        { key: 'Dashboard', label: 'Dashboard' },
         { key: 'Requirements', label: 'Requirements' },
         { key: 'Candidates', label: 'Add Candidates / Repository' },
         { key: 'Submissions', label: 'All Submissions' },
@@ -32,7 +31,6 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
     {
       title: 'Organization',
       items: [
-        { key: 'Organization', label: 'Organization' },
         { key: 'Users', label: 'User Management' },
         { key: 'Roles', label: 'Roles & Permissions' },
       ],
@@ -42,20 +40,17 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       items: [
         { key: 'Clients', label: 'Clients' },
         { key: 'Interviews', label: 'Interviews' },
-        { key: 'Offers', label: 'Offers & Placements' },
       ],
     },
     {
       title: 'Intelligence',
       items: [
-        { key: 'AI Center', label: 'AI Center' },
         { key: 'Reports', label: 'Reports' },
       ],
     },
     {
       title: 'System',
       items: [
-        { key: 'Integrations', label: 'Integrations' },
         { key: 'Settings', label: 'Settings' },
         { key: 'Audit Logs', label: 'Audit Logs' },
       ],
@@ -65,7 +60,6 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
     {
       title: 'Overview',
       items: [
-        { key: 'Dashboard', label: 'Dashboard' },
         { key: 'Requirements', label: 'Requirements' },
         { key: 'Candidates', label: 'Add Candidates / Repository' },
         { key: 'Submissions', label: 'All Submissions' },
@@ -85,7 +79,6 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       items: [
         { key: 'Reports', label: 'Reports' },
         { key: 'Calendar', label: 'Calendar' },
-        { key: 'Documents', label: 'Documents' },
         { key: 'Email Center', label: 'Email Center' },
         { key: 'Activity Logs', label: 'Activity Logs' },
       ],
@@ -120,31 +113,14 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
   ],
   recruiter: [
     {
-      title: 'Overview',
+      title: 'Main',
       items: [
         { key: 'Dashboard', label: 'My Work' },
-        { key: 'Requirements', label: 'My Requirements' },
-        { key: 'Candidates', label: 'Add Candidates / Repository' },
-        { key: 'Submissions', label: 'All Submissions' },
-      ],
-    },
-    {
-      title: 'Work',
-      items: [
-        { key: 'Candidate Search', label: 'Candidate Search' },
-        { key: 'AI Match', label: 'AI Candidate Match' },
-        { key: 'Pipeline', label: 'Candidate Pipeline' },
-        { key: 'Interviews', label: 'Interview Schedule' },
-        { key: 'Offers', label: 'Offer Tracker' },
-      ],
-    },
-    {
-      title: 'Productivity',
-      items: [
-        { key: 'Follow-ups', label: 'Follow-up Tracker' },
-        { key: 'Calendar', label: 'Calendar' },
-        { key: 'Performance', label: 'My Performance' },
-        { key: 'Documents', label: 'Documents' },
+        { key: 'Requirements', label: 'Requirements' },
+        { key: 'Candidates', label: 'Add Candidate' },
+        { key: 'Submissions', label: 'Submissions' },
+        { key: 'Interviews', label: 'Interview Tracking' },
+        { key: 'Reports', label: 'Reports' },
       ],
     },
   ],
@@ -159,7 +135,6 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
         { key: 'Requirements', label: 'My Requirements' },
         { key: 'Submissions', label: 'Candidate Submissions' },
         { key: 'Interviews', label: 'Interview Feedback' },
-        { key: 'Offers', label: 'Offer Status' },
       ],
     },
     {
@@ -167,7 +142,6 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       items: [
         { key: 'Analytics', label: 'Hiring Progress' },
         { key: 'Invoices', label: 'Invoices' },
-        { key: 'Documents', label: 'Documents' },
         { key: 'Contacts', label: 'Company Contacts' },
       ],
     },
@@ -181,6 +155,7 @@ export const UNIVERSAL_NAV: NavItem[] = [
 ]
 
 export function getPageTitle(role: Role, key: string): string {
+  if (key === 'My Profile' || key === 'Profile') return 'My Profile'
   for (const section of ROLE_NAV[role]) {
     const item = section.items.find(i => i.key === key)
     if (item) return item.label
@@ -419,15 +394,9 @@ export const PAGE_META: Record<string, PageMeta> = {
     columns: ['Query', 'Response Preview', 'Time'],
     sampleRows: [['Top candidates for REQ-001?', '3 matches above 90% score…', 'Just now']],
   },
-  Profile: {
-    title: 'Profile Settings',
-    description: 'Account preferences, password, and notification settings.',
-    actions: ['Update Profile', 'Change Password'],
-    columns: ['Setting', 'Value'],
-    sampleRows: [
-      ['Display Name', 'Marcus Chen'],
-      ['Timezone', 'EST (UTC-5)'],
-    ],
+  'My Profile': {
+    title: 'My Profile',
+    description: 'Manage your recruiter profile and login details',
   },
   Calendar: {
     title: 'Calendar',

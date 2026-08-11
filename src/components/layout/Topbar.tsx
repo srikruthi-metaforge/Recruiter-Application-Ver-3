@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Search, Bell, ChevronDown } from 'lucide-react'
 import { Role } from '../../types'
-import { brand, roleTheme } from '../../theme'
+import { brand, appTheme, roleTheme } from '../../theme'
 import { DEMO_ACCOUNTS } from '../../data/mockData'
 import { NotificationPopover } from '../ui/NotificationPopover'
 
@@ -27,7 +27,8 @@ export function Topbar({
 }: TopbarProps) {
   const [isNotifOpen, setIsNotifOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
-  const theme = roleTheme[role]
+  const accent = appTheme.accent
+  const roleLabel = roleTheme[role].label
   const user = DEMO_ACCOUNTS[role]
   const initials = user.name.split(' ').map(n => n[0]).join('')
 
@@ -73,7 +74,7 @@ export function Topbar({
           <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center gap-1.5 p-1 rounded-lg">
             <div
               className="w-7 h-7 rounded-md flex items-center justify-center text-[10px] font-semibold text-white"
-              style={{ background: theme.accent }}
+              style={{ background: accent }}
             >
               {initials}
             </div>
@@ -86,7 +87,7 @@ export function Topbar({
               style={{ background: brand.surface, borderColor: brand.border }}
             >
               <p className="text-xs font-semibold" style={{ color: brand.text }}>{user.name}</p>
-              <p className="text-[10px]" style={{ color: brand.textMuted }}>{theme.label}</p>
+              <p className="text-[10px]" style={{ color: brand.textMuted }}>{roleLabel}</p>
             </div>
           )}
         </div>

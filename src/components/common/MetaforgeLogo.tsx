@@ -11,46 +11,28 @@ export function MetaforgeLogo({
   size = 'md',
   className = '',
 }: MetaforgeLogoProps) {
-  // Size classes
-  const sizeMap = {
-    sm: 'text-lg',
-    md: 'text-2xl',
-    lg: 'text-3xl',
-    xl: 'text-4xl',
+  const heightMap = {
+    sm: 'h-7',
+    md: 'h-10',
+    lg: 'h-13',
+    xl: 'h-15',
   }
-
-  const dotSizeMap = {
-    sm: 'w-1.5 h-1.5',
-    md: 'w-2 h-2',
-    lg: 'w-2.5 h-2.5',
-    xl: 'w-3 h-3',
-  }
-
-  const textColor = variant === 'light' ? 'text-white' : 'text-[#060A44]'
 
   return (
-    <div
-      className={`inline-flex items-baseline font-extrabold tracking-tight font-sans select-none ${className}`}
-    >
-      <span className={`${sizeMap[size]} ${textColor} font-sans`}>
-        metafor
-      </span>
-      {/* Position 'g' and the two dots underneath its descender */}
-      <span className="relative inline-block">
-        <span className={`${sizeMap[size]} ${textColor}`}>g</span>
-        {/* Two dots under the tail of 'g' matching exact logo */}
-        <span className="absolute -bottom-1.5 left-[10%] flex items-center gap-[3px]">
-          <span
-            className={`${dotSizeMap[size]} rounded-full bg-[#00AEEF] inline-block shadow-sm`}
-          />
-          <span
-            className={`${dotSizeMap[size]} rounded-full bg-[#EC008C] inline-block shadow-sm`}
-          />
-        </span>
-      </span>
-      <span className={`${sizeMap[size]} ${textColor} font-sans`}>
-        e
-      </span>
+    <div className={`inline-flex items-center select-none ${className}`}>
+      {variant === 'light' ? (
+        <img
+          src="/metaforge-white-logo.png"
+          alt="metaforge logo"
+          className={`${heightMap[size]} w-auto object-contain mix-blend-screen`}
+        />
+      ) : (
+        <img
+          src="/metaforge-logo.png"
+          alt="metaforge logo"
+          className={`${heightMap[size]} w-auto object-contain`}
+        />
+      )}
     </div>
   )
 }

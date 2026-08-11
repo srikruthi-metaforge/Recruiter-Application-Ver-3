@@ -11,7 +11,7 @@ interface NewRequirementModalProps {
 export function NewRequirementModal({ isOpen, onClose, onAdd }: NewRequirementModalProps) {
   const [title, setTitle] = useState('')
   const [client, setClient] = useState('')
-  const [priority, setPriority] = useState<Priority>('Hot')
+  const [priority, setPriority] = useState<Priority>('High')
   const [openings, setOpenings] = useState(2)
   const [budget, setBudget] = useState('$130k - $160k')
   const [dueDate, setDueDate] = useState('Aug 30, 2026')
@@ -99,7 +99,7 @@ export function NewRequirementModal({ isOpen, onClose, onAdd }: NewRequirementMo
                 onChange={e => setPriority(e.target.value as Priority)}
                 className="w-full h-10 px-3 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-600 focus:bg-white transition-colors font-mono"
               >
-                <option value="Hot">🔥 Hot Requirement</option>
+                <option value="High">🔴 High Priority</option>
                 <option value="Medium">⚡ Medium Priority</option>
                 <option value="Low">💤 Low Priority</option>
               </select>

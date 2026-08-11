@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Lead, Recruiter, Requirement, Candidate } from '../../types'
 import { ChartBlock, Panel, DataTable, AiInsightBanner } from '../wireframe/WireframeKit'
+import { PageHeader } from '../layout/PageHeader'
 import { RequirementsPage } from '../pages/RequirementsPage'
 import { AddCandidatePage } from '../pages/AddCandidatePage'
 import { CandidateRepositoryPage } from '../pages/CandidateRepositoryPage'
@@ -18,12 +19,13 @@ export function AdminDashboard({ leads, recruiters, requirements }: Props) {
   const [candViewMode, setCandViewMode] = useState<'add' | 'repository'>('add')
 
   return (
-    <div className="space-y-8 max-w-7xl">
-      <div className="rounded-lg border px-4 py-3 text-sm" style={{ background: '#FFFBEB', borderColor: '#FDE68A', color: '#92400E' }}>
-        Admin Operations Panel — Full operational control for requirements, recruiters, and submissions.
-      </div>
+    <div className="space-y-8 w-full pb-12 font-sans">
+      <PageHeader
+        title="Operations Dashboard"
+        subtitle="Manage requirements, recruiters, submissions, and team performance"
+      />
 
-      <AiInsightBanner text="2 recruiters are below daily submission target. 5 interviews scheduled today require feedback." />
+      <AiInsightBanner text="Admin Operations Panel — Full operational control for requirements, recruiters, and submissions. 2 recruiters are below daily submission target." />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <ChartBlock title="Recruiter Productivity" />
@@ -32,7 +34,7 @@ export function AdminDashboard({ leads, recruiters, requirements }: Props) {
       </div>
 
       {/* REQUIREMENTS PAGE PLACED AFTER DASHBOARD CHARTS */}
-      <div className="pt-2 border-t border-gray-200">
+      <div className="pt-2 border-t border-slate-200">
         <RequirementsPage
           role="admin"
           requirements={requirements}
@@ -41,7 +43,7 @@ export function AdminDashboard({ leads, recruiters, requirements }: Props) {
       </div>
 
       {/* ADD CANDIDATES & REPOSITORY DIRECTLY BELOW REQUIREMENTS */}
-      <div className="pt-6 border-t border-gray-200">
+      <div className="pt-6 border-t border-slate-200">
         {candViewMode === 'repository' ? (
           <CandidateRepositoryPage
             candidates={candidatesList}
@@ -56,7 +58,7 @@ export function AdminDashboard({ leads, recruiters, requirements }: Props) {
       </div>
 
       {/* ALL SUBMISSIONS DIRECTLY BELOW CANDIDATES */}
-      <div className="pt-6 border-t border-gray-200">
+      <div className="pt-6 border-t border-slate-200">
         <SubmissionsPage />
       </div>
 

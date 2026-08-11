@@ -2,7 +2,7 @@ export type Role = 'superadmin' | 'admin' | 'lead' | 'recruiter' | 'client'
 
 export type AuthScreen = 'role-select' | 'role-login' | 'forgot' | 'app'
 
-export type Priority = 'Hot' | 'High' | 'Medium' | 'Low'
+export type Priority = 'High' | 'Medium' | 'Low'
 export type ReqStatus = 'Active' | 'On Hold' | 'Closed'
 
 export interface Requirement {

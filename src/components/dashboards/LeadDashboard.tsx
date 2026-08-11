@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Interview, Recruiter, Requirement, Candidate } from '../../types'
 import { ChartBlock, Panel, DataTable, AiInsightBanner } from '../wireframe/WireframeKit'
+import { PageHeader } from '../layout/PageHeader'
 import { RequirementsPage } from '../pages/RequirementsPage'
 import { AddCandidatePage } from '../pages/AddCandidatePage'
 import { CandidateRepositoryPage } from '../pages/CandidateRepositoryPage'
@@ -18,7 +19,12 @@ export function LeadDashboard({ recruiters, requirements, interviews }: Props) {
   const [candViewMode, setCandViewMode] = useState<'add' | 'repository'>('add')
 
   return (
-    <div className="space-y-8 max-w-7xl">
+    <div className="space-y-8 w-full pb-12 font-sans">
+      <PageHeader
+        title="Team Dashboard"
+        subtitle="Track recruiter productivity, approvals, and requirement progress"
+      />
+
       <AiInsightBanner text="Aisha Patel is at 50% weekly quota — consider redistributing 1 requirement. 3 submissions pending your approval." />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -28,7 +34,7 @@ export function LeadDashboard({ recruiters, requirements, interviews }: Props) {
       </div>
 
       {/* REQUIREMENTS PAGE PLACED AFTER DASHBOARD CHARTS */}
-      <div className="pt-2 border-t border-gray-200">
+      <div className="pt-2 border-t border-slate-200">
         <RequirementsPage
           role="lead"
           requirements={requirements}
@@ -38,7 +44,7 @@ export function LeadDashboard({ recruiters, requirements, interviews }: Props) {
       </div>
 
       {/* ADD CANDIDATES & REPOSITORY DIRECTLY BELOW REQUIREMENTS */}
-      <div className="pt-6 border-t border-gray-200">
+      <div className="pt-6 border-t border-slate-200">
         {candViewMode === 'repository' ? (
           <CandidateRepositoryPage
             candidates={candidatesList}
@@ -53,7 +59,7 @@ export function LeadDashboard({ recruiters, requirements, interviews }: Props) {
       </div>
 
       {/* ALL SUBMISSIONS DIRECTLY BELOW CANDIDATES */}
-      <div className="pt-6 border-t border-gray-200">
+      <div className="pt-6 border-t border-slate-200">
         <SubmissionsPage />
       </div>
 
