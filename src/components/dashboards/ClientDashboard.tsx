@@ -1,9 +1,15 @@
 import React from 'react'
 import { KpiGrid, ChartBlock, Panel, DataTable, AiInsightBanner } from '../wireframe/WireframeKit'
+import { PageHeader } from '../layout/PageHeader'
 
 export function ClientDashboard() {
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="space-y-8 w-full pb-12 font-sans">
+      <PageHeader
+        title="Client Portal"
+        subtitle="Review submissions, interview progress, offers, and hiring status"
+      />
+
       <AiInsightBanner text="3 candidates are in final interview stage for Senior React Developer. 1 offer pending your approval." />
 
       <KpiGrid

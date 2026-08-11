@@ -28,6 +28,7 @@ interface RequirementCardsGridProps {
   interviews?: Interview[]
   activeCardFilter?: CardFilterType
   onSelectFilter?: (filter: CardFilterType) => void
+  onCreateNewJobDemand?: () => void
   title?: string
   badgeLabel?: string
 }
@@ -38,7 +39,8 @@ export function RequirementCardsGrid({
   interviews = [],
   activeCardFilter = 'ALL',
   onSelectFilter,
-  title = 'Requirements Overview',
+  onCreateNewJobDemand,
+  title = 'Requirements Dashboard',
   badgeLabel,
 }: RequirementCardsGridProps) {
   // Compute dynamic 8 stats
@@ -108,18 +110,18 @@ export function RequirementCardsGrid({
       label: 'Assigned',
       value: assignedCount,
       icon: UserCheck,
-      bg: '#EBF3FF',
+      bg: '#EBF3FE',
       borderColor: '#BFDBFE',
-      iconBg: '#2F80ED',
+      iconBg: '#3B82F6',
     },
     {
       key: 'IN_PROGRESS' as CardFilterType,
       label: 'In Progress',
       value: inProgressCount,
-      icon: Send,
-      bg: '#FFF8E7',
+      icon: Clock,
+      bg: '#FEF6E6',
       borderColor: '#FDE68A',
-      iconBg: '#F2994A',
+      iconBg: '#F59E0B',
     },
     {
       key: 'INTERVIEWS' as CardFilterType,
@@ -128,7 +130,7 @@ export function RequirementCardsGrid({
       icon: Video,
       bg: '#EEF2FF',
       borderColor: '#C7D2FE',
-      iconBg: '#5B51D8',
+      iconBg: '#6366F1',
     },
     {
       key: 'SELECTIONS' as CardFilterType,
@@ -152,24 +154,42 @@ export function RequirementCardsGrid({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-bold tracking-tight text-gray-900 flex items-center gap-2">
-          {title}
-          {badgeLabel && (
-            <span className="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full capitalize">
-              {badgeLabel}
-            </span>
-          )}
-        </h2>
-        {activeCardFilter !== 'ALL' && onSelectFilter && (
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+            {title}
+            {badgeLabel && (
+              <span className="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full capitalize">
+                {badgeLabel}
+              </span>
+            )}
+          </h2>
+          <p className="text-xs text-gray-400 font-normal mt-0.5">
+            Track and manage all hiring requirements
+          </p>
+        </div>
+
+        {onCreateNewJobDemand && (
+          <button
+            onClick={onCreateNewJobDemand}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs hover:shadow transition-all cursor-pointer flex items-center gap-1.5 w-fit shrink-0"
+          >
+            <span className="text-sm leading-none font-extrabold">+</span>
+            <span>Create New Job Demand</span>
+          </button>
+        )}
+      </div>
+
+      {activeCardFilter !== 'ALL' && onSelectFilter && (
+        <div className="flex justify-end">
           <button
             onClick={() => onSelectFilter('ALL')}
             className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-md transition-colors"
           >
             <RefreshCw className="w-3 h-3" /> Reset Filter
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map(card => {

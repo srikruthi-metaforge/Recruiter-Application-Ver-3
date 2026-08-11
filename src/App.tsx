@@ -9,11 +9,10 @@ import {
   INITIAL_SUBMISSIONS,
   DEMO_ACCOUNTS,
 } from './data/mockData'
-import { brand, roleTheme } from './theme'
-import { getPageTitle } from './config/navigation'
+import { brand } from './theme'
 
 import { Sidebar } from './components/layout/Sidebar'
-import { Topbar } from './components/layout/Topbar'
+import { PageContainer } from './components/layout/PageContainer'
 
 import { SuperAdminDashboard } from './components/dashboards/SuperAdminDashboard'
 import { AdminDashboard } from './components/dashboards/AdminDashboard'
@@ -32,11 +31,26 @@ import { InterviewFeedbackModal } from './components/modals/InterviewFeedbackMod
 import { CandidateDetailModal } from './components/modals/CandidateDetailModal'
 
 export default function App() {
-  const [screen, setScreen] = useState<AuthScreen>('role-select')
-  const [loginRole, setLoginRole] = useState<Role>('recruiter')
-  const [role, setRole] = useState<Role>('recruiter')
+  const [role, setRole] = useState<Role>(() => {
+    try {
+      const savedRole = localStorage.getItem('metaforge_user_role') as Role
+      return savedRole || 'recruiter'
+    } catch {
+      return 'recruiter'
+    }
+  })
+
+  const [screen, setScreen] = useState<AuthScreen>(() => {
+    try {
+      const savedSession = localStorage.getItem('metaforge_session_active')
+      return savedSession === 'true' ? 'app' : 'role-select'
+    } catch {
+      return 'role-select'
+    }
+  })
+
+  const [loginRole, setLoginRole] = useState<Role>(role)
   const [activeNav, setActiveNav] = useState('Dashboard')
-  const [searchQuery, setSearchQuery] = useState('')
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   const [requirements, setRequirements] = useState<Requirement[]>(INITIAL_REQUIREMENTS)
@@ -57,9 +71,14 @@ export default function App() {
   const currentUser = DEMO_ACCOUNTS[role]
 
   const handleLogout = () => {
+    try {
+      localStorage.removeItem('metaforge_session_active')
+      localStorage.removeItem('metaforge_user_role')
+    } catch (e) {
+      // ignore
+    }
     setScreen('role-select')
     setActiveNav('Dashboard')
-    setSearchQuery('')
   }
 
   const handleNavSelect = (nav: string) => setActiveNav(nav)
@@ -101,11 +120,6 @@ export default function App() {
     setIsCandidateDetailOpen(true)
   }
 
-  const handleNewReqClick = () => {
-    if (role === 'recruiter') handleOpenSubmitForReq()
-    else setIsNewReqOpen(true)
-  }
-
   if (screen === 'role-select') {
     return (
       <RoleSelectPage
@@ -123,7 +137,17 @@ export default function App() {
         role={loginRole}
         onLogin={r => {
           setRole(r)
-          setActiveNav('Dashboard')
+          try {
+            localStorage.setItem('metaforge_session_active', 'true')
+            localStorage.setItem('metaforge_user_role', r)
+          } catch (e) {
+            // ignore
+          }
+          if (r === 'superadmin' || r === 'admin') {
+            setActiveNav('Requirements')
+          } else {
+            setActiveNav('Dashboard')
+          }
           setScreen('app')
         }}
         onBack={() => setScreen('role-select')}
@@ -141,20 +165,48 @@ export default function App() {
     )
   }
 
-  const pageTitle = getPageTitle(role, activeNav)
-
   const renderContent = () => {
     if (activeNav === 'Dashboard') {
-      return (
-        <RecruiterDashboard
-          submissions={submissions}
-          interviews={interviews}
-          requirements={requirements}
-          onOpenSubmitCandidate={handleOpenSubmitForReq}
-          onOpenFeedbackModal={handleOpenFeedbackForInterview}
-          onOpenCandidateDetail={handleOpenCandidateDetail}
-        />
-      )
+      switch (role) {
+        case 'superadmin':
+        case 'admin':
+          // Dashboard removed for Super Admin and Admin - fall back to Requirements
+          return (
+            <ModulePage
+              pageKey="Requirements"
+              role={role}
+              requirements={requirements}
+              submissions={submissions}
+              interviews={interviews}
+              recruiters={recruiters}
+              onOpenSubmit={handleOpenSubmitForReq}
+              onOpenFeedback={handleOpenFeedbackForInterview}
+              onOpenCandidate={handleOpenCandidateDetail}
+              onUpdateRequirements={setRequirements}
+            />
+          )
+        case 'lead':
+          return (
+            <LeadDashboard
+              recruiters={recruiters}
+              requirements={requirements}
+              interviews={interviews}
+            />
+          )
+        case 'client':
+          return <ClientDashboard />
+        default:
+          return (
+            <RecruiterDashboard
+              submissions={submissions}
+              interviews={interviews}
+              requirements={requirements}
+              onOpenSubmitCandidate={handleOpenSubmitForReq}
+              onOpenFeedbackModal={handleOpenFeedbackForInterview}
+              onOpenCandidateDetail={handleOpenCandidateDetail}
+            />
+          )
+      }
     }
 
     return (
@@ -168,11 +220,10 @@ export default function App() {
         onOpenSubmit={role !== 'client' ? handleOpenSubmitForReq : undefined}
         onOpenFeedback={handleOpenFeedbackForInterview}
         onOpenCandidate={handleOpenCandidateDetail}
+        onUpdateRequirements={setRequirements}
       />
     )
   }
-
-  const canCreate = role === 'superadmin' || role === 'admin' || role === 'recruiter'
 
   return (
     <div className="flex h-screen overflow-hidden font-body" style={{ background: brand.background }}>
@@ -186,20 +237,9 @@ export default function App() {
       />
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <Topbar
-          title={pageTitle}
-          subtitle={`${currentUser.name} · ${roleTheme[role].label}`}
-          role={role}
-          onNewReqClick={canCreate ? handleNewReqClick : undefined}
-          onSearchChange={setSearchQuery}
-          searchValue={searchQuery}
-          onSignOut={handleLogout}
-          showNewReq={canCreate && activeNav === 'Dashboard'}
-          isSidebarCollapsed={isSidebarCollapsed}
-          onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        />
-
-        <main className="flex-1 overflow-y-auto p-6">{renderContent()}</main>
+        <main className="flex-1 overflow-y-auto w-full min-w-0 px-4 py-5 lg:px-6 xl:px-8 app-main-content">
+          <PageContainer>{renderContent()}</PageContainer>
+        </main>
       </div>
 
       <NewRequirementModal isOpen={isNewReqOpen} onClose={() => setIsNewReqOpen(false)} onAdd={handleAddRequirement} />

@@ -8,8 +8,7 @@ interface PriorityBadgeProps {
 
 export function PriorityBadge({ priority }: PriorityBadgeProps) {
   const colors: Record<Priority, { bg: string; text: string }> = {
-    Hot: { bg: '#FEF2F2', text: '#DC2626' },
-    High: { bg: '#FFF7ED', text: '#EA580C' },
+    High: { bg: '#FEF2F2', text: '#DC2626' },
     Medium: { bg: '#FFFBEB', text: '#D97706' },
     Low: { bg: '#F3F4F6', text: '#6B7280' },
   }

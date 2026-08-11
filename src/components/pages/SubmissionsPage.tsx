@@ -1,5 +1,8 @@
 import React, { useState, useMemo } from 'react'
 import { Submission } from '../../types'
+import { PaginationFooter } from '../ui/PaginationFooter'
+import { PageHeader } from '../layout/PageHeader'
+import { SubmissionCandidateDetailModal } from '../modals/SubmissionCandidateDetailModal'
 import {
   Search,
   ChevronDown,
@@ -32,7 +35,7 @@ interface ScreenshotSubmission {
 const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
   {
     id: 'SUB-001',
-    candidateName: 'TEJENDRA RAMAN,',
+    candidateName: 'TEJENDRA RAMAN',
     requirement: 'DPS NET backend BLR HYD',
     experience: '9 Years',
     currentCompany: 'HCL Technologies Ltd',
@@ -48,7 +51,7 @@ const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
     currentCompany: 'LTI Mindtree',
     submittedBy: 'Suresh kulkarni',
     submittedOn: 'Aug 06, 26',
-    status: 'Submitted to Client',
+    status: 'Submitted to Lead',
   },
   {
     id: 'SUB-003',
@@ -59,7 +62,7 @@ const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
       'AUMOVIO SE (India) Pvt. Ltd (Formerly Continental Automotive Pvt Ltd)',
     submittedBy: 'Harini Sindey',
     submittedOn: 'Aug 06, 26',
-    status: 'Submitted to Client',
+    status: 'Interview',
   },
   {
     id: 'SUB-004',
@@ -79,7 +82,7 @@ const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
     currentCompany: 'Tech Systems India',
     submittedBy: 'rahimoon Shaik',
     submittedOn: 'Aug 06, 26',
-    status: 'Submitted to Client',
+    status: 'Submitted',
   },
   {
     id: 'SUB-006',
@@ -89,7 +92,7 @@ const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
     currentCompany: 'Infosys Pvt Ltd',
     submittedBy: 'lakshmi.v Recruiter',
     submittedOn: 'Aug 06, 26',
-    status: 'Submitted to Client',
+    status: 'Selected',
   },
   {
     id: 'SUB-007',
@@ -99,7 +102,7 @@ const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
     currentCompany: 'Wood India Engineering Project Pvt Ltd',
     submittedBy: 'Harini Sindey',
     submittedOn: 'Aug 06, 26',
-    status: 'Submitted to Client',
+    status: 'Rejected',
   },
   {
     id: 'SUB-008',
@@ -109,7 +112,7 @@ const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
     currentCompany: 'Wood India Engineering Project Pvt Ltd',
     submittedBy: 'Harini Sindey',
     submittedOn: 'Aug 06, 26',
-    status: 'Submitted to Client',
+    status: 'Submitted to Lead',
   },
   {
     id: 'SUB-009',
@@ -128,7 +131,9 @@ export function SubmissionsPage({
   onOpenSubmitCandidate,
 }: SubmissionsPageProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [dateFilter, setDateFilter] = useState('All dates')
+  const [dateFilter, setDateFilter] = useState('All Dates')
+  const [customStartDate, setCustomStartDate] = useState('')
+  const [customEndDate, setCustomEndDate] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [selectedSub, setSelectedSub] = useState<ScreenshotSubmission | null>(
     null
@@ -168,63 +173,86 @@ export function SubmissionsPage({
         }
       }
 
+      // Date filter
+      if (dateFilter !== 'All Dates' && dateFilter !== 'All dates') {
+        const d = item.submittedOn || ''
+        if (dateFilter === 'Today') {
+          if (!d.includes('Aug 06') && !d.includes('Today')) return false
+        } else if (dateFilter === 'Yesterday') {
+          if (!d.includes('Aug 05') && !d.includes('Yesterday')) return false
+        } else if (dateFilter === 'Last 7 days' || dateFilter === 'This week') {
+          if (!d.includes('Aug 0') && !d.includes('Aug 06') && !d.includes('Aug 05')) return false
+        } else if (dateFilter === 'Last week') {
+          if (!d.includes('Jul 3') && !d.includes('Aug 01')) return false
+        } else if (dateFilter === 'This month') {
+          if (!d.includes('Aug')) return false
+        } else if (dateFilter === 'Last month') {
+          if (!d.includes('Jul')) return false
+        } else if (dateFilter === 'This year') {
+          if (!d.includes('26') && !d.includes('2026')) return false
+        } else if (dateFilter === 'Custom range') {
+          if (customStartDate && d < customStartDate) return false
+          if (customEndDate && d > customEndDate) return false
+        }
+      }
+
       // Status filter
       if (statusFilter !== 'All') {
-        if (
-          statusFilter === 'Submitted to Client' &&
-          !item.status.includes('Submitted')
-        )
-          return false
-        if (statusFilter === 'Interview Scheduled' && !item.status.includes('Interview'))
-          return false
-        if (statusFilter === 'Placed' && !item.status.includes('Placed'))
-          return false
+        const itemStatus = item.status.toLowerCase().trim()
+        const filterVal = statusFilter.toLowerCase().trim()
+
+        if (filterVal === 'submitted to lead') {
+          if (!itemStatus.includes('lead')) return false
+        } else if (filterVal === 'submitted to client') {
+          if (!itemStatus.includes('client')) return false
+        } else if (filterVal === 'submitted') {
+          if (itemStatus !== 'submitted' && !itemStatus.includes('submit')) return false
+        } else if (filterVal === 'interview') {
+          if (!itemStatus.includes('interview')) return false
+        } else if (filterVal === 'selected') {
+          if (!itemStatus.includes('select') && !itemStatus.includes('place')) return false
+        } else if (filterVal === 'rejected') {
+          if (!itemStatus.includes('reject')) return false
+        }
       }
 
       return true
     })
-  }, [combinedSubmissions, searchQuery, statusFilter])
+  }, [combinedSubmissions, searchQuery, dateFilter, customStartDate, customEndDate, statusFilter])
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+
+  const paginatedSubmissions = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredData.slice(start, start + pageSize)
+  }, [filteredData, currentPage, pageSize])
 
   return (
-    <div className="space-y-6 max-w-[1400px] mx-auto pb-16">
-      {/* PAGE TITLE & SUBTITLE (MATCHING SCREENSHOT) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-gray-900">
-            All Submissions
-          </h1>
-          <p className="text-xs text-gray-500 mt-0.5">
-            View and manage all candidate submissions
-          </p>
-        </div>
+    <div className="space-y-6 w-full pb-16 font-sans">
+      <PageHeader
+        title="All Submissions"
+        subtitle="View and manage all candidate submissions"
+      />
 
-        {onOpenSubmitCandidate && (
-          <button
-            onClick={onOpenSubmitCandidate}
-            className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-sm transition-all shrink-0"
-          >
-            + Submit Candidate
-          </button>
-        )}
-      </div>
-
-      {/* SEARCH AND FILTERS BAR (MATCHING SCREENSHOT) */}
-      <div className="bg-white rounded-xl border border-gray-200 p-3.5 shadow-sm">
+      {/* SEARCH AND FILTERS BAR */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-sm">
         <div className="flex flex-col sm:flex-row items-center gap-3 justify-between">
           {/* Search Bar */}
           <div className="relative w-full sm:w-96">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Search by candidate name or company..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-9 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-800 placeholder-gray-400 bg-gray-50/50"
+              className="w-full pl-10 pr-9 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-800 placeholder-slate-400 bg-slate-50/50"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-semibold rounded-full w-4 h-4 flex items-center justify-center bg-gray-200"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-semibold rounded-full w-4 h-4 flex items-center justify-center bg-slate-200"
               >
                 ✕
               </button>
@@ -232,46 +260,74 @@ export function SubmissionsPage({
           </div>
 
           {/* Right Filter Dropdowns */}
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
             {/* Date filter dropdown */}
-            <div className="relative w-full sm:w-36">
+            <div className="relative w-full sm:w-40">
               <select
                 value={dateFilter}
                 onChange={e => setDateFilter(e.target.value)}
-                className="w-full appearance-none pl-3.5 pr-8 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-700 bg-white font-medium cursor-pointer"
+                className="w-full appearance-none pl-3.5 pr-8 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-700 bg-white font-medium cursor-pointer"
               >
-                <option value="All dates">All dates</option>
+                <option value="All Dates">All Dates</option>
                 <option value="Today">Today</option>
-                <option value="This Week">This Week</option>
-                <option value="Aug 06, 26">Aug 06, 26</option>
+                <option value="Yesterday">Yesterday</option>
+                <option value="Last 7 days">Last 7 days</option>
+                <option value="This week">This week</option>
+                <option value="Last week">Last week</option>
+                <option value="This month">This month</option>
+                <option value="Last month">Last month</option>
+                <option value="This year">This year</option>
+                <option value="Custom range">Custom range</option>
               </select>
-              <ChevronDown className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <ChevronDown className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
 
+            {/* Custom Range Date Pickers */}
+            {dateFilter === 'Custom range' && (
+              <div className="flex items-center gap-2 animate-in fade-in duration-150">
+                <input
+                  type="date"
+                  value={customStartDate}
+                  onChange={e => setCustomStartDate(e.target.value)}
+                  className="px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:border-[#6B3BF6]"
+                />
+                <span className="text-xs text-slate-400">to</span>
+                <input
+                  type="date"
+                  value={customEndDate}
+                  onChange={e => setCustomEndDate(e.target.value)}
+                  className="px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:border-[#6B3BF6]"
+                />
+              </div>
+            )}
+
             {/* Status filter dropdown */}
-            <div className="relative w-full sm:w-36">
+            <div className="relative w-full sm:w-44">
               <select
                 value={statusFilter}
                 onChange={e => setStatusFilter(e.target.value)}
-                className="w-full appearance-none pl-3.5 pr-8 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-700 bg-white font-medium cursor-pointer"
+                className="w-full appearance-none pl-3.5 pr-8 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-700 bg-white font-medium cursor-pointer"
               >
                 <option value="All">All</option>
-                <option value="Submitted to Client">Submitted to Client</option>
-                <option value="Interview Scheduled">Interview Scheduled</option>
-                <option value="Placed">Placed</option>
+                <option value="Submitted to lead">Submitted to lead</option>
+                <option value="Submitted to client">Submitted to client</option>
+                <option value="Submitted">Submitted</option>
+                <option value="Interview">Interview</option>
+                <option value="Selected">Selected</option>
+                <option value="Rejected">Rejected</option>
               </select>
-              <ChevronDown className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <ChevronDown className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
           </div>
         </div>
       </div>
 
       {/* SUBMISSIONS DATA TABLE (MATCHING SCREENSHOT) */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-500 uppercase tracking-wider font-semibold">
+              <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
                 <th className="py-3 px-4 font-bold">CANDIDATE NAME</th>
                 <th className="py-3 px-4 font-bold">REQUIREMENT</th>
                 <th className="py-3 px-4 font-bold">EXPERIENCE</th>
@@ -283,55 +339,58 @@ export function SubmissionsPage({
                 <th className="py-3 px-4 font-bold">STATUS</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-gray-400">
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
                     <p className="text-sm font-medium">
                       No submissions match your query.
                     </p>
                   </td>
                 </tr>
               ) : (
-                filteredData.map(item => (
+                paginatedSubmissions.map(item => (
                   <tr
                     key={item.id}
                     onClick={() => setSelectedSub(item)}
                     className="hover:bg-blue-50/30 transition-colors cursor-pointer"
                   >
-                    {/* Candidate Name */}
-                    <td className="py-3.5 px-4 font-bold text-gray-900 whitespace-nowrap">
+                    <td className="py-3.5 px-4 font-bold text-[#6B3BF6] hover:underline">
                       {item.candidateName}
                     </td>
-
-                    {/* Requirement */}
-                    <td className="py-3.5 px-4 text-gray-800 font-medium whitespace-nowrap">
-                      {item.requirement}
+                    <td className="py-3.5 px-4 max-w-xs">
+                      <div className="font-semibold text-slate-900 leading-snug line-clamp-2">
+                        {item.requirement}
+                      </div>
                     </td>
-
-                    {/* Experience */}
-                    <td className="py-3.5 px-4 text-gray-700 whitespace-nowrap">
+                    <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
                       {item.experience}
                     </td>
-
-                    {/* Current Company */}
-                    <td className="py-3.5 px-4 text-gray-700 max-w-xs truncate">
-                      {item.currentCompany || '—'}
+                    <td className="py-3.5 px-4 text-slate-700 font-medium whitespace-nowrap">
+                      {item.currentCompany}
                     </td>
-
-                    {/* Submitted By */}
-                    <td className="py-3.5 px-4 text-gray-700 whitespace-nowrap">
+                    <td className="py-3.5 px-4 text-slate-700 font-medium whitespace-nowrap">
                       {item.submittedBy}
                     </td>
-
-                    {/* Submitted On */}
-                    <td className="py-3.5 px-4 text-gray-600 whitespace-nowrap">
+                    <td className="py-3.5 px-4 text-slate-600 whitespace-nowrap">
                       {item.submittedOn}
                     </td>
-
-                    {/* Status Pill (Blue Light Rounded Badge) */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <span className="inline-block px-3 py-1 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-600 border border-blue-100">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded text-[11px] font-bold border ${
+                          item.status.toLowerCase().includes('select')
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : item.status.toLowerCase().includes('reject')
+                              ? 'bg-rose-50 text-rose-700 border-rose-200'
+                              : item.status.toLowerCase().includes('interview')
+                                ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                : item.status.toLowerCase().includes('lead')
+                                  ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                  : item.status.toLowerCase().includes('client')
+                                    ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                    : 'bg-sky-50 text-sky-700 border-sky-200'
+                        }`}
+                      >
                         {item.status}
                       </span>
                     </td>
@@ -341,79 +400,27 @@ export function SubmissionsPage({
             </tbody>
           </table>
         </div>
+
+        {/* PAGINATION FOOTER */}
+        <PaginationFooter
+          currentPage={currentPage}
+          totalPages={Math.ceil(filteredData.length / pageSize)}
+          totalItems={filteredData.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          itemLabel="submissions"
+        />
       </div>
 
-      {/* DETAIL MODAL */}
-      {selectedSub && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3 border-gray-100">
-              <div>
-                <h3 className="text-base font-bold text-gray-900">
-                  {selectedSub.candidateName}
-                </h3>
-                <p className="text-xs text-gray-500">
-                  Submission ID: {selectedSub.id}
-                </p>
-              </div>
-              <button
-                onClick={() => setSelectedSub(null)}
-                className="text-gray-400 hover:text-gray-600 text-lg font-bold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-2.5 text-xs text-gray-700">
-              <div className="flex justify-between py-1 border-b border-gray-50">
-                <span className="text-gray-400 font-medium">Requirement:</span>
-                <span className="font-bold text-gray-900">
-                  {selectedSub.requirement}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-gray-50">
-                <span className="text-gray-400 font-medium">Experience:</span>
-                <span className="font-semibold text-gray-900">
-                  {selectedSub.experience}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-gray-50">
-                <span className="text-gray-400 font-medium">Current Company:</span>
-                <span className="font-semibold text-gray-900 truncate max-w-[200px]">
-                  {selectedSub.currentCompany || 'N/A'}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-gray-50">
-                <span className="text-gray-400 font-medium">Submitted By:</span>
-                <span className="font-semibold text-gray-900">
-                  {selectedSub.submittedBy}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-gray-50">
-                <span className="text-gray-400 font-medium">Submitted On:</span>
-                <span className="font-semibold text-gray-900">
-                  {selectedSub.submittedOn}
-                </span>
-              </div>
-              <div className="flex justify-between py-1">
-                <span className="text-gray-400 font-medium">Status:</span>
-                <span className="font-bold text-blue-600">
-                  {selectedSub.status}
-                </span>
-              </div>
-            </div>
-
-            <div className="pt-3 flex justify-end">
-              <button
-                onClick={() => setSelectedSub(null)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-semibold"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* DETAIL OVERVIEW MODAL (MATCHING SCREENSHOT) */}
+      <SubmissionCandidateDetailModal
+        submission={selectedSub}
+        onClose={() => setSelectedSub(null)}
+        onViewFullProfile={sub => {
+          setSelectedSub(null)
+        }}
+      />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Admin, Interview, Recruiter, Requirement, Candidate } from '../../types'
 import { KpiGrid, ChartBlock, Panel, DataTable, AiInsightBanner, ActivityFeed, WorkflowStrip } from '../wireframe/WireframeKit'
+import { PageHeader } from '../layout/PageHeader'
 import { RequirementsPage } from '../pages/RequirementsPage'
 import { AddCandidatePage } from '../pages/AddCandidatePage'
 import { CandidateRepositoryPage } from '../pages/CandidateRepositoryPage'
@@ -13,15 +14,21 @@ interface Props {
   recruiters: Recruiter[]
   requirements: Requirement[]
   interviews: Interview[]
+  onUpdateRequirements?: (requirements: Requirement[]) => void
 }
 
-export function SuperAdminDashboard({ admins, recruiters, requirements, interviews }: Props) {
+export function SuperAdminDashboard({ admins, recruiters, requirements, interviews, onUpdateRequirements }: Props) {
   const openPositions = requirements.reduce((a, r) => a + r.openings, 0)
   const [candidatesList, setCandidatesList] = useState<Candidate[]>(INITIAL_CANDIDATES)
   const [candViewMode, setCandViewMode] = useState<'add' | 'repository'>('add')
 
   return (
-    <div className="space-y-8 max-w-7xl">
+    <div className="space-y-8 w-full pb-12 font-sans">
+      <PageHeader
+        title="Executive Dashboard"
+        subtitle="Platform-wide metrics, clients, and enterprise performance"
+      />
+
       <AiInsightBanner text="3 requirements are at SLA risk. AI recommends reassigning 2 recruiters to Critical priority roles. Duplicate resume rate dropped 4% this week." />
 
       <KpiGrid
@@ -53,17 +60,18 @@ export function SuperAdminDashboard({ admins, recruiters, requirements, intervie
       </div>
 
       {/* REQUIREMENTS PAGE SECTION DIRECTLY ON DASHBOARD */}
-      <div className="pt-2 border-t border-gray-200">
+      <div className="pt-2 border-t border-slate-200">
         <RequirementsPage
           role="superadmin"
           requirements={requirements}
           interviews={interviews}
           recruiters={recruiters}
+          onUpdateRequirements={onUpdateRequirements}
         />
       </div>
 
       {/* ADD CANDIDATES & CANDIDATE REPOSITORY DIRECTLY BELOW REQUIREMENTS PAGE */}
-      <div className="pt-6 border-t border-gray-200">
+      <div className="pt-6 border-t border-slate-200">
         {candViewMode === 'repository' ? (
           <CandidateRepositoryPage
             candidates={candidatesList}
@@ -78,7 +86,7 @@ export function SuperAdminDashboard({ admins, recruiters, requirements, intervie
       </div>
 
       {/* ALL SUBMISSIONS SECTION DIRECTLY BELOW CANDIDATES */}
-      <div className="pt-6 border-t border-gray-200">
+      <div className="pt-6 border-t border-slate-200">
         <SubmissionsPage />
       </div>
 

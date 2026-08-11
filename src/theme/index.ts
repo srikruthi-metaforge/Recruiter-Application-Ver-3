@@ -22,6 +22,17 @@ export const brand = {
   dangerLight: '#FEF2F2',
 } as const
 
+/** In-app UI accent — unified metaforge purple (auth pages keep roleTheme) */
+export const appTheme = {
+  accent: '#6B3BF6',
+  accentHover: '#5833E0',
+  accentLight: '#F4EFFE',
+  sidebarGradient: 'linear-gradient(180deg, #0A1424 0%, #0D1B30 100%)',
+  navActiveGradient: 'linear-gradient(135deg, #6B3BF6 0%, #5833E0 100%)',
+} as const
+
+export const kpiVariantKeys = ['purple', 'mint', 'rose', 'blue', 'amber', 'indigo'] as const
+
 export interface CardThemeColor {
   bg: string
   borderColor: string
