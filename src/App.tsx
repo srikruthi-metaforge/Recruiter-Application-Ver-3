@@ -201,12 +201,25 @@ export default function App() {
               submissions={submissions}
               interviews={interviews}
               requirements={requirements}
-              onOpenSubmitCandidate={handleOpenSubmitForReq}
+              onOpenSubmitCandidate={() => setActiveNav('Candidates')}
               onOpenFeedbackModal={handleOpenFeedbackForInterview}
               onOpenCandidateDetail={handleOpenCandidateDetail}
             />
           )
       }
+    }
+
+    if (activeNav === 'Requirements' && role === 'recruiter') {
+      return (
+        <RecruiterDashboard
+          submissions={submissions}
+          interviews={interviews}
+          requirements={requirements}
+          onOpenSubmitCandidate={() => setActiveNav('Candidates')}
+          onOpenFeedbackModal={handleOpenFeedbackForInterview}
+          onOpenCandidateDetail={handleOpenCandidateDetail}
+        />
+      )
     }
 
     return (

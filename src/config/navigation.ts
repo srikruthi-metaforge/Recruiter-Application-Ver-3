@@ -116,7 +116,6 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Main',
       items: [
         { key: 'Dashboard', label: 'My Work' },
-        { key: 'Requirements', label: 'Requirements' },
         { key: 'Candidates', label: 'Add Candidate' },
         { key: 'Submissions', label: 'Submissions' },
         { key: 'Interviews', label: 'Interview Tracking' },

@@ -134,7 +134,7 @@ export function Sidebar({
       </div>
 
       {/* Primary navigation */}
-      <nav className="flex-1 py-4 px-3 space-y-1.5 overflow-y-auto sidebar-scroll">
+      <nav className="flex-1 py-3 px-3 space-y-2 overflow-y-auto sidebar-scroll">
         {mainNavItems.map(item => {
           const Icon = ICONS[item.key] || LayoutDashboard
           const isActive = activeNav === item.key
@@ -144,9 +144,9 @@ export function Sidebar({
             <div key={item.key} className="relative group">
               <button
                 onClick={() => onNavSelect?.(item.key)}
-                className={`w-full flex items-center gap-3 rounded-xl transition-all duration-200 ${isCollapsed ? 'justify-center py-3' : 'px-3 py-2.5'
+                className={`w-full flex items-center gap-3 rounded-xl transition-all duration-200 ${isCollapsed ? 'justify-center py-2' : 'px-3 py-2'
                   } ${isActive
-                    ? 'text-white font-semibold shadow-lg shadow-[#6B3BF6]/25'
+                    ? 'text-white font-bold shadow-md shadow-[#6B3BF6]/20'
                     : 'text-slate-300 hover:text-white hover:bg-white/[0.06] font-medium'
                   }`}
                 style={
@@ -156,12 +156,12 @@ export function Sidebar({
                 }
               >
                 <div
-                  className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${isActive ? 'bg-white/20' : 'bg-white/[0.08] group-hover:bg-white/12'
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isActive ? 'bg-white/20' : 'bg-white/[0.08] group-hover:bg-white/12'
                     }`}
                 >
-                  <Icon className="w-[18px] h-[18px] text-white" strokeWidth={2} />
+                  <Icon className="w-4 h-4 text-white" strokeWidth={2} />
                 </div>
-                {!isCollapsed && <span className="text-[13px] tracking-tight truncate">{label}</span>}
+                {!isCollapsed && <span className="text-sm font-semibold tracking-tight truncate">{label}</span>}
               </button>
               {isCollapsed && (
                 <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2.5 py-1.5 bg-slate-900 text-white text-xs rounded-md shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 border border-slate-700">
@@ -174,13 +174,13 @@ export function Sidebar({
       </nav>
 
       {/* Footer — My Profile + Logout */}
-      <div className="p-3 border-t border-white/[0.06] space-y-1 flex-shrink-0 mt-auto">
+      <div className="p-3 border-t border-white/[0.06] space-y-2 flex-shrink-0 mt-auto">
         <div className="relative group">
           <button
             onClick={() => onNavSelect?.('My Profile')}
-            className={`w-full flex items-center gap-3 rounded-xl transition-all ${isCollapsed ? 'justify-center py-3' : 'px-3 py-2.5'
+            className={`w-full flex items-center gap-3 rounded-xl transition-all ${isCollapsed ? 'justify-center py-2' : 'px-3 py-2'
               } ${activeNav === 'My Profile' || activeNav === 'Profile'
-                ? 'text-white font-semibold'
+                ? 'text-white font-bold shadow-md shadow-[#6B3BF6]/20'
                 : 'text-slate-300 hover:text-white hover:bg-white/[0.06] font-medium'
               }`}
             style={
@@ -189,10 +189,10 @@ export function Sidebar({
                 : undefined
             }
           >
-            <div className="w-9 h-9 rounded-lg bg-white/[0.08] flex items-center justify-center shrink-0">
-              <User className="w-[18px] h-[18px] text-white" strokeWidth={2} />
+            <div className="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center shrink-0">
+              <User className="w-4 h-4 text-white" strokeWidth={2} />
             </div>
-            {!isCollapsed && <span className="text-[13px] font-medium">My Profile</span>}
+            {!isCollapsed && <span className="text-sm font-semibold">My Profile</span>}
           </button>
         </div>
 
@@ -200,13 +200,13 @@ export function Sidebar({
           <div className="relative group">
             <button
               onClick={onLogout}
-              className={`w-full flex items-center gap-3 rounded-xl text-slate-400 hover:text-rose-300 hover:bg-rose-500/10 transition-all ${isCollapsed ? 'justify-center py-3' : 'px-3 py-2.5'
+              className={`w-full flex items-center gap-3 rounded-xl text-slate-400 hover:text-rose-300 hover:bg-rose-500/10 transition-all ${isCollapsed ? 'justify-center py-2' : 'px-3 py-2'
                 }`}
             >
-              <div className="w-9 h-9 rounded-lg bg-white/[0.06] flex items-center justify-center shrink-0 group-hover:bg-rose-500/15">
-                <LogOut className="w-[18px] h-[18px]" strokeWidth={2} />
+              <div className="w-8 h-8 rounded-lg bg-white/[0.06] flex items-center justify-center shrink-0 group-hover:bg-rose-500/15">
+                <LogOut className="w-4 h-4" strokeWidth={2} />
               </div>
-              {!isCollapsed && <span className="text-[13px] font-medium">Logout</span>}
+              {!isCollapsed && <span className="text-sm font-semibold">Logout</span>}
             </button>
           </div>
         )}

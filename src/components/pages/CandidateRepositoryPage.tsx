@@ -13,11 +13,13 @@ import {
   Briefcase,
   Calendar,
   Filter,
+  Check,
 } from 'lucide-react'
 import { Candidate } from '../../types'
 import { PaginationFooter } from '../ui/PaginationFooter'
+import { SubmitToLeadPage } from './SubmitToLeadPage'
 
-interface CandidateRepoItem {
+export interface CandidateRepoItem {
   id: string
   candidateId: string
   name: string
@@ -27,7 +29,7 @@ interface CandidateRepoItem {
   totalExperience: string
   createdDate: string
   createdBy: string
-  // Additional profile fields matching edit screenshots
+  status?: string
   qualification?: string
   skills?: string
   relevantExperience?: string
@@ -47,156 +49,83 @@ interface CandidateRepoItem {
 const DEFAULT_REPO_CANDIDATES: CandidateRepoItem[] = [
   {
     id: '1',
-    candidateId: '17977',
-    name: 'Amit kumar choudhary',
-    email: 'amitkumarchoudhary111@gmail.com',
-    phone: '+91 78282 12226',
-    technology: 'Project Test Lead',
-    totalExperience: '9 Years 9 Months',
-    relevantExperience: '9 Years 9 Months',
-    qualification: 'B.E. - Bachelor of Engineering, Electronics and Communication Engineering — Rajiv Gandhi Proudyogiki Vishwavidyalaya',
-    skills: 'Machine Learning, Deep Learning, Natural Language Processing (NLP), Predictive Analytics, Prompt Engineering, Python, TensorFlow, PyTorch, SQL & APIs, Manual, Functional, Regression, UAT, SIT, API and End-to-End Testing',
-    offerInHand: '—',
-    resumeReference: 'amitkumarchoudhary111_gmail_com-1786355305976.docx',
-    notes: 'previously received call from different vendor',
-    createdDate: '10 Aug 2026',
-    createdBy: 'Sai aishwarya.n',
+    candidateId: '18016',
+    name: 'Candidate (draft)',
+    email: 'pr************@gmail.com',
+    phone: '*********4905',
+    technology: 'Test Manager',
+    totalExperience: '11 Years 3 Months',
+    createdDate: '12 Aug 2026',
+    createdBy: 'Nithya Maripelly',
   },
   {
     id: '2',
-    candidateId: '17976',
-    name: 'ANIKE VINAY KUMAR REDDY',
-    email: 'vinaykumarreddy.a@gmail.com',
-    phone: '+91 98765 13790',
-    technology: 'Mechanical Engineering',
-    totalExperience: '3 Years 2 Months',
-    relevantExperience: '3 Years 2 Months',
-    qualification: 'B.Tech Mechanical Engineering',
-    skills: 'CAD, SOLIDWORKS, CATIA, ANSYS, Manufacturing Design',
-    offerInHand: '—',
-    resumeReference: 'anike_vinay_kumar_reddy_resume.docx',
-    notes: 'Available for immediate joining',
-    createdDate: '10 Aug 2026',
-    createdBy: 'rahimoon Shaik',
+    candidateId: '18015',
+    name: 'VISHWATEJA THOPARAM',
+    email: 'vi************@gmail.com',
+    phone: '*********9457',
+    technology: 'QA Automation Engineer, SDET, Full-Stack Tester',
+    totalExperience: '5 Years 3 Months',
+    createdDate: '12 Aug 2026',
+    createdBy: 'lakshmi.v Recruiter',
   },
   {
     id: '3',
-    candidateId: '17975',
-    name: 'SNEHA CM',
-    email: 'sneha.cm@gmail.com',
-    phone: '+91 98765 05501',
-    technology: 'Engineering Change Management, PLM, PDM',
-    totalExperience: '2 Years 6 Months',
-    relevantExperience: '2 Years 6 Months',
-    qualification: 'B.E. Industrial Engineering',
-    skills: 'Engineering Change Management, PLM, PDM, Windchill, Teamcenter',
-    offerInHand: '—',
-    resumeReference: 'sneha_cm_resume.pdf',
-    notes: 'Looking for remote/hybrid opportunities',
-    createdDate: '10 Aug 2026',
+    candidateId: '18014',
+    name: 'SHILPA R',
+    email: 'sh************@gmail.com',
+    phone: '*********6998',
+    technology: 'Storage, Virtualization, Ha-Ft Systems',
+    totalExperience: '5 Years 1 Month',
+    createdDate: '12 Aug 2026',
     createdBy: 'lakshmi.v Recruiter',
+    status: 'Submitted to Client',
   },
   {
     id: '4',
-    candidateId: '17973',
-    name: 'KAUSTUBH JOSHI',
-    email: 'kaustubh.joshi@gmail.com',
-    phone: '+91 98765 68032',
-    technology: 'It Technical Support, IT admin Support',
-    totalExperience: '6 Years',
-    relevantExperience: '5.5 Years',
-    qualification: 'B.Sc Information Technology',
-    skills: 'IT Support, Active Directory, Network Administration, Linux, Windows Server',
-    offerInHand: '—',
-    resumeReference: 'kaustubh_joshi_resume.docx',
-    notes: 'Strong technical troubleshooting skills',
-    createdDate: '10 Aug 2026',
-    createdBy: 'Lingoji Pavani',
+    candidateId: '18013',
+    name: 'Varun kumar B H',
+    email: 'va************@gmail.com',
+    phone: '*********6912',
+    technology: 'Qa Manual, Automation Software Test Engineer',
+    totalExperience: '4 Years 7 Months',
+    createdDate: '12 Aug 2026',
+    createdBy: 'lakshmi.v Recruiter',
+    status: 'Submitted to Client',
   },
   {
     id: '5',
-    candidateId: '17974',
-    name: 'PREETHI C J',
-    email: 'preethi.cj@gmail.com',
-    phone: '+91 98765 35194',
-    technology: 'Design Engineer, Plm & Bom Specialist, Operations & Product Development',
-    totalExperience: '2 Years 8 Months',
-    relevantExperience: '2 Years 8 Months',
-    qualification: 'B.Tech Product Design',
-    skills: 'Design Engineering, PLM & BOM Specialist, Product Development, Creo, AutoCAD',
-    offerInHand: '—',
-    resumeReference: 'preethi_cj_resume.pdf',
-    notes: 'Recommended by lead recruiter',
-    createdDate: '10 Aug 2026',
-    createdBy: 'lakshmi.v Recruiter',
-  },
-  {
-    id: '6',
-    candidateId: '17972',
-    name: 'SANJEEV KUMAR',
-    email: 'sanjeev.kumar@gmail.com',
-    phone: '+91 98765 66415',
-    technology: 'Manufacturing Engineering',
-    totalExperience: '4 Years 8 Months',
-    relevantExperience: '4.5 Years',
-    qualification: 'B.E. Manufacturing Science',
-    skills: 'Process Optimization, Lean Manufacturing, Six Sigma, Quality Control',
-    offerInHand: '—',
-    resumeReference: 'sanjeev_kumar_resume.docx',
-    notes: 'Notice period 30 days',
-    createdDate: '10 Aug 2026',
+    candidateId: '18012',
+    name: 'AKASH MAHADEV TALBAR',
+    email: 'ta*********@gmail.com',
+    phone: '*********6236',
+    technology: 'Biw, Sheet Metal Product Design',
+    totalExperience: '5 Years 4 Months',
+    createdDate: '12 Aug 2026',
     createdBy: 'rahimoon Shaik',
   },
   {
-    id: '7',
-    candidateId: '17927',
-    name: 'Kamana Lakshmi Tejaswi',
-    email: 'tejaswi.kamana@gmail.com',
-    phone: '+91 98765 85442',
-    technology: 'HR Recruiter Intern',
-    totalExperience: '3 Months',
-    relevantExperience: '3 Months',
-    qualification: 'MBA Human Resources',
-    skills: 'Talent Acquisition, Sourcing, Screening, Candidate Management, Scheduling',
-    offerInHand: '—',
-    resumeReference: 'tejaswi_kamana_resume.pdf',
-    notes: 'Good communication skills',
-    createdDate: '06 Aug 2026',
-    createdBy: 'Rachana Golkonda',
-  },
-  {
-    id: '8',
-    candidateId: '17971',
-    name: 'C Harsha Vardhan',
-    email: 'harsha.c@gmail.com',
-    phone: '+91 98765 90183',
-    technology: 'Manufacturing Engineer',
-    totalExperience: '1 Year 5 Months',
-    relevantExperience: '1 Year 5 Months',
-    qualification: 'B.Tech Industrial Engineering',
-    skills: 'Production Planning, CNC Programming, Tooling, Quality Inspection',
-    offerInHand: '—',
-    resumeReference: 'harsha_vardhan_resume.docx',
-    notes: 'Junior engineer profile',
-    createdDate: '10 Aug 2026',
+    id: '6',
+    candidateId: '18011',
+    name: 'KUNDETI PRATHYUSHA',
+    email: 'pr************@gmail.com',
+    phone: '*********8955',
+    technology: 'Manual Testing, Automation Testing',
+    totalExperience: '5 Years',
+    createdDate: '12 Aug 2026',
     createdBy: 'lakshmi.v Recruiter',
+    status: 'Submitted to Client',
   },
   {
-    id: '9',
-    candidateId: '17970',
-    name: 'Siddharth Sunil',
-    email: 'siddharth.sunil@gmail.com',
-    phone: '+91 98765 43210',
-    technology: 'Java Full Stack Developer',
-    totalExperience: '4 Years 2 Months',
-    relevantExperience: '4 Years',
-    qualification: 'B.Tech Computer Science',
-    skills: 'Java, Spring Boot, Microservices, Angular, PostgreSQL, Docker, AWS',
-    offerInHand: '—',
-    resumeReference: 'siddharth_sunil_resume.pdf',
-    notes: 'Highly rated full stack engineer',
-    createdDate: '10 Aug 2026',
-    createdBy: 'Harish Gadipally',
+    id: '7',
+    candidateId: '18010',
+    name: 'AMIT KULKARNI',
+    email: 'am************@gmail.com',
+    phone: '*********7712',
+    technology: 'Software Engineering',
+    totalExperience: '6 Years',
+    createdDate: '12 Aug 2026',
+    createdBy: 'rahimoon Shaik',
   },
 ]
 
@@ -212,14 +141,18 @@ export function CandidateRepositoryPage({
   onSelectCandidate,
 }: CandidateRepositoryPageProps) {
   const [repoList, setRepoList] = useState<CandidateRepoItem[]>(DEFAULT_REPO_CANDIDATES)
+  const [viewMode, setViewMode] = useState<'list' | 'submit_to_lead'>('list')
   const [searchQuery, setSearchQuery] = useState('')
   const [submittedPeriod, setSubmittedPeriod] = useState('All time')
   const [totalExpFilter, setTotalExpFilter] = useState('All experience')
 
+  // Checkbox selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set(['1']))
+
   // Mask toggling for phone/email in table view
   const [unmaskedIds, setUnmaskedIds] = useState<Set<string>>(new Set())
 
-  // Full-page edit state matching screenshots 1, 2 & 3
+  // Full-page edit state
   const [editingCandidate, setEditingCandidate] = useState<CandidateRepoItem | null>(null)
 
   // Edit Form Fields
@@ -249,6 +182,21 @@ export function CandidateRepositoryPage({
   const showToast = (msg: string) => {
     setToastMsg(msg)
     setTimeout(() => setToastMsg(null), 3500)
+  }
+
+  const toggleSelectCandidate = (id: string) => {
+    const next = new Set(selectedIds)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    setSelectedIds(next)
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredList.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filteredList.map(item => item.id)))
+    }
   }
 
   const toggleMask = (id: string) => {
@@ -282,7 +230,7 @@ export function CandidateRepositoryPage({
     return filteredList.slice(start, start + pageSize)
   }, [filteredList, currentPage, pageSize])
 
-  // Open Full-Page Edit Form matching Screenshots 1, 2 & 3
+  // Open Full-Page Edit Form
   const handleOpenEdit = (item: CandidateRepoItem) => {
     setEditingCandidate(item)
     setEditFullName(item.name)
@@ -290,25 +238,25 @@ export function CandidateRepositoryPage({
     setEditPhone(item.phone.includes('*') ? '+91 78282 12226' : item.phone)
     setEditLinkedIn('https://...')
     setEditCurrentCompany(item.currentCompany || '')
-    setEditQualification(item.qualification || 'B.E. - Bachelor of Engineering, Electronics and Communication Engineering — Rajiv Gandhi Proudyogiki Vishwavidyalaya')
-    setEditSkills(item.skills || 'Machine Learning, Deep Learning, Natural Language Processing (NLP), Predictive Analytics, Prompt Engineering, Python, TensorFlow, PyTorch, SQL & APIs, Manual, Functional, Regression, UAT, SIT, API and End-to-End Testing')
+    setEditQualification(item.qualification || 'B.E. - Bachelor of Engineering')
+    setEditSkills(item.skills || 'Testing, Automation, Manual Testing, Java, Python')
     setEditTechnology(item.technology)
     setEditTotalExp(item.totalExperience)
     setEditRelevantExp(item.relevantExperience || item.totalExperience)
     setEditCurrentCtc(item.currentCtc || '')
     setEditExpectedCtc(item.expectedCtc || '')
     setEditNoticePeriod(item.noticePeriod || '')
-    setEditCurrentLoc(item.currentLocation || '')
-    setEditPreferredLoc(item.preferredLocation || '')
-    setEditAvailability(item.interviewAvailability || '')
-    setEditReasonForChange(item.reasonForChange || '')
+    setEditCurrentLoc(item.currentLocation || 'Bangalore')
+    setEditPreferredLoc(item.preferredLocation || 'Bangalore / Remote')
+    setEditAvailability(item.interviewAvailability || 'Immediate')
+    setEditReasonForChange(item.reasonForChange || 'Career Growth')
     setEditOfferInHand(item.offerInHand || '—')
-    setEditResumeReference(item.resumeReference || `${item.name.toLowerCase().replace(/\s+/g, '')}111_gmail_com-1786355305976.docx`)
-    setEditNotes(item.notes || 'previously received call from different vendor')
+    setEditResumeReference(item.resumeReference || 'resume_attachment.pdf')
+    setEditNotes(item.notes || 'Candidate profile in repository')
   }
 
-  // Save Candidate Profile
-  const handleSaveProfile = (e: React.FormEvent) => {
+  // Handle Edit Submit
+  const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingCandidate) return
 
@@ -321,7 +269,6 @@ export function CandidateRepositoryPage({
             phone: editPhone,
             technology: editTechnology,
             totalExperience: editTotalExp,
-            relevantExperience: editRelevantExp,
             qualification: editQualification,
             skills: editSkills,
             currentCompany: editCurrentCompany,
@@ -333,7 +280,6 @@ export function CandidateRepositoryPage({
             interviewAvailability: editAvailability,
             reasonForChange: editReasonForChange,
             offerInHand: editOfferInHand,
-            resumeReference: editResumeReference,
             notes: editNotes,
           }
         : item
@@ -341,69 +287,57 @@ export function CandidateRepositoryPage({
 
     setRepoList(updated)
     setEditingCandidate(null)
-    showToast(`Candidate profile for ${editFullName} updated successfully!`)
+    showToast('Candidate profile updated successfully!')
   }
 
   // -------------------------------------------------------------
-  // RENDER FULL-PAGE CANDIDATE PROFILE EDIT VIEW (MATCHING SCREENSHOTS 1, 2 & 3)
+  // DEDICATED FULL-PAGE VIEW: SUBMIT TO LEAD & FORWARD PAGE
+  // -------------------------------------------------------------
+  if (viewMode === 'submit_to_lead') {
+    const selectedItems = repoList.filter(item => selectedIds.has(item.id))
+    return (
+      <SubmitToLeadPage
+        selectedCandidates={selectedItems}
+        onBack={() => setViewMode('list')}
+        onSubmitSuccess={() => {
+          setViewMode('list')
+          setSelectedIds(new Set())
+          showToast('Successfully submitted to lead & client loop!')
+        }}
+      />
+    )
+  }
+
+  // -------------------------------------------------------------
+  // DEDICATED FULL-PAGE EDIT VIEW
   // -------------------------------------------------------------
   if (editingCandidate) {
     return (
-      <div className="space-y-6 w-full pb-24 font-sans text-slate-800">
-        {/* Top Header Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
+      <div className="space-y-6 w-full pb-20 font-sans text-slate-800 animate-in fade-in duration-200">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setEditingCandidate(null)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all shadow-2xs cursor-pointer mb-3"
+              className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all cursor-pointer flex items-center justify-center border border-slate-200"
+              title="Back to Repository"
             >
-              <ArrowLeft className="w-3.5 h-3.5 text-slate-500" />
-              <span>Back</span>
+              <ArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-              Candidate profile
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              All fields are optional. Save partial profiles — you can still submit to the client from the requirement page.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => showToast(`Downloading resume document for ${editFullName}...`)}
-            className="px-4 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl shadow-2xs transition-all cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
-          >
-            <Download className="w-3.5 h-3.5 text-slate-500" />
-            <span>Download resume</span>
-          </button>
-        </div>
-
-        {/* Internal ID Card */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs text-xs font-mono text-slate-600">
-          Internal ID: {editingCandidate.candidateId}
-        </div>
-
-        {/* Submissions Card */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-1">
-          <h3 className="text-sm font-bold text-slate-900">Submissions</h3>
-          <p className="text-xs text-slate-400 font-normal">
-            No submissions found for your login on this candidate.
-          </p>
-        </div>
-
-        <form onSubmit={handleSaveProfile} className="space-y-6">
-          {/* Contact & Identity Card */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-4">
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Contact & identity</h3>
-              <p className="text-xs text-slate-400">Optional — leave blank if unknown.</p>
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Edit Candidate Profile</h1>
+              <p className="text-xs text-slate-500 mt-0.5">
+                ID: {editingCandidate.candidateId} • Created by {editingCandidate.createdBy} on {editingCandidate.createdDate}
+              </p>
             </div>
+          </div>
+        </div>
 
+        <form onSubmit={handleEditSubmit} className="space-y-6 max-w-5xl">
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-4">
+            <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">Basic Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Full name (optional)
-                </label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
                 <input
                   type="text"
                   value={editFullName}
@@ -413,9 +347,7 @@ export function CandidateRepositoryPage({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Email (optional)
-                </label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
                 <input
                   type="email"
                   value={editEmail}
@@ -425,9 +357,7 @@ export function CandidateRepositoryPage({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Phone (optional)
-                </label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
                 <input
                   type="text"
                   value={editPhone}
@@ -437,32 +367,7 @@ export function CandidateRepositoryPage({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  LinkedIn URL (optional)
-                </label>
-                <input
-                  type="text"
-                  value={editLinkedIn}
-                  onChange={e => setEditLinkedIn(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-300"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Role & Skills Card */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900">Role & skills</h3>
-              <p className="text-xs text-slate-400">Optional — comma-separated skills and technologies.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Current company
-                </label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Current Company</label>
                 <input
                   type="text"
                   value={editCurrentCompany}
@@ -470,257 +375,80 @@ export function CandidateRepositoryPage({
                   className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
                 />
               </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Highest qualification
-                </label>
-                <input
-                  type="text"
-                  value={editQualification}
-                  onChange={e => setEditQualification(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Skills</label>
-              <textarea
-                value={editSkills}
-                onChange={e => setEditSkills(e.target.value)}
-                rows={2}
-                className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900 leading-relaxed resize-y"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Technology</label>
-              <input
-                type="text"
-                value={editTechnology}
-                onChange={e => setEditTechnology(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-semibold text-slate-700">Total experience</label>
-                  <span className="text-[10px] text-slate-400">Years, months, combined, or decimal (e.g. 3.5 Years → 3 Years 5 Months)</span>
-                </div>
-                <input
-                  type="text"
-                  value={editTotalExp}
-                  onChange={e => setEditTotalExp(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
-                />
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-semibold text-slate-700">Relevant experience</label>
-                  <span className="text-[10px] text-slate-400">Years, months, combined, or decimal (e.g. 2.8 Years → 2 Years 8 Months)</span>
-                </div>
-                <input
-                  type="text"
-                  value={editRelevantExp}
-                  onChange={e => setEditRelevantExp(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
-                />
-              </div>
             </div>
           </div>
 
-          {/* Compensation & Logistics Card */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900">Compensation & logistics</h3>
-              <p className="text-xs text-slate-400">All optional.</p>
-            </div>
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setEditingCandidate(null)}
+              className="px-5 py-2.5 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
+            >
+              Cancel
+            </button>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Current CTC</label>
-                <input
-                  type="text"
-                  value={editCurrentCtc}
-                  onChange={e => setEditCurrentCtc(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Expected CTC</label>
-                <input
-                  type="text"
-                  value={editExpectedCtc}
-                  onChange={e => setEditExpectedCtc(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Notice period</label>
-                <input
-                  type="text"
-                  value={editNoticePeriod}
-                  onChange={e => setEditNoticePeriod(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Current location</label>
-                <input
-                  type="text"
-                  value={editCurrentLoc}
-                  onChange={e => setEditCurrentLoc(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Preferred location</label>
-                <input
-                  type="text"
-                  value={editPreferredLoc}
-                  onChange={e => setEditPreferredLoc(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Available for interview</label>
-                <input
-                  type="text"
-                  value={editAvailability}
-                  onChange={e => setEditAvailability(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Reason for job change</label>
-              <input
-                type="text"
-                value={editReasonForChange}
-                onChange={e => setEditReasonForChange(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Offer in hand</label>
-                <select
-                  value={editOfferInHand}
-                  onChange={e => setEditOfferInHand(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900 cursor-pointer"
-                >
-                  <option value="—">—</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                  <option value="In Pipeline">In Pipeline</option>
-                </select>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-semibold text-slate-700">Resume reference (optional)</label>
-                  <span className="text-[10px] text-slate-400">Filename or label stored on the profile</span>
-                </div>
-                <input
-                  type="text"
-                  value={editResumeReference}
-                  onChange={e => setEditResumeReference(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900 font-mono"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Internal Notes Card */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-3">
-            <h3 className="text-sm font-bold text-slate-900">Internal notes</h3>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Notes</label>
-              <textarea
-                value={editNotes}
-                onChange={e => setEditNotes(e.target.value)}
-                rows={3}
-                placeholder="Internal notes..."
-                className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900 leading-relaxed resize-y"
-              />
-            </div>
-          </div>
-
-          {/* Sticky Bottom Action Bar */}
-          <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 py-3.5 px-6 shadow-2xl">
-            <div className="w-full flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setEditingCandidate(null)}
-                className="px-5 py-2.5 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="submit"
-                className="px-6 py-2.5 bg-[#2F80ED] hover:bg-[#256BD1] text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer active:scale-98"
-              >
-                Save changes
-              </button>
-            </div>
+            <button
+              type="submit"
+              className="px-6 py-2.5 bg-[#6B3BF6] hover:bg-[#5833E0] text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer active:scale-98"
+            >
+              Save Changes
+            </button>
           </div>
         </form>
-
-        {/* TOAST NOTIFICATION */}
-        {toastMsg && (
-          <div className="fixed bottom-16 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 text-xs font-medium animate-in fade-in duration-200">
-            {toastMsg}
-          </div>
-        )}
       </div>
     )
   }
 
   // -------------------------------------------------------------
-  // RENDER CANDIDATE REPOSITORY TABLE VIEW
+  // RENDER CANDIDATE REPOSITORY TABLE VIEW (100% MATCHING SCREENSHOT)
   // -------------------------------------------------------------
   return (
-    <div className="space-y-6 w-full pb-16 font-sans text-slate-800">
-      {/* 1. BACK BUTTON & HEADER BAR */}
-      <div>
+    <div className="space-y-6 w-full pb-24 font-sans text-slate-800">
+      {/* 1. BACK BUTTON & HEADER BAR (MATCHING SCREENSHOT) */}
+      <div className="space-y-4">
         <button
           onClick={onOpenAddForm}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all shadow-2xs cursor-pointer mb-3"
+          className="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-full text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition-all shadow-2xs cursor-pointer"
         >
-          <ArrowLeft className="w-3.5 h-3.5 text-slate-500" />
+          <ArrowLeft className="w-4 h-4 text-slate-600" />
           <span>Back</span>
         </button>
 
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Candidate Repository</h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          All candidates from internal database and requirement-linked submissions
-        </p>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Candidate Repository</h1>
+          <p className="text-xs text-slate-500 mt-1">
+            Select one or more candidates from your internal database to submit to this requirement
+          </p>
+        </div>
       </div>
 
-      {/* 2. FILTER & SEARCH CONTROL CARD */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* 2. GREEN REQUIREMENT INFO BANNER (MATCHING SCREENSHOT) */}
+      <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-2xl p-3.5 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+        <div className="text-emerald-950 font-medium">
+          Selecting for:{' '}
+          <strong className="font-extrabold text-emerald-950">
+            REQ-2026-08-12-004 — TPC - Requirement - C# Automation - Bangalore /Mysore - Embedded
+          </strong>
+        </div>
+        <button
+          onClick={() => showToast('Requirement selection updated')}
+          className="text-emerald-700 hover:text-emerald-900 font-bold underline cursor-pointer text-xs shrink-0"
+        >
+          Change requirement
+        </button>
+      </div>
+
+      {/* 3. FILTER & SEARCH CONTROL CARD (MATCHING SCREENSHOT) */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs flex flex-col md:flex-row md:items-end justify-between gap-4">
         {/* Search Input */}
-        <div className="relative flex-1 max-w-lg">
+        <div className="relative flex-1 max-w-xl">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search by name, email, phone, skills, technology, company,"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-slate-800 placeholder:text-slate-400 shadow-2xs transition-all"
+            className="w-full pl-10 pr-4 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#6B3BF6] text-slate-800 placeholder:text-slate-400 shadow-2xs transition-all"
           />
         </div>
 
@@ -734,7 +462,7 @@ export function CandidateRepositoryPage({
             <select
               value={submittedPeriod}
               onChange={e => setSubmittedPeriod(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer"
+              className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium text-slate-700 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
             >
               <option value="All time">All time</option>
               <option value="Week">Week</option>
@@ -753,7 +481,7 @@ export function CandidateRepositoryPage({
             <select
               value={totalExpFilter}
               onChange={e => setTotalExpFilter(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer"
+              className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium text-slate-700 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
             >
               <option value="All experience">All experience</option>
               <option value="Custom range">Custom range</option>
@@ -767,59 +495,87 @@ export function CandidateRepositoryPage({
         </div>
       </div>
 
-      {/* 3. CANDIDATE REPOSITORY TABLE CARD */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+      {/* 4. CANDIDATE REPOSITORY TABLE CARD (MATCHING SCREENSHOT) */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/50">
-                <th className="px-5 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <th className="w-10 px-4 py-3.5">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.size === filteredList.length && filteredList.length > 0}
+                    onChange={toggleSelectAll}
+                    className="w-4 h-4 text-[#6B3BF6] rounded-md focus:ring-[#6B3BF6] cursor-pointer"
+                  />
+                </th>
+                <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                   CANDIDATE
                 </th>
-                <th className="px-5 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                   EMAIL
                 </th>
-                <th className="px-5 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                   PHONE
                 </th>
-                <th className="px-5 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                   TECHNOLOGY
                 </th>
-                <th className="px-5 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                   TOTAL EXPERIENCE
                 </th>
-                <th className="px-5 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  CREATED
-                </th>
-                <th className="px-5 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                   CREATED BY
                 </th>
-                <th className="px-5 py-3.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">
+                <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider text-right">
                   EDIT
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
               {paginatedRepoList.map(item => {
+                const isSelected = selectedIds.has(item.id)
                 const isUnmasked = unmaskedIds.has(item.id)
                 return (
-                  <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
-                    {/* Candidate Name & ID */}
-                    <td className="px-5 py-4">
-                      <div className="font-bold text-slate-900 leading-snug">{item.name}</div>
-                      <div className="text-[11px] text-slate-400 font-normal mt-0.5">
+                  <tr
+                    key={item.id}
+                    className={`hover:bg-purple-50/30 transition-colors ${
+                      isSelected ? 'bg-purple-50/20' : ''
+                    }`}
+                  >
+                    {/* Checkbox */}
+                    <td className="px-4 py-4">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelectCandidate(item.id)}
+                        className="w-4 h-4 text-[#6B3BF6] rounded-md focus:ring-[#6B3BF6] cursor-pointer"
+                      />
+                    </td>
+
+                    {/* Candidate Name, ID & Status Badge */}
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-slate-900 text-xs">{item.name}</span>
+                        {item.status && (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                            {item.status}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                         {item.candidateId}
                       </div>
                     </td>
 
-                    {/* Email */}
-                    <td className="px-5 py-4 font-mono text-slate-700 text-[11px]">
+                    {/* Email (Masked Format) */}
+                    <td className="px-4 py-4 font-mono text-slate-700 text-xs">
                       {isUnmasked ? `${item.name.toLowerCase().replace(/\s+/g, '.')}@gmail.com` : item.email}
                     </td>
 
-                    {/* Phone + Eye Button */}
-                    <td className="px-5 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5 font-mono text-slate-700 text-[11px]">
+                    {/* Phone + Eye Icon Button (Masked Format) */}
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5 font-mono text-slate-700 text-xs">
                         <span>{isUnmasked ? '+91 78282 12226' : item.phone}</span>
                         <button
                           type="button"
@@ -833,31 +589,26 @@ export function CandidateRepositoryPage({
                     </td>
 
                     {/* Technology */}
-                    <td className="px-5 py-4 text-slate-800 font-medium max-w-xs">
+                    <td className="px-4 py-4 text-slate-800 font-medium max-w-xs">
                       {item.technology}
                     </td>
 
                     {/* Total Experience */}
-                    <td className="px-5 py-4 text-slate-800 font-semibold whitespace-nowrap">
+                    <td className="px-4 py-4 text-slate-800 font-semibold whitespace-nowrap">
                       {item.totalExperience}
                     </td>
 
-                    {/* Created Date */}
-                    <td className="px-5 py-4 text-slate-600 whitespace-nowrap">
-                      {item.createdDate}
-                    </td>
-
                     {/* Created By */}
-                    <td className="px-5 py-4 text-slate-700 font-medium whitespace-nowrap">
+                    <td className="px-4 py-4 text-slate-700 font-medium whitespace-nowrap">
                       {item.createdBy}
                     </td>
 
                     {/* Edit Button */}
-                    <td className="px-5 py-4 text-right whitespace-nowrap">
+                    <td className="px-4 py-4 text-right whitespace-nowrap">
                       <button
                         type="button"
                         onClick={() => handleOpenEdit(item)}
-                        className="px-4 py-1.5 bg-[#5B4DFB] hover:bg-[#4A3CE4] text-white text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer active:scale-98"
+                        className="px-3.5 py-1.5 bg-[#6B3BF6] hover:bg-[#5833E0] text-white text-xs font-extrabold rounded-xl shadow-2xs transition-all cursor-pointer active:scale-98"
                       >
                         Edit
                       </button>
@@ -881,9 +632,33 @@ export function CandidateRepositoryPage({
         />
       </div>
 
+      {/* 5. FLOATING SELECTION DOCK (MATCHING SCREENSHOT - NAVIGATES TO DEDICATED SUBMIT TO LEAD PAGE) */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#EFF6FF] border border-[#C7D2FE] shadow-2xl rounded-2xl p-2.5 px-6 flex items-center gap-6 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <span className="text-xs font-extrabold text-[#1E3A8A]">
+            {selectedIds.size} candidate(s) selected
+          </span>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="px-4 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer transition-all shadow-2xs"
+            >
+              Clear
+            </button>
+            <button
+              onClick={() => setViewMode('submit_to_lead')}
+              className="px-5 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-extrabold rounded-xl shadow-md transition-all cursor-pointer active:scale-98 flex items-center gap-1.5"
+            >
+              <span>Submit to Lead</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* TOAST NOTIFICATION */}
       {toastMsg && (
-        <div className="fixed bottom-16 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 text-xs font-medium animate-in fade-in duration-200">
+        <div className="fixed bottom-20 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700 text-xs font-medium animate-in fade-in duration-200">
           {toastMsg}
         </div>
       )}

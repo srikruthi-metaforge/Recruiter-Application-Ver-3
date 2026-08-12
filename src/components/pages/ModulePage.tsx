@@ -12,6 +12,9 @@ import { SubmissionsPage } from './SubmissionsPage'
 import { MyProfilePage } from './MyProfilePage'
 import { InterviewTrackingPage } from './InterviewTrackingPage'
 import { ReportsPage } from './ReportsPage'
+import { RolesPermissionsPage } from './RolesPermissionsPage'
+import { ClientsPage } from './ClientsPage'
+import { UserManagementPage } from './UserManagementPage'
 import { INITIAL_CANDIDATES } from '../../data/mockData'
 
 interface ModulePageProps {
@@ -48,6 +51,18 @@ export function ModulePage({
 
   if (pageKey === 'Reports' || pageKey === 'Reports & Analytics') {
     return <ReportsPage role={role} />
+  }
+
+  if (pageKey === 'Roles' || pageKey === 'Roles & Permissions') {
+    return <RolesPermissionsPage />
+  }
+
+  if (pageKey === 'Clients' || pageKey === 'Client Management') {
+    return <ClientsPage role={role} />
+  }
+
+  if (pageKey === 'Users' || pageKey === 'User Management' || pageKey === 'Recruiters') {
+    return <UserManagementPage role={role} />
   }
 
   const meta = PAGE_META[pageKey]
@@ -89,6 +104,7 @@ export function ModulePage({
   if (pageKey === 'Submissions') {
     return (
       <SubmissionsPage
+        role={role}
         submissions={submissions}
         onOpenSubmitCandidate={onOpenSubmit ? () => onOpenSubmit() : undefined}
       />

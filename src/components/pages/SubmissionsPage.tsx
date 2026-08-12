@@ -16,7 +16,10 @@ import {
   Filter,
 } from 'lucide-react'
 
+import { Role } from '../../types'
+
 interface SubmissionsPageProps {
+  role?: Role
   submissions?: Submission[]
   onOpenSubmitCandidate?: () => void
 }
@@ -98,26 +101,6 @@ const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
     id: 'SUB-007',
     candidateName: 'RIHAN KHAN',
     requirement: 'SP3D Modeler',
-    experience: '4 Years 8 Months',
-    currentCompany: 'Wood India Engineering Project Pvt Ltd',
-    submittedBy: 'Harini Sindey',
-    submittedOn: 'Aug 06, 26',
-    status: 'Rejected',
-  },
-  {
-    id: 'SUB-008',
-    candidateName: 'Mohd Janishar',
-    requirement: 'SP3D Modeler',
-    experience: '5 Years 7 Months',
-    currentCompany: 'Wood India Engineering Project Pvt Ltd',
-    submittedBy: 'Harini Sindey',
-    submittedOn: 'Aug 06, 26',
-    status: 'Submitted to Lead',
-  },
-  {
-    id: 'SUB-009',
-    candidateName: 'ASFAQ',
-    requirement: 'SP3D Modeler',
     experience: '5 Years 5 Months',
     currentCompany: 'Engineering Tech Services',
     submittedBy: 'lakshmi.v Recruiter',
@@ -127,11 +110,13 @@ const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
 ]
 
 export function SubmissionsPage({
+  role,
   submissions = [],
   onOpenSubmitCandidate,
 }: SubmissionsPageProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [dateFilter, setDateFilter] = useState('All Dates')
+  // Default to Today, removed All Dates, Last 7 days, Last week, Last month, This year
+  const [dateFilter, setDateFilter] = useState('Today')
   const [customStartDate, setCustomStartDate] = useState('')
   const [customEndDate, setCustomEndDate] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
@@ -157,9 +142,30 @@ export function SubmissionsPage({
     return DEFAULT_SCREENSHOT_SUBMISSIONS
   }, [submissions])
 
+  // Scope submissions data for recruiter role (only see their own work, zero exposure to other recruiters)
+  const scopeSubmissions = useMemo(() => {
+    if (role === 'recruiter') {
+      return combinedSubmissions
+        .filter(item => {
+          const by = item.submittedBy.toLowerCase()
+          return (
+            by.includes('suresh') ||
+            by.includes('harish') ||
+            by.includes('lakshmi') ||
+            by.includes('recruiter')
+          )
+        })
+        .map(item => ({
+          ...item,
+          submittedBy: 'Harish Gadipally (You)',
+        }))
+    }
+    return combinedSubmissions
+  }, [combinedSubmissions, role])
+
   // Dynamic filter
   const filteredData = useMemo(() => {
-    return combinedSubmissions.filter(item => {
+    return scopeSubmissions.filter(item => {
       // Search text
       if (searchQuery.trim()) {
         const q = searchQuery.trim().toLowerCase()
@@ -173,27 +179,19 @@ export function SubmissionsPage({
         }
       }
 
-      // Date filter
-      if (dateFilter !== 'All Dates' && dateFilter !== 'All dates') {
-        const d = item.submittedOn || ''
-        if (dateFilter === 'Today') {
-          if (!d.includes('Aug 06') && !d.includes('Today')) return false
-        } else if (dateFilter === 'Yesterday') {
-          if (!d.includes('Aug 05') && !d.includes('Yesterday')) return false
-        } else if (dateFilter === 'Last 7 days' || dateFilter === 'This week') {
-          if (!d.includes('Aug 0') && !d.includes('Aug 06') && !d.includes('Aug 05')) return false
-        } else if (dateFilter === 'Last week') {
-          if (!d.includes('Jul 3') && !d.includes('Aug 01')) return false
-        } else if (dateFilter === 'This month') {
-          if (!d.includes('Aug')) return false
-        } else if (dateFilter === 'Last month') {
-          if (!d.includes('Jul')) return false
-        } else if (dateFilter === 'This year') {
-          if (!d.includes('26') && !d.includes('2026')) return false
-        } else if (dateFilter === 'Custom range') {
-          if (customStartDate && d < customStartDate) return false
-          if (customEndDate && d > customEndDate) return false
-        }
+      // Date filter (Today is default)
+      const d = item.submittedOn || ''
+      if (dateFilter === 'Today') {
+        if (!d.includes('Aug 06') && !d.includes('Aug 11') && !d.includes('Today')) return false
+      } else if (dateFilter === 'Yesterday') {
+        if (!d.includes('Aug 05') && !d.includes('Aug 10') && !d.includes('Yesterday')) return false
+      } else if (dateFilter === 'This week') {
+        if (!d.includes('Aug')) return false
+      } else if (dateFilter === 'This month') {
+        if (!d.includes('Aug')) return false
+      } else if (dateFilter === 'Custom range') {
+        if (customStartDate && d < customStartDate) return false
+        if (customEndDate && d > customEndDate) return false
       }
 
       // Status filter
@@ -218,25 +216,100 @@ export function SubmissionsPage({
 
       return true
     })
-  }, [combinedSubmissions, searchQuery, dateFilter, customStartDate, customEndDate, statusFilter])
+  }, [
+    scopeSubmissions,
+    searchQuery,
+    dateFilter,
+    customStartDate,
+    customEndDate,
+    statusFilter,
+  ])
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
-
-  const paginatedSubmissions = useMemo(() => {
-    const start = (currentPage - 1) * pageSize
-    return filteredData.slice(start, start + pageSize)
-  }, [filteredData, currentPage, pageSize])
+  // Get status pill style
+  const getStatusBadgeStyle = (status: string) => {
+    const s = status.toLowerCase()
+    if (s.includes('lead')) {
+      return 'bg-purple-100 text-purple-800 border-purple-200'
+    }
+    if (s.includes('client')) {
+      return 'bg-blue-100 text-blue-800 border-blue-200'
+    }
+    if (s.includes('interview')) {
+      return 'bg-amber-100 text-amber-800 border-amber-200'
+    }
+    if (s.includes('select')) {
+      return 'bg-emerald-100 text-emerald-800 border-emerald-200'
+    }
+    if (s.includes('reject')) {
+      return 'bg-rose-100 text-rose-800 border-rose-200'
+    }
+    return 'bg-slate-100 text-slate-700 border-slate-200'
+  }
 
   return (
-    <div className="space-y-6 w-full pb-16 font-sans">
-      <PageHeader
-        title="All Submissions"
-        subtitle="View and manage all candidate submissions"
-      />
+    <div className="space-y-6 w-full pb-16 font-sans text-slate-800">
+      {/* 1. Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Submissions</h1>
+            <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-purple-100 text-[#6B3BF6] border border-purple-200 inline-flex items-center gap-1.5 shadow-2xs">
+              <FileText className="w-3.5 h-3.5 text-[#6B3BF6]" />
+              <span>{filteredData.length} Candidates Submitted Today</span>
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Track candidate submissions sent to internal leads and client partners.
+          </p>
+        </div>
+      </div>
 
-      {/* SEARCH AND FILTERS BAR */}
+      {/* 2. Unified Minimal KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+              Total Submissions Today
+            </span>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">
+              {filteredData.length}
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-[#6B3BF6]">
+            <FileText className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+              Submitted to Client
+            </span>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">
+              {filteredData.filter(d => d.status.toLowerCase().includes('client')).length}
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-[#6B3BF6]">
+            <Send className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+              Interviews Scheduled
+            </span>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">
+              {filteredData.filter(d => d.status.toLowerCase().includes('interview')).length}
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-[#6B3BF6]">
+            <UserCheck className="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Filter Controls Bar */}
       <div className="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-sm">
         <div className="flex flex-col sm:flex-row items-center gap-3 justify-between">
           {/* Search Bar */}
@@ -244,7 +317,7 @@ export function SubmissionsPage({
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search by candidate name or company..."
+              placeholder="Search candidate name or company..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-9 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-800 placeholder-slate-400 bg-slate-50/50"
@@ -261,23 +334,18 @@ export function SubmissionsPage({
 
           {/* Right Filter Dropdowns */}
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-            {/* Date filter dropdown */}
+            {/* Date filter dropdown (TODAY DEFAULT, REMOVED ALL DATES, LAST 7 DAYS, LAST WEEK, LAST MONTH, THIS YEAR) */}
             <div className="relative w-full sm:w-40">
               <select
                 value={dateFilter}
                 onChange={e => setDateFilter(e.target.value)}
-                className="w-full appearance-none pl-3.5 pr-8 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-700 bg-white font-medium cursor-pointer"
+                className="w-full appearance-none pl-3.5 pr-8 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-700 bg-white font-bold cursor-pointer"
               >
-                <option value="All Dates">All Dates</option>
                 <option value="Today">Today</option>
                 <option value="Yesterday">Yesterday</option>
-                <option value="Last 7 days">Last 7 days</option>
                 <option value="This week">This week</option>
-                <option value="Last week">Last week</option>
                 <option value="This month">This month</option>
-                <option value="Last month">Last month</option>
-                <option value="This year">This year</option>
-                <option value="Custom range">Custom range</option>
+                <option value="Custom range">Custom range...</option>
               </select>
               <ChevronDown className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
@@ -301,19 +369,19 @@ export function SubmissionsPage({
               </div>
             )}
 
-            {/* Status filter dropdown */}
+            {/* Status Filter Dropdown */}
             <div className="relative w-full sm:w-44">
               <select
                 value={statusFilter}
                 onChange={e => setStatusFilter(e.target.value)}
                 className="w-full appearance-none pl-3.5 pr-8 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-700 bg-white font-medium cursor-pointer"
               >
-                <option value="All">All</option>
-                <option value="Submitted to lead">Submitted to lead</option>
-                <option value="Submitted to client">Submitted to client</option>
+                <option value="All">All Statuses</option>
+                <option value="Submitted to Lead">Submitted to Lead</option>
+                <option value="Submitted to Client">Submitted to Client</option>
                 <option value="Submitted">Submitted</option>
-                <option value="Interview">Interview</option>
-                <option value="Selected">Selected</option>
+                <option value="Interview">Interview Scheduled</option>
+                <option value="Selected">Selected / Placed</option>
                 <option value="Rejected">Rejected</option>
               </select>
               <ChevronDown className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -322,77 +390,88 @@ export function SubmissionsPage({
         </div>
       </div>
 
-      {/* SUBMISSIONS DATA TABLE (MATCHING SCREENSHOT) */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      {/* 4. Submissions Data Table */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
-                <th className="py-3 px-4 font-bold">CANDIDATE NAME</th>
-                <th className="py-3 px-4 font-bold">REQUIREMENT</th>
-                <th className="py-3 px-4 font-bold">EXPERIENCE</th>
-                <th className="py-3 px-4 font-bold">CURRENT COMPANY</th>
-                <th className="py-3 px-4 font-bold">SUBMITTED BY</th>
-                <th className="py-3 px-4 font-bold whitespace-nowrap">
-                  SUBMITTED ON
-                </th>
-                <th className="py-3 px-4 font-bold">STATUS</th>
+              <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <th className="py-3.5 px-4">CANDIDATE & REQUIREMENT</th>
+                <th className="py-3.5 px-4">CURRENT COMPANY & EXP</th>
+                <th className="py-3.5 px-4">SUBMITTED BY & DATE</th>
+                <th className="py-3.5 px-4">STATUS</th>
+                <th className="py-3.5 px-4 text-right">ACTION</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
+            <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <p className="text-sm font-medium">
-                      No submissions match your query.
-                    </p>
+                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                    <p className="font-bold text-sm">No candidate submissions found</p>
+                    <p className="text-xs mt-1">Try adjusting your search query or date range filter above</p>
                   </td>
                 </tr>
               ) : (
-                paginatedSubmissions.map(item => (
+                filteredData.map(sub => (
                   <tr
-                    key={item.id}
-                    onClick={() => setSelectedSub(item)}
-                    className="hover:bg-blue-50/30 transition-colors cursor-pointer"
+                    key={sub.id}
+                    className="hover:bg-purple-50/30 transition-colors cursor-pointer"
+                    onClick={() => setSelectedSub(sub)}
                   >
-                    <td className="py-3.5 px-4 font-bold text-[#6B3BF6] hover:underline">
-                      {item.candidateName}
-                    </td>
-                    <td className="py-3.5 px-4 max-w-xs">
-                      <div className="font-semibold text-slate-900 leading-snug line-clamp-2">
-                        {item.requirement}
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-[#EEF2FF] text-[#5B51D8] font-extrabold flex items-center justify-center text-xs shrink-0 border border-[#C7D2FE]">
+                          {sub.candidateName.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="font-extrabold text-slate-900 text-xs">
+                            {sub.candidateName}
+                          </div>
+                          <div className="text-[11px] text-[#6B3BF6] font-bold mt-0.5">
+                            {sub.requirement}
+                          </div>
+                        </div>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
-                      {item.experience}
+
+                    <td className="py-4 px-4">
+                      <div className="font-bold text-slate-800 text-xs">
+                        {sub.currentCompany}
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-normal mt-0.5">
+                        Experience: {sub.experience}
+                      </div>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-700 font-medium whitespace-nowrap">
-                      {item.currentCompany}
+
+                    <td className="py-4 px-4">
+                      <div className="font-bold text-purple-900 text-xs">
+                        {sub.submittedBy}
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-normal mt-0.5">
+                        {sub.submittedOn}
+                      </div>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-700 font-medium whitespace-nowrap">
-                      {item.submittedBy}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-600 whitespace-nowrap">
-                      {item.submittedOn}
-                    </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
+
+                    <td className="py-4 px-4">
                       <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded text-[11px] font-bold border ${
-                          item.status.toLowerCase().includes('select')
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : item.status.toLowerCase().includes('reject')
-                              ? 'bg-rose-50 text-rose-700 border-rose-200'
-                              : item.status.toLowerCase().includes('interview')
-                                ? 'bg-purple-50 text-purple-700 border-purple-200'
-                                : item.status.toLowerCase().includes('lead')
-                                  ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                                  : item.status.toLowerCase().includes('client')
-                                    ? 'bg-blue-50 text-blue-700 border-blue-200'
-                                    : 'bg-sky-50 text-sky-700 border-sky-200'
-                        }`}
+                        className={`px-3 py-1 rounded-full text-xs font-extrabold border inline-block ${getStatusBadgeStyle(
+                          sub.status
+                        )}`}
                       >
-                        {item.status}
+                        {sub.status}
                       </span>
+                    </td>
+
+                    <td className="py-4 px-4 text-right">
+                      <button
+                        onClick={e => {
+                          e.stopPropagation()
+                          setSelectedSub(sub)
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs cursor-pointer transition-colors"
+                      >
+                        View Details
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -401,26 +480,39 @@ export function SubmissionsPage({
           </table>
         </div>
 
-        {/* PAGINATION FOOTER */}
         <PaginationFooter
-          currentPage={currentPage}
-          totalPages={Math.ceil(filteredData.length / pageSize)}
+          currentPage={1}
+          totalPages={1}
           totalItems={filteredData.length}
-          pageSize={pageSize}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={setPageSize}
-          itemLabel="submissions"
+          pageSize={10}
+          onPageChange={() => {}}
         />
       </div>
 
-      {/* DETAIL OVERVIEW MODAL (MATCHING SCREENSHOT) */}
-      <SubmissionCandidateDetailModal
-        submission={selectedSub}
-        onClose={() => setSelectedSub(null)}
-        onViewFullProfile={sub => {
-          setSelectedSub(null)
-        }}
-      />
+      {/* Candidate Detail Modal */}
+      {selectedSub && (
+        <SubmissionCandidateDetailModal
+          submission={{
+            id: selectedSub.id,
+            candidate: selectedSub.candidateName,
+            reqId: 'REQ-2026-05',
+            req: selectedSub.requirement,
+            client: selectedSub.currentCompany,
+            experience: selectedSub.experience,
+            recruiter: selectedSub.submittedBy,
+            date: selectedSub.submittedOn,
+            stage: selectedSub.status,
+            email: 'candidate@email.com',
+            phone: '+91 98765 43210',
+            location: 'Bangalore, India',
+            noticePeriod: '30 Days',
+            currentCtc: '14 LPA',
+            expectedCtc: '18 LPA',
+            skills: ['Java', 'Spring Boot', 'Microservices', 'SQL'],
+          }}
+          onClose={() => setSelectedSub(null)}
+        />
+      )}
     </div>
   )
 }

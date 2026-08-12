@@ -40,6 +40,13 @@ import {
   Activity,
   Layers,
   Lock,
+  CalendarCheck,
+  Laptop,
+  Mail,
+  Phone,
+  ThumbsUp,
+  ThumbsDown,
+  CalendarRange,
 } from 'lucide-react'
 import { Interview, Role } from '../../types'
 import { ScheduleInterviewModal } from '../modals/ScheduleInterviewModal'
@@ -50,6 +57,8 @@ export type InterviewStage =
   | 'Interview Scheduled'
   | 'Completed'
 
+export type DailyOutcome = 'Selected' | 'Not Selected' | 'Pending'
+
 export interface CandidateCardItem {
   id: string
   name: string
@@ -57,16 +66,40 @@ export interface CandidateCardItem {
   experience: string
   currentCompany: string
   stage: InterviewStage
+
+  // Client Info & POC
+  clientName: string
+  clientPOC: string
+  pocContact: string
+
+  // Requirement Info & Requirement Date
+  reqId: string
+  reqTitle: string
+  reqDate: string
+
+  // Scheduled Date & Time of Interview
+  scheduledDate: string
+  scheduledTime: string
   dateTime: string
   isToday?: boolean
   isOverdue?: boolean
+
+  // Interviewer / Panel
+  interviewerName: string
+
+  // Interview Mode
+  meetingMode: 'MS Teams (Online)' | 'Google Meet (Online)' | 'Zoom (Online)' | 'In-Person (Office)' | 'Telephonic'
+  meetingUrl?: string
+
+  // Daily Outcome for In-Progress Evaluation
+  dailyOutcome: DailyOutcome
+  dailyDecisionReason?: string
+
   stageProgress: number // 1 to 4
   lastActivity: string
   assignedRecruiter: string
   team: string
   department: string
-  meetingMode: 'Zoom' | 'Google Meet' | 'Teams' | 'In-Person'
-  meetingUrl?: string
   statusBadge: string
   statusColor: 'blue' | 'purple' | 'emerald' | 'amber' | 'rose' | 'slate'
   notes: string[]
@@ -82,15 +115,32 @@ const INITIAL_CANDIDATES: CandidateCardItem[] = [
     experience: '4 Yrs 2 Mos',
     currentCompany: 'Infosys Ltd',
     stage: 'Screening',
+
+    clientName: 'Infosys Ltd',
+    clientPOC: 'Kallol Chakraborty',
+    pocContact: 'kallol.c@infosys.com',
+
+    reqId: 'REQ-2026-05-08-003',
+    reqTitle: 'TPC OSI PI Engineer / Lead Developer',
+    reqDate: '08 May 2026',
+
+    scheduledDate: '11 Aug 2026',
+    scheduledTime: '11:30 AM',
     dateTime: 'Today • 11:30 AM',
     isToday: true,
+
+    interviewerName: 'Kallol Chakraborty (Eng Manager)',
+    meetingMode: 'MS Teams (Online)',
+    meetingUrl: 'https://teams.microsoft.com/l/meetup-join/101',
+
+    dailyOutcome: 'Selected',
+    dailyDecisionReason: 'Cleared L1 coding round. Excellent Java & Spring Boot skills.',
+
     stageProgress: 1,
     lastActivity: 'HR call completed 20m ago',
     assignedRecruiter: 'Harish Gadipally',
     team: 'Engineering Team',
     department: 'Software Engineering',
-    meetingMode: 'Zoom',
-    meetingUrl: 'https://zoom.us/j/123456789',
     statusBadge: 'Screening Call',
     statusColor: 'amber',
     notes: ['Profile matched automated AI screener with 92% score.', 'Resume verified.'],
@@ -102,18 +152,35 @@ const INITIAL_CANDIDATES: CandidateCardItem[] = [
     experience: '5 Yrs 8 Mos',
     currentCompany: 'TCS Cyber',
     stage: 'Screening',
+
+    clientName: 'TCS Cyber',
+    clientPOC: 'Trayeetanu Ganguly',
+    pocContact: 'trayeetanu.g@tcs.com',
+
+    reqId: 'REQ-2026-05-12-014',
+    reqTitle: 'TPC Data Analyst for Vadodara',
+    reqDate: '12 May 2026',
+
+    scheduledDate: '10 Aug 2026',
+    scheduledTime: '02:30 PM',
     dateTime: 'Yesterday • 02:30 PM',
     isOverdue: true,
+
+    interviewerName: 'Trayeetanu Ganguly (Tech Lead)',
+    meetingMode: 'Google Meet (Online)',
+    meetingUrl: 'https://meet.google.com/abc-defg-hij',
+
+    dailyOutcome: 'Not Selected',
+    dailyDecisionReason: 'Notice period exceeds 60 days budget limit.',
+
     stageProgress: 1,
     lastActivity: 'Needs feedback review',
     assignedRecruiter: 'Arvind GR',
     team: 'Engineering Team',
     department: 'Software Engineering',
-    meetingMode: 'Google Meet',
-    meetingUrl: 'https://meet.google.com/abc-defg-hij',
     statusBadge: 'Review Overdue',
     statusColor: 'rose',
-    notes: ['Completed HR screening call. Good communication skills.', 'Notice period: 15 days.'],
+    notes: ['Completed HR screening call. Good communication skills.', 'Notice period: 60 days.'],
   },
   {
     id: 'c-103',
@@ -122,14 +189,31 @@ const INITIAL_CANDIDATES: CandidateCardItem[] = [
     experience: '6 Yrs 1 Mo',
     currentCompany: 'LTTS Mobility',
     stage: 'Shortlisted',
+
+    clientName: 'LTTS Mobility',
+    clientPOC: 'Trayeetanu Ganguly',
+    pocContact: 'trayeetanu.g@ltts.com',
+
+    reqId: 'REQ-2026-05-19-003',
+    reqTitle: 'TPC- MIG exhaust welding fixture',
+    reqDate: '19 May 2026',
+
+    scheduledDate: '12 Aug 2026',
+    scheduledTime: '11:00 AM',
     dateTime: 'Aug 12, 2026 • 11:00 AM',
+
+    interviewerName: 'Charlie Darwin (Lead Architect)',
+    meetingMode: 'MS Teams (Online)',
+    meetingUrl: 'https://teams.microsoft.com/l/meetup-join/103',
+
+    dailyOutcome: 'Selected',
+    dailyDecisionReason: 'Shortlisted by hiring manager for L1 panel round.',
+
     stageProgress: 2,
     lastActivity: 'Shortlisted by hiring manager',
     assignedRecruiter: 'Charlie Darwin',
     team: 'Automotive Team',
     department: 'Hardware & Automotive',
-    meetingMode: 'Teams',
-    meetingUrl: 'https://teams.microsoft.com/l/meetup-join/123',
     statusBadge: 'Shortlisted',
     statusColor: 'purple',
     notes: ['Shortlisted by Lead Recruiter for L1 Technical Round.'],
@@ -141,15 +225,32 @@ const INITIAL_CANDIDATES: CandidateCardItem[] = [
     experience: '7 Yrs 5 Mos',
     currentCompany: 'ITC Infotech',
     stage: 'Interview Scheduled',
+
+    clientName: 'ITC Infotech',
+    clientPOC: 'Pranati Paul',
+    pocContact: 'pranati.paul@itc.in',
+
+    reqId: 'REQ-2026-05-21-004',
+    reqTitle: 'MIG welding Fixtures / Modular Fixtures',
+    reqDate: '21 May 2026',
+
+    scheduledDate: '11 Aug 2026',
+    scheduledTime: '04:00 PM',
     dateTime: 'Today • 04:00 PM',
     isToday: true,
+
+    interviewerName: 'Pranati Paul (Enterprise Delivery Mgr)',
+    meetingMode: 'Zoom (Online)',
+    meetingUrl: 'https://zoom.us/j/987654321',
+
+    dailyOutcome: 'Pending',
+    dailyDecisionReason: 'Session in progress today at 04:00 PM.',
+
     stageProgress: 3,
     lastActivity: 'Meeting link sent via email',
     assignedRecruiter: 'Harish Gadipally',
     team: 'ERP & SAP Team',
     department: 'Enterprise Applications',
-    meetingMode: 'Zoom',
-    meetingUrl: 'https://zoom.us/j/987654321',
     statusBadge: 'L1 Scheduled',
     statusColor: 'blue',
     notes: ['L1 Technical round scheduled with Senior Architect.'],
@@ -161,14 +262,31 @@ const INITIAL_CANDIDATES: CandidateCardItem[] = [
     experience: '3 Yrs 10 Mos',
     currentCompany: 'Deloitte Digital',
     stage: 'Completed',
+
+    clientName: 'Deloitte Digital',
+    clientPOC: 'Kiran N',
+    pocContact: 'kiran.n@deloitte.com',
+
+    reqId: 'REQ-2026-05-21-002',
+    reqTitle: 'DPS- TPC Golang, Kubernetes, NATS',
+    reqDate: '21 May 2026',
+
+    scheduledDate: '09 Aug 2026',
+    scheduledTime: '03:00 PM',
     dateTime: 'Aug 09, 2026 • 03:00 PM',
+
+    interviewerName: 'Kiran N (AI Practice Lead)',
+    meetingMode: 'Google Meet (Online)',
+    meetingUrl: 'https://meet.google.com/xyz-uvwx-rst',
+
+    dailyOutcome: 'Selected',
+    dailyDecisionReason: 'Cleared L2 technical assessment. Recommended for offer.',
+
     stageProgress: 4,
     lastActivity: 'L2 feedback recorded 5/5',
     assignedRecruiter: 'Harini Sindey',
     team: 'Engineering Team',
     department: 'Software Engineering',
-    meetingMode: 'Google Meet',
-    meetingUrl: 'https://meet.google.com/xyz-uvwx-rst',
     statusBadge: 'L2 Cleared',
     statusColor: 'emerald',
     notes: ['Cleared L2 technical assessment. Excellent problem solving.'],
@@ -178,18 +296,34 @@ const INITIAL_CANDIDATES: CandidateCardItem[] = [
   {
     id: 'c-106',
     name: 'Abhijit Narke',
-    role: 'Mechanical Design Engineer (Catia V5)',
+    role: 'Mechanical Design Engineer',
     experience: '8 Yrs 0 Mos',
     currentCompany: 'LTTS Automotive',
     stage: 'Completed',
+
+    clientName: 'LTTS Automotive',
+    clientPOC: 'Vinaya Kumar Patil',
+    pocContact: 'vinaya.patil@ltts.com',
+
+    reqId: 'REQ-2026-05-25-001',
+    reqTitle: 'Senior Catia V5 Automotive Chassis Engineer',
+    reqDate: '25 May 2026',
+
+    scheduledDate: '08 Aug 2026',
+    scheduledTime: '05:00 PM',
     dateTime: 'Aug 08, 2026 • 05:00 PM',
+
+    interviewerName: 'Vinaya Kumar Patil (Eng VP)',
+    meetingMode: 'In-Person (Office)',
+
+    dailyOutcome: 'Selected',
+    dailyDecisionReason: 'Partner round cleared with flying colors.',
+
     stageProgress: 4,
     lastActivity: 'Selected for offer generation',
     assignedRecruiter: 'Puttapaka Saiteja',
     team: 'Automotive Team',
     department: 'Hardware & Automotive',
-    meetingMode: 'Zoom',
-    meetingUrl: 'https://zoom.us/j/555666777',
     statusBadge: 'Offer Selected',
     statusColor: 'emerald',
     notes: ['Final Partner Round Cleared. Offer letter generation in progress.'],
@@ -204,13 +338,6 @@ const STAGES: InterviewStage[] = [
   'Interview Scheduled',
   'Completed',
 ]
-
-const STAGE_STYLES: Record<InterviewStage, { border: string; bg: string; badge: string; text: string }> = {
-  Screening: { border: 'border-amber-200', bg: 'bg-amber-50/30', badge: 'bg-amber-100 text-amber-900 border border-amber-200', text: 'text-amber-900' },
-  Shortlisted: { border: 'border-[#C7D2FE]', bg: 'bg-[#EEF2FF]/40', badge: 'bg-[#EEF2FF] text-[#5B51D8] border border-[#C7D2FE]', text: 'text-[#5B51D8]' },
-  'Interview Scheduled': { border: 'border-blue-200', bg: 'bg-blue-50/40', badge: 'bg-blue-100 text-blue-900 border border-blue-200', text: 'text-blue-900' },
-  Completed: { border: 'border-emerald-200', bg: 'bg-emerald-50/40', badge: 'bg-emerald-100 text-emerald-900 border border-emerald-200', text: 'text-emerald-900' },
-}
 
 const RECRUITERS = [
   'Harish Gadipally',
@@ -232,24 +359,25 @@ export function InterviewTrackingPage({
   onOpenFeedbackModal,
 }: InterviewTrackingPageProps) {
   const [candidates, setCandidates] = useState<CandidateCardItem[]>(INITIAL_CANDIDATES)
-  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban')
 
-  // Search & Filter State
+  // Search, Status Toggle & Customizable Date Filter State
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedDept, setSelectedDept] = useState('All Departments')
-  const [selectedTeam, setSelectedTeam] = useState('All Teams')
-  const [roleFilter, setRoleFilter] = useState('All Roles')
-  const [statusFilter, setStatusFilter] = useState('All Stages')
+  const [statusToggle, setStatusToggle] = useState<'upcoming' | 'in_progress' | 'completed' | 'all'>('in_progress')
+  const [dateFilter, setDateFilter] = useState<'today' | 'this_week' | 'this_month' | 'custom_range'>('this_month')
 
-  // Reassign Modal State
+  // Customizable Date Range Picker State
+  const [customStartDate, setCustomStartDate] = useState('2026-08-01')
+  const [customEndDate, setCustomEndDate] = useState('2026-08-31')
+  const [showCustomRangePicker, setShowCustomRangePicker] = useState(false)
+
+  // Modals & Action State
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
+  const [selectedCandidate, setSelectedCandidate] = useState<CandidateCardItem | null>(null)
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false)
+  const [newNoteText, setNewNoteText] = useState('')
   const [reassignCandidate, setReassignCandidate] = useState<CandidateCardItem | null>(null)
   const [targetRecruiter, setTargetRecruiter] = useState('')
 
-  // Profile & Schedule Modal
-  const [selectedCandidate, setSelectedCandidate] = useState<CandidateCardItem | null>(null)
-  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
-  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false)
-  const [newNoteText, setNewNoteText] = useState('')
   const [toastMsg, setToastMsg] = useState<string | null>(null)
 
   const showToast = (msg: string) => {
@@ -257,78 +385,184 @@ export function InterviewTrackingPage({
     setTimeout(() => setToastMsg(null), 3500)
   }
 
-  // Filter candidates based on Role & Filters
-  const filteredCandidates = useMemo(() => {
-    return candidates.filter(c => {
-      // Role scope restriction
-      if (role === 'recruiter' && c.assignedRecruiter !== 'Harish Gadipally') {
-        // In recruiter mode, show primary recruiter candidates
-        // (for demo completeness, if empty allow view)
-      }
-
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim()
-        const matchName = c.name.toLowerCase().includes(q)
-        const matchRole = c.role.toLowerCase().includes(q)
-        const matchCompany = c.currentCompany.toLowerCase().includes(q)
-        const matchRecruiter = c.assignedRecruiter.toLowerCase().includes(q)
-        if (!matchName && !matchRole && !matchCompany && !matchRecruiter) return false
-      }
-
-      if (selectedDept !== 'All Departments' && c.department !== selectedDept) return false
-      if (selectedTeam !== 'All Teams' && c.team !== selectedTeam) return false
-      if (roleFilter !== 'All Roles' && !c.role.toLowerCase().includes(roleFilter.toLowerCase())) return false
-      if (statusFilter !== 'All Stages' && c.stage !== statusFilter) return false
-
-      return true
-    })
-  }, [candidates, searchQuery, selectedDept, selectedTeam, roleFilter, statusFilter, role])
-
-  // Move stage handler
-  const moveStage = (candidateId: string, newStage: InterviewStage) => {
-    if (role === 'superadmin') {
-      showToast('Super Admin view is read-only. Micro actions are disabled.')
-      return
+  // Handle Date Filter Change
+  const handleDateFilterChange = (val: 'today' | 'this_week' | 'this_month' | 'custom_range') => {
+    setDateFilter(val)
+    if (val === 'custom_range') {
+      setShowCustomRangePicker(true)
+    } else {
+      setShowCustomRangePicker(false)
     }
-
-    const progressMap: Record<InterviewStage, number> = {
-      Screening: 1,
-      Shortlisted: 2,
-      'Interview Scheduled': 3,
-      Completed: 4,
-    }
-
-    setCandidates(prev =>
-      prev.map(c => (c.id === candidateId ? { ...c, stage: newStage, stageProgress: progressMap[newStage], lastActivity: `Stage updated to ${newStage}` } : c))
-    )
-    const cand = candidates.find(c => c.id === candidateId)
-    showToast(`Updated ${cand?.name || 'candidate'} stage to "${newStage}"`)
   }
 
-  // Reassign recruiter handler
-  const handleReassign = () => {
+  // Update Daily Selection Outcome
+  const updateDailyOutcome = (candidateId: string, outcome: DailyOutcome, reason?: string) => {
+    setCandidates(prev =>
+      prev.map(c => {
+        if (c.id === candidateId) {
+          return {
+            ...c,
+            dailyOutcome: outcome,
+            dailyDecisionReason: reason || c.dailyDecisionReason || `Marked ${outcome} today`,
+          }
+        }
+        return c
+      })
+    )
+    showToast(`Updated candidate daily progress to ${outcome}`)
+  }
+
+  // Move Candidate Stage
+  const moveStage = (candidateId: string, newStage: InterviewStage) => {
+    setCandidates(prev =>
+      prev.map(c => {
+        if (c.id === candidateId) {
+          const progressMap: Record<InterviewStage, number> = {
+            Screening: 1,
+            Shortlisted: 2,
+            'Interview Scheduled': 3,
+            Completed: 4,
+          }
+          return {
+            ...c,
+            stage: newStage,
+            stageProgress: progressMap[newStage],
+            lastActivity: `Moved to ${newStage} just now`,
+          }
+        }
+        return c
+      })
+    )
+    showToast(`Candidate stage updated to ${newStage}`)
+  }
+
+  // Save Notes
+  const handleAddNote = () => {
+    if (!selectedCandidate || !newNoteText.trim()) return
+    setCandidates(prev =>
+      prev.map(c => {
+        if (c.id === selectedCandidate.id) {
+          return {
+            ...c,
+            notes: [newNoteText.trim(), ...c.notes],
+          }
+        }
+        return c
+      })
+    )
+    setSelectedCandidate(prev => (prev ? { ...prev, notes: [newNoteText.trim(), ...prev.notes] } : null))
+    setNewNoteText('')
+    showToast('Note added successfully')
+  }
+
+  // Handle Reassign Recruiter
+  const handleReassignRecruiter = () => {
     if (!reassignCandidate || !targetRecruiter) return
     setCandidates(prev =>
-      prev.map(c => (c.id === reassignCandidate.id ? { ...c, assignedRecruiter: targetRecruiter, lastActivity: `Reassigned to ${targetRecruiter}` } : c))
+      prev.map(c => {
+        if (c.id === reassignCandidate.id) {
+          return { ...c, assignedRecruiter: targetRecruiter }
+        }
+        return c
+      })
     )
-    showToast(`Candidate ${reassignCandidate.name} reassigned to ${targetRecruiter}`)
+    showToast(`Reassigned ${reassignCandidate.name} to ${targetRecruiter}`)
     setReassignCandidate(null)
   }
 
-  const handleAddNote = () => {
-    if (!selectedCandidate || !newNoteText.trim()) return
-    const updatedNotes = [...selectedCandidate.notes, newNoteText.trim()]
-    setCandidates(prev =>
-      prev.map(c => (c.id === selectedCandidate.id ? { ...c, notes: updatedNotes } : c))
-    )
-    setSelectedCandidate({ ...selectedCandidate, notes: updatedNotes })
-    setNewNoteText('')
-    showToast('Note added successfully!')
-  }
+  // Compute Category Tab Counts
+  const scopeCandidates = useMemo(() => {
+    return candidates.filter(c => (role === 'recruiter' ? c.assignedRecruiter === 'Harish Gadipally' : true))
+  }, [candidates, role])
+
+  const upcomingCount = useMemo(() => {
+    return scopeCandidates.filter(c => c.stage === 'Interview Scheduled' || c.stage === 'Shortlisted' || c.isToday).length
+  }, [scopeCandidates])
+
+  const inProgressCount = useMemo(() => {
+    return scopeCandidates.filter(c => c.stage === 'Screening').length
+  }, [scopeCandidates])
+
+  const completedCount = useMemo(() => {
+    return scopeCandidates.filter(c => c.stage === 'Completed').length
+  }, [scopeCandidates])
+
+  const allCount = scopeCandidates.length
+
+  // Filtered Candidates according to Search, Status Toggle & Customizable Date Filter
+  const filteredCandidates = useMemo(() => {
+    return scopeCandidates.filter(c => {
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase()
+        const matches =
+          c.name.toLowerCase().includes(q) ||
+          c.role.toLowerCase().includes(q) ||
+          c.currentCompany.toLowerCase().includes(q) ||
+          c.assignedRecruiter.toLowerCase().includes(q) ||
+          c.clientName.toLowerCase().includes(q) ||
+          c.clientPOC.toLowerCase().includes(q) ||
+          c.reqId.toLowerCase().includes(q)
+        if (!matches) return false
+      }
+
+      // Status Toggle Filter
+      if (statusToggle === 'upcoming') {
+        if (c.stage !== 'Interview Scheduled' && c.stage !== 'Shortlisted' && !c.isToday) {
+          return false
+        }
+      } else if (statusToggle === 'in_progress') {
+        if (c.stage !== 'Screening') {
+          return false
+        }
+      } else if (statusToggle === 'completed') {
+        if (c.stage !== 'Completed') {
+          return false
+        }
+      }
+
+      // Customizable Date Range Filter Logic
+      if (dateFilter === 'today') {
+        if (!c.isToday && !c.scheduledDate.includes('11 Aug') && !c.dateTime.includes('Today')) {
+          return false
+        }
+      } else if (dateFilter === 'this_week') {
+        if (!c.scheduledDate.includes('Aug 2026') && !c.dateTime.includes('Today') && !c.dateTime.includes('Yesterday')) {
+          return false
+        }
+      } else if (dateFilter === 'custom_range' && customStartDate && customEndDate) {
+        const start = new Date(customStartDate).getTime()
+        const end = new Date(customEndDate).getTime() + 86400000
+        // Extract day number from "11 Aug 2026"
+        const matchDay = c.scheduledDate.match(/(\d+)\s+Aug/)
+        if (matchDay) {
+          const dayNum = parseInt(matchDay[1], 10)
+          const candTime = new Date(`2026-08-${dayNum.toString().padStart(2, '0')}`).getTime()
+          if (candTime < start || candTime > end) {
+            return false
+          }
+        }
+      }
+
+      return true
+    })
+  }, [scopeCandidates, searchQuery, statusToggle, dateFilter, customStartDate, customEndDate])
+
+  // In-Progress Specific Daily Outcome Metrics
+  const inProgressSelectedCount = useMemo(() => {
+    return scopeCandidates.filter(c => c.stage === 'Screening' && c.dailyOutcome === 'Selected').length
+  }, [scopeCandidates])
+
+  const inProgressNotSelectedCount = useMemo(() => {
+    return scopeCandidates.filter(c => c.stage === 'Screening' && c.dailyOutcome === 'Not Selected').length
+  }, [scopeCandidates])
+
+  const inProgressPendingCount = useMemo(() => {
+    return scopeCandidates.filter(c => c.stage === 'Screening' && c.dailyOutcome === 'Pending').length
+  }, [scopeCandidates])
 
   return (
     <div className="space-y-6 w-full pb-16 font-sans text-slate-800">
-      {/* 1. TOP HEADER WITH ROLE IDENTIFIER */}
+      {/* 1. TOP HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
@@ -344,463 +578,546 @@ export function InterviewTrackingPage({
             {role === 'admin' && (
               <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-900 border border-amber-200 inline-flex items-center gap-1.5 shadow-2xs">
                 <span className="w-2 h-2 rounded-full bg-amber-600 animate-pulse" />
-                <span>🟠 Admin View (Multi-Team Operations)</span>
+                <span>🟠 Admin View (Team Management)</span>
               </span>
             )}
 
             {role === 'lead' && (
               <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-blue-100 text-blue-900 border border-blue-200 inline-flex items-center gap-1.5 shadow-2xs">
                 <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-                <span>🔵 Team Lead View (Candidate Flow)</span>
+                <span>🔵 Team Lead View (Team Supervision)</span>
               </span>
             )}
 
             {role === 'recruiter' && (
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#EEF2FF] text-[#5B51D8] border border-[#C7D2FE] inline-flex items-center gap-1.5 shadow-2xs">
                 <ShieldCheck className="w-3.5 h-3.5 text-[#5B51D8]" />
-                <span>My Candidates Only</span>
+                <span>My Assigned Interviews</span>
               </span>
             )}
           </div>
-
           <p className="text-xs text-slate-500 mt-1">
-            {role === 'superadmin' && 'Organization-wide hiring pipeline overview, bottleneck heatmaps, and aggregated activity.'}
-            {role === 'admin' && 'Monitor team progress, reassign candidates, and balance recruiter capacity across teams.'}
-            {role === 'lead' && 'Manage day-to-day candidate flow, track recruiter workload, and drive closures.'}
-            {role === 'recruiter' && 'Track your individual assigned candidates across interview stages.'}
+            Track Upcoming Interviews, In Progress daily evaluation (Selected / Not Selected), and Completed sessions.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* View Toggle */}
-          <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1 border border-slate-200/80">
-            <button
-              onClick={() => setViewMode('kanban')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                viewMode === 'kanban'
-                  ? 'bg-white text-[#6B3BF6] shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Kanban className="w-3.5 h-3.5" />
-              <span>Kanban View</span>
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                viewMode === 'list'
-                  ? 'bg-white text-[#6B3BF6] shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <ListIcon className="w-3.5 h-3.5" />
-              <span>List View</span>
-            </button>
-          </div>
-
           {role !== 'superadmin' && (
             <button
               onClick={() => setIsScheduleModalOpen(true)}
-              className="px-4 py-2.5 bg-gradient-to-r from-[#6B3BF6] to-[#5833E0] hover:from-[#5833E0] hover:to-[#4A2BC2] text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-98"
+              className="px-4 py-2 bg-[#6B3BF6] hover:bg-[#5833E0] text-white text-xs font-bold rounded-xl shadow-2xs transition-all flex items-center gap-2 cursor-pointer active:scale-98"
             >
               <Plus className="w-4 h-4" />
-              <span>Schedule Interview</span>
+              <span>+ Schedule Interview</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* 2. ROLE-BASED TOP METRICS & ALERTS WIDGET */}
-      {role === 'superadmin' && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-slate-900 text-white rounded-2xl p-4 space-y-1 shadow-md border border-slate-800">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              Total Org Candidates in Pipeline
-            </span>
-            <p className="text-3xl font-extrabold text-white tabular-nums">486</p>
-            <p className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
-              <ArrowUpRight className="w-3 h-3" />
-              <span>+18% across 5 departments</span>
-            </p>
-          </div>
-
-          <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-2xl p-4 space-y-1 shadow-md">
-            <span className="text-[11px] font-bold text-purple-200 uppercase tracking-wider">
-              Total Interviews Scheduled Today
-            </span>
-            <p className="text-3xl font-extrabold text-white tabular-nums">24</p>
-            <p className="text-[10px] text-purple-200 font-medium">18 Online • 6 In-Person</p>
-          </div>
-
-          <div className="bg-emerald-950 text-emerald-100 rounded-2xl p-4 space-y-1 shadow-md border border-emerald-800">
-            <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">
-              Organization Conversion Rate
-            </span>
-            <p className="text-3xl font-extrabold text-emerald-300 tabular-nums">28.4%</p>
-            <p className="text-[10px] text-emerald-400 font-medium">Sourced to Offer acceptance</p>
-          </div>
-        </div>
-      )}
-
-      {role === 'admin' && (
-        <div className="space-y-3">
-          {/* Delayed Alert Banner */}
-          <div className="bg-rose-50 border border-rose-200 rounded-2xl p-3.5 flex items-center justify-between gap-3 text-xs text-rose-900 shadow-2xs">
-            <div className="flex items-center gap-2.5">
-              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span className="font-semibold">
-                <strong>Attention Admin:</strong> 4 interviews in Engineering Team are pending feedback &gt; 48 hours.
+      {/* 2. REORDERED STATUS BAR: TOGGLES ON LEFT & CUSTOMIZABLE DATE FILTER + SEARCH BAR ON RIGHT CORNER */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          {/* Status Toggle Switcher (POSITIONED ON LEFT) */}
+          <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 text-xs font-bold w-full lg:w-auto">
+            <button
+              onClick={() => setStatusToggle('upcoming')}
+              className={`flex-1 lg:flex-initial px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                statusToggle === 'upcoming'
+                  ? 'bg-purple-600 text-white shadow-md font-extrabold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
+            >
+              <Clock className="w-4 h-4" />
+              <span>Upcoming Interviews</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${statusToggle === 'upcoming' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-900'}`}>
+                {upcomingCount}
               </span>
-            </div>
+            </button>
+
             <button
-              onClick={() => showToast('Filtered to 4 delayed interviews')}
-              className="px-3 py-1 bg-rose-600 text-white font-bold rounded-lg hover:bg-rose-700 cursor-pointer text-[11px]"
+              onClick={() => setStatusToggle('in_progress')}
+              className={`flex-1 lg:flex-initial px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                statusToggle === 'in_progress'
+                  ? 'bg-amber-600 text-white shadow-md font-extrabold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
             >
-              Resolve Bottlenecks
+              <Activity className="w-4 h-4" />
+              <span>In Progress</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${statusToggle === 'in_progress' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-900'}`}>
+                {inProgressCount}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setStatusToggle('completed')}
+              className={`flex-1 lg:flex-initial px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                statusToggle === 'completed'
+                  ? 'bg-emerald-600 text-white shadow-md font-extrabold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Completed</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${statusToggle === 'completed' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-900'}`}>
+                {completedCount}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setStatusToggle('all')}
+              className={`flex-1 lg:flex-initial px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                statusToggle === 'all'
+                  ? 'bg-slate-900 text-white shadow-md font-extrabold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
+            >
+              <span>All ({allCount})</span>
             </button>
           </div>
 
-          {/* Team Capacity Metrics */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="bg-white border border-slate-200 rounded-2xl p-3.5 space-y-1 shadow-2xs">
-              <span className="text-[11px] font-bold text-slate-400 uppercase">Active Team Candidates</span>
-              <p className="text-2xl font-extrabold text-slate-900">{candidates.length}</p>
+          {/* Right Corner Controls: Date Filter Dropdown & Search Box */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+            {/* Date Range Filter Dropdown */}
+            <div className="w-full sm:w-44">
+              <select
+                value={dateFilter}
+                onChange={e => handleDateFilterChange(e.target.value as any)}
+                className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
+              >
+                <option value="today">Today</option>
+                <option value="this_week">This Week</option>
+                <option value="this_month">This Month</option>
+                <option value="custom_range">Custom Range...</option>
+              </select>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-3.5 space-y-1 shadow-2xs">
-              <span className="text-[11px] font-bold text-slate-400 uppercase">Avg Workload / Recruiter</span>
-              <p className="text-2xl font-extrabold text-[#6B3BF6]">8.4 Candidates</p>
-            </div>
-
-            <div className="bg-white border border-slate-200 rounded-2xl p-3.5 space-y-1 shadow-2xs">
-              <span className="text-[11px] font-bold text-slate-400 uppercase">Team Capacity Utilization</span>
-              <p className="text-2xl font-extrabold text-emerald-600">88%</p>
+            {/* Search Box on Right Corner */}
+            <div className="relative w-full sm:w-64">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search candidate, client, REQ..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6B3BF6]"
+              />
             </div>
           </div>
         </div>
-      )}
 
-      {/* 3. FILTER CONTROLS BAR */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-          {/* Search */}
-          <div className="relative md:col-span-2">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search candidate name, role, company, or assigned recruiter..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#6B3BF6] text-slate-800 placeholder:text-slate-400 transition-all"
-            />
-          </div>
-
-          {/* Super Admin & Admin Department Filter */}
-          {(role === 'superadmin' || role === 'admin') && (
-            <div>
-              <select
-                value={selectedDept}
-                onChange={e => setSelectedDept(e.target.value)}
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
-              >
-                <option value="All Departments">All Departments</option>
-                <option value="Software Engineering">Software Engineering</option>
-                <option value="Hardware & Automotive">Hardware & Automotive</option>
-                <option value="Enterprise Applications">Enterprise Applications</option>
-              </select>
+        {/* CUSTOMIZABLE DATE RANGE PICKER POP-DOWN */}
+        {(dateFilter === 'custom_range' || showCustomRangePicker) && (
+          <div className="p-3.5 bg-purple-50/70 border border-purple-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-150">
+            <div className="flex items-center gap-2 text-xs font-bold text-purple-950">
+              <CalendarRange className="w-4 h-4 text-[#6B3BF6]" />
+              <span>Custom Date Range Picker:</span>
             </div>
-          )}
 
-          {/* Admin Team Switcher */}
-          {(role === 'admin' || role === 'lead' || role === 'superadmin') && (
-            <div>
-              <select
-                value={selectedTeam}
-                onChange={e => setSelectedTeam(e.target.value)}
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-[#6B3BF6] bg-purple-50/50 border-purple-200 focus:outline-none cursor-pointer"
+            <div className="flex flex-wrap items-center gap-3 text-xs font-bold">
+              <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-purple-200 shadow-2xs">
+                <span className="text-slate-400 font-semibold">From:</span>
+                <input
+                  type="date"
+                  value={customStartDate}
+                  onChange={e => setCustomStartDate(e.target.value)}
+                  className="bg-transparent text-slate-900 font-bold focus:outline-none cursor-pointer"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-purple-200 shadow-2xs">
+                <span className="text-slate-400 font-semibold">To:</span>
+                <input
+                  type="date"
+                  value={customEndDate}
+                  onChange={e => setCustomEndDate(e.target.value)}
+                  className="bg-transparent text-slate-900 font-bold focus:outline-none cursor-pointer"
+                />
+              </div>
+
+              <button
+                onClick={() => {
+                  showToast(`Applied Custom Date Range: ${customStartDate} to ${customEndDate}`)
+                }}
+                className="px-3.5 py-1.5 bg-[#6B3BF6] hover:bg-[#5833E0] text-white rounded-xl shadow-2xs transition-all cursor-pointer font-bold"
               >
-                <option value="All Teams">All Hiring Teams</option>
-                <option value="Engineering Team">Engineering Team</option>
-                <option value="Automotive Team">Automotive Team</option>
-                <option value="ERP & SAP Team">ERP & SAP Team</option>
-              </select>
+                Apply Range
+              </button>
             </div>
-          )}
-
-          {/* Reset Filters */}
-          <div>
-            <button
-              onClick={() => {
-                setSearchQuery('')
-                setSelectedDept('All Departments')
-                setSelectedTeam('All Teams')
-                setStatusFilter('All Stages')
-                setRoleFilter('All Roles')
-                showToast('Filters reset')
-              }}
-              className="w-full py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
-            >
-              Reset Filters
-            </button>
           </div>
-        </div>
+        )}
+
+        {/* DAILY EVALUATION SUMMARY BANNER WHEN IN-PROGRESS IS ACTIVE */}
+        {statusToggle === 'in_progress' && (
+          <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-amber-50/50 p-3 rounded-xl border border-amber-200/80">
+            <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+              <Activity className="w-4 h-4 text-amber-700 animate-pulse" />
+              <span>Today's Evaluation Progress Summary:</span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 text-xs font-extrabold">
+              <div className="px-3 py-1 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300 flex items-center gap-1.5 shadow-2xs">
+                <ThumbsUp className="w-3.5 h-3.5 text-emerald-700" />
+                <span>Selected Today: {inProgressSelectedCount}</span>
+              </div>
+
+              <div className="px-3 py-1 rounded-lg bg-rose-100 text-rose-900 border border-rose-300 flex items-center gap-1.5 shadow-2xs">
+                <ThumbsDown className="w-3.5 h-3.5 text-rose-700" />
+                <span>Not Selected Today: {inProgressNotSelectedCount}</span>
+              </div>
+
+              <div className="px-3 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1.5 shadow-2xs">
+                <Clock className="w-3.5 h-3.5 text-amber-700" />
+                <span>Pending Outcome: {inProgressPendingCount}</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* 4. MAIN CONTENT AREA: KANBAN BOARD WITH ROLE FEATURES */}
-      {viewMode === 'kanban' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 overflow-x-auto pb-4 custom-scrollbar min-h-[580px]">
-          {STAGES.map(stage => {
-            const stageCandidates = filteredCandidates.filter(c => c.stage === stage)
-            const style = STAGE_STYLES[stage]
-
-            // Super Admin Bottleneck Heatmap Indicator
-            const isBottleneck = role === 'superadmin' && stage === 'Screening' && stageCandidates.length >= 2
-
-            return (
-              <div
-                key={stage}
-                className={`bg-slate-50/80 rounded-2xl border ${
-                  isBottleneck ? 'border-rose-400 bg-rose-50/30' : style.border
-                } p-4 flex flex-col flex-1 min-w-[285px] shadow-2xs relative`}
-              >
-                {/* Super Admin Heatmap Alert Banner */}
-                {isBottleneck && (
-                  <div className="mb-2 p-2 bg-rose-500 text-white rounded-xl text-[10px] font-bold flex items-center justify-between">
-                    <span>⚠️ BOTTLENECK DETECTED</span>
-                    <span className="underline cursor-pointer">Inspect</span>
-                  </div>
-                )}
-
-                {/* Column Header */}
-                <div className="flex items-center justify-between border-b border-slate-200/80 pb-3 mb-3.5">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs font-bold ${style.text}`}>{stage}</span>
-                  </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${style.badge}`}>
-                    {stageCandidates.length}
-                  </span>
-                </div>
-
-                {/* Cards Container */}
-                <div className="space-y-3.5 flex-1 overflow-y-auto pr-0.5 custom-scrollbar">
-                  {stageCandidates.length === 0 ? (
-                    <div className="h-36 border-2 border-dashed border-slate-200/80 rounded-2xl flex flex-col items-center justify-center text-center p-4">
-                      <span className="text-xs text-slate-400 font-medium">No candidates in {stage}</span>
-                    </div>
-                  ) : (
-                    stageCandidates.map(cand => (
-                      <div
-                        key={cand.id}
-                        className={`bg-white rounded-2xl border ${
-                          cand.isOverdue
-                            ? 'border-rose-300 ring-2 ring-rose-500/20'
-                            : cand.isToday
-                            ? 'border-blue-300 ring-2 ring-blue-500/20'
-                            : 'border-slate-200/90'
-                        } p-4 shadow-2xs hover:shadow-md transition-all duration-200 group space-y-3 relative`}
-                      >
-                        {/* Assigned Recruiter Badge for Admin & Team Lead */}
-                        <div className="flex items-center justify-between text-[10px] font-semibold text-slate-500 border-b border-slate-100 pb-2">
-                          <span className="flex items-center gap-1 text-slate-700">
-                            <User className="w-3 h-3 text-[#6B3BF6]" />
-                            <span>{cand.assignedRecruiter}</span>
-                          </span>
-
-                          {(role === 'admin' || role === 'lead') && (
-                            <button
-                              onClick={() => {
-                                setReassignCandidate(cand)
-                                setTargetRecruiter(cand.assignedRecruiter)
-                              }}
-                              className="text-blue-600 font-bold hover:underline cursor-pointer flex items-center gap-0.5"
-                            >
-                              <UserPlus className="w-3 h-3" />
-                              <span>Reassign</span>
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Candidate Name & Role */}
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#6B3BF6] transition-colors leading-snug">
-                              {cand.name}
-                            </h4>
-                            <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                              {cand.role}
-                            </p>
-                          </div>
-                          {cand.meetingUrl && (
-                            <a
-                              href={cand.meetingUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors shrink-0"
-                              title={`Join via ${cand.meetingMode}`}
-                            >
-                              <Video className="w-3.5 h-3.5" />
-                            </a>
-                          )}
-                        </div>
-
-                        {/* Details */}
-                        <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100 space-y-1 text-[11px] text-slate-600">
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Experience:</span>
-                            <span className="font-semibold text-slate-800">{cand.experience}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Company:</span>
-                            <span className="font-semibold text-slate-800 truncate max-w-[130px]">
-                              {cand.currentCompany}
-                            </span>
-                          </div>
-                          <div className="flex justify-between items-center pt-1 border-t border-slate-200/60 text-[10px]">
-                            <span className="text-slate-400 flex items-center gap-1">
-                              <CalendarIcon className="w-3 h-3 text-slate-400" />
-                              {cand.dateTime}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Stage Mover Selector (Locked for Super Admin) */}
-                        {role !== 'superadmin' ? (
-                          <div>
-                            <label className="text-[10px] text-slate-400 font-semibold mb-1 block">
-                              Update Stage:
-                            </label>
-                            <select
-                              value={cand.stage}
-                              onChange={e => moveStage(cand.id, e.target.value as InterviewStage)}
-                              className="w-full text-[11px] bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 font-semibold text-slate-700 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
-                            >
-                              {STAGES.map(s => (
-                                <option key={s} value={s}>
-                                  {s}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        ) : (
-                          <div className="text-[10px] text-slate-400 font-medium italic flex items-center gap-1">
-                            <Lock className="w-3 h-3 text-slate-400" />
-                            <span>Read-only overview mode</span>
-                          </div>
-                        )}
-
-                        {/* Quick Actions Footer */}
-                        <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
-                          <button
-                            onClick={() => setSelectedCandidate(cand)}
-                            className="text-[#6B3BF6] font-bold hover:underline flex items-center gap-1 cursor-pointer"
-                          >
-                            <span>View Profile</span>
-                            <ChevronRight className="w-3 h-3" />
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              setSelectedCandidate(cand)
-                              setIsNotesModalOpen(true)
-                            }}
-                            className="text-slate-500 hover:text-slate-900 font-medium flex items-center gap-1 cursor-pointer"
-                          >
-                            <MessageSquare className="w-3 h-3" />
-                            <span>Notes ({cand.notes.length})</span>
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {/* 5. LIST VIEW TABLE */}
-      {viewMode === 'list' && (
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3.5 px-4">CANDIDATE NAME</th>
-                  <th className="py-3.5 px-4">ASSIGNED RECRUITER</th>
-                  <th className="py-3.5 px-4">ROLE APPLIED</th>
-                  <th className="py-3.5 px-4">EXPERIENCE</th>
-                  <th className="py-3.5 px-4">INTERVIEW STAGE</th>
-                  <th className="py-3.5 px-4">INTERVIEW DATE</th>
-                  <th className="py-3.5 px-4 text-right">ACTIONS</th>
+      {/* 3. CLEAN TABLE VIEW */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <th className="py-3.5 px-4">CANDIDATE & ROLE</th>
+                <th className="py-3.5 px-4">REQUIREMENT & CLIENT POC</th>
+                <th className="py-3.5 px-4">SCHEDULED INTERVIEW</th>
+                <th className="py-3.5 px-4">DAILY OUTCOME & STAGE</th>
+                <th className="py-3.5 px-4 text-right">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
+              {filteredCandidates.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                    <p className="font-bold text-sm">No interviews found in this view category</p>
+                    <p className="text-xs mt-1">Try switching tabs or adjusting your custom date range filter above</p>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
-                {filteredCandidates.map(c => (
-                  <tr key={c.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-slate-900 flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-[#6B3BF6]/10 text-[#6B3BF6] font-bold flex items-center justify-center text-xs">
-                        {c.name.charAt(0)}
+              ) : (
+                filteredCandidates.map(c => (
+                  <tr
+                    key={c.id}
+                    className="hover:bg-purple-50/40 transition-colors cursor-pointer"
+                    onClick={() => setSelectedCandidate(c)}
+                  >
+                    {/* Column 1: Candidate & Role */}
+                    <td className="py-4 px-4 font-bold text-slate-900">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-[#EEF2FF] text-[#5B51D8] font-extrabold flex items-center justify-center text-xs shrink-0 border border-[#C7D2FE]">
+                          {c.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="text-slate-900 font-extrabold text-xs">{c.name}</div>
+                          <div className="text-[11px] text-[#6B3BF6] font-bold mt-0.5">{c.role}</div>
+                          <div className="text-[10px] text-slate-500 font-normal flex items-center gap-2 mt-0.5">
+                            <span>Exp: {c.experience}</span>
+                            <span>•</span>
+                            <span className="text-purple-700 font-semibold">Recruiter: {c.assignedRecruiter}</span>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <div>{c.name}</div>
-                        <div className="text-[10px] text-slate-400 font-normal">{c.currentCompany}</div>
+                    </td>
+
+                    {/* Column 2: Requirement & Client POC */}
+                    <td className="py-4 px-4" onClick={e => e.stopPropagation()}>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-50 text-blue-800 border border-blue-200">
+                            {c.reqId}
+                          </span>
+                          <span className="font-bold text-slate-900 text-xs truncate max-w-[180px]" title={c.reqTitle}>
+                            {c.reqTitle}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-600 font-semibold flex items-center gap-2">
+                          <span className="text-slate-900 font-bold flex items-center gap-1">
+                            <Building2 className="w-3 h-3 text-blue-600" />
+                            <span>{c.clientName}</span>
+                          </span>
+                          <span>•</span>
+                          <span className="text-slate-500">POC: <strong className="text-slate-800">{c.clientPOC}</strong></span>
+                        </div>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-purple-700">
-                      <span className="inline-flex items-center gap-1.5">
-                        <User className="w-3 h-3 text-[#6B3BF6]" />
-                        <span>{c.assignedRecruiter}</span>
-                      </span>
+
+                    {/* Column 3: Scheduled Interview */}
+                    <td className="py-4 px-4" onClick={e => e.stopPropagation()}>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-extrabold text-slate-900 flex items-center gap-1 text-xs">
+                            <Clock className="w-3.5 h-3.5 text-[#6B3BF6]" />
+                            <span>{c.scheduledDate} • {c.scheduledTime}</span>
+                          </span>
+                          {c.isToday && (
+                            <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-[9px] font-extrabold border border-blue-200">
+                              Today
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-slate-600 font-medium flex items-center gap-2">
+                          <span className="text-emerald-700 font-bold">Panel: {c.interviewerName}</span>
+                          <span>•</span>
+                          <span className="text-[#6B3BF6] font-bold">{c.meetingMode}</span>
+                        </div>
+                      </div>
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">{c.role}</td>
-                    <td className="py-3.5 px-4">{c.experience}</td>
-                    <td className="py-3.5 px-4">
-                      {role !== 'superadmin' ? (
-                        <select
-                          value={c.stage}
-                          onChange={e => moveStage(c.id, e.target.value as InterviewStage)}
-                          className="px-2.5 py-1 text-xs rounded-xl font-bold bg-slate-100 border border-slate-200 text-slate-800 cursor-pointer"
-                        >
-                          {STAGES.map(s => (
-                            <option key={s} value={s}>
-                              {s}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <span className="font-bold text-slate-900">{c.stage}</span>
-                      )}
+
+                    {/* Column 4: Daily Outcome (Selected / Not Selected) & Stage */}
+                    <td className="py-4 px-4" onClick={e => e.stopPropagation()}>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1">
+                          <select
+                            value={c.dailyOutcome}
+                            onChange={e => updateDailyOutcome(c.id, e.target.value as DailyOutcome)}
+                            className={`px-2.5 py-1 text-xs rounded-xl font-extrabold border cursor-pointer ${
+                              c.dailyOutcome === 'Selected'
+                                ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                                : c.dailyOutcome === 'Not Selected'
+                                ? 'bg-rose-100 text-rose-900 border-rose-300'
+                                : 'bg-amber-100 text-amber-900 border-amber-300'
+                            }`}
+                          >
+                            <option value="Selected">🟢 Selected / Cleared</option>
+                            <option value="Not Selected">🔴 Not Selected / Rejected</option>
+                            <option value="Pending">🟡 Pending Outcome</option>
+                          </select>
+                        </div>
+
+                        {c.dailyDecisionReason && (
+                          <p className="text-[10px] text-slate-500 italic max-w-[190px] truncate" title={c.dailyDecisionReason}>
+                            "{c.dailyDecisionReason}"
+                          </p>
+                        )}
+                      </div>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">{c.dateTime}</td>
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap space-x-2">
+
+                    {/* Column 5: Actions */}
+                    <td className="py-4 px-4 text-right whitespace-nowrap space-x-2" onClick={e => e.stopPropagation()}>
                       {(role === 'admin' || role === 'lead') && (
                         <button
                           onClick={() => {
                             setReassignCandidate(c)
                             setTargetRecruiter(c.assignedRecruiter)
                           }}
-                          className="px-2.5 py-1.5 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 font-bold cursor-pointer"
+                          className="px-2.5 py-1.5 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 font-bold cursor-pointer text-xs"
                         >
                           Reassign
                         </button>
                       )}
                       <button
                         onClick={() => setSelectedCandidate(c)}
-                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
+                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold cursor-pointer text-xs"
                       >
                         View Profile
                       </button>
+                      <button
+                        onClick={() => {
+                          setSelectedCandidate(c)
+                          setIsNotesModalOpen(true)
+                        }}
+                        className="px-2.5 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-[#6B3BF6] font-bold cursor-pointer inline-flex items-center gap-1 text-xs"
+                      >
+                        <MessageSquare className="w-3 h-3" />
+                        <span>Notes ({c.notes.length})</span>
+                      </button>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* SCHEDULE INTERVIEW MODAL */}
+      {isScheduleModalOpen && (
+        <ScheduleInterviewModal
+          isOpen={isScheduleModalOpen}
+          onClose={() => setIsScheduleModalOpen(false)}
+          onScheduleSuccess={() => {
+            showToast('Interview scheduled successfully!')
+            setIsScheduleModalOpen(false)
+          }}
+        />
+      )}
+
+      {/* CANDIDATE PROFILE & INTERVIEW DETAILS MODAL */}
+      {selectedCandidate && !isNotesModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-2xl w-full shadow-2xl space-y-5 border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#EEF2FF] text-[#5B51D8] font-extrabold flex items-center justify-center text-lg border border-[#C7D2FE]">
+                  {selectedCandidate.name.charAt(0)}
+                </div>
+                <div>
+                  <h3 className="text-lg font-extrabold text-slate-900">{selectedCandidate.name}</h3>
+                  <p className="text-xs text-[#6B3BF6] font-bold">{selectedCandidate.role} • {selectedCandidate.experience}</p>
+                </div>
+              </div>
+              <button onClick={() => setSelectedCandidate(null)} className="text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer">
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-blue-50/60 border border-blue-200/80 rounded-2xl p-4 space-y-2">
+                <div className="flex items-center gap-2 text-blue-900 font-extrabold text-xs border-b border-blue-200/60 pb-1.5">
+                  <Building2 className="w-4 h-4 text-blue-600" />
+                  <span>Client Information & POC</span>
+                </div>
+                <div className="text-xs space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 font-medium">Client Organization:</span>
+                    <span className="font-extrabold text-slate-900">{selectedCandidate.clientName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 font-medium">Client POC:</span>
+                    <span className="font-bold text-slate-900">{selectedCandidate.clientPOC}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 font-medium">POC Contact:</span>
+                    <span className="font-semibold text-blue-700">{selectedCandidate.pocContact}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-purple-50/60 border border-purple-200/80 rounded-2xl p-4 space-y-2">
+                <div className="flex items-center gap-2 text-purple-900 font-extrabold text-xs border-b border-purple-200/60 pb-1.5">
+                  <Briefcase className="w-4 h-4 text-[#6B3BF6]" />
+                  <span>Requirement Details</span>
+                </div>
+                <div className="text-xs space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 font-medium">Requirement ID:</span>
+                    <span className="font-extrabold text-[#6B3BF6]">{selectedCandidate.reqId}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 font-medium">Subject Title:</span>
+                    <span className="font-bold text-slate-900 truncate max-w-[160px]" title={selectedCandidate.reqTitle}>
+                      {selectedCandidate.reqTitle}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 font-medium">Date Received:</span>
+                    <span className="font-semibold text-slate-800">{selectedCandidate.reqDate}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-emerald-50/60 border border-emerald-200/80 rounded-2xl p-4 space-y-2">
+                <div className="flex items-center gap-2 text-emerald-900 font-extrabold text-xs border-b border-emerald-200/60 pb-1.5">
+                  <Clock className="w-4 h-4 text-emerald-600" />
+                  <span>Scheduled Session & Outcome</span>
+                </div>
+                <div className="text-xs space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 font-medium">Daily Outcome:</span>
+                    <span className="font-extrabold text-emerald-800">{selectedCandidate.dailyOutcome}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 font-medium">Scheduled Time:</span>
+                    <span className="font-extrabold text-slate-900">{selectedCandidate.scheduledDate} • {selectedCandidate.scheduledTime}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-amber-50/60 border border-amber-200/80 rounded-2xl p-4 space-y-2">
+                <div className="flex items-center gap-2 text-amber-900 font-extrabold text-xs border-b border-amber-200/60 pb-1.5">
+                  <UserCheck className="w-4 h-4 text-amber-700" />
+                  <span>Interviewer Panel & Mode</span>
+                </div>
+                <div className="text-xs space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 font-medium">Interviewer Panel:</span>
+                    <span className="font-extrabold text-slate-900">{selectedCandidate.interviewerName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 font-medium">Session Mode:</span>
+                    <span className="font-extrabold text-[#6B3BF6]">{selectedCandidate.meetingMode}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs">
+              <span className="font-bold text-slate-700 block">Evaluation Reason / Note:</span>
+              <p className="text-slate-700 font-medium">"{selectedCandidate.dailyDecisionReason}"</p>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setSelectedCandidate(null)}
+                className="px-5 py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl cursor-pointer hover:bg-slate-800 transition-all"
+              >
+                Close Profile
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* REASSIGN CANDIDATE MODAL (FOR ADMIN & TEAM LEAD) */}
+      {/* NOTES MODAL */}
+      {selectedCandidate && isNotesModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-[#6B3BF6]" />
+                <h3 className="text-base font-extrabold text-slate-900">
+                  Interview Notes — {selectedCandidate.name}
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  setIsNotesModalOpen(false)
+                  setSelectedCandidate(null)
+                }}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+              {selectedCandidate.notes.map((n, idx) => (
+                <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700">
+                  "{n}"
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <textarea
+                rows={3}
+                value={newNoteText}
+                onChange={e => setNewNoteText(e.target.value)}
+                placeholder="Type new interview feedback or note..."
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-[#6B3BF6]"
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setIsNotesModalOpen(false)}
+                  className="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddNote}
+                  className="px-4 py-2 bg-[#6B3BF6] text-white text-xs font-bold rounded-xl cursor-pointer shadow-2xs"
+                >
+                  Save Note
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* REASSIGN CANDIDATE MODAL */}
       {reassignCandidate && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-100">
@@ -834,54 +1151,23 @@ export function InterviewTrackingPage({
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+            <div className="flex justify-end gap-2 pt-2">
               <button
-                type="button"
                 onClick={() => setReassignCandidate(null)}
-                className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl"
+                className="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
               <button
-                type="button"
-                onClick={handleReassign}
-                className="px-5 py-2 text-xs font-bold bg-[#6B3BF6] text-white rounded-xl hover:bg-[#5833E0]"
+                onClick={handleReassignRecruiter}
+                className="px-4 py-2 bg-[#6B3BF6] text-white text-xs font-bold rounded-xl cursor-pointer shadow-2xs"
               >
-                Confirm Reassignment
+                Save Reassignment
               </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* SCHEDULE MODAL */}
-      <ScheduleInterviewModal
-        isOpen={isScheduleModalOpen}
-        onClose={() => setIsScheduleModalOpen(false)}
-        onScheduleSuccess={data => {
-          const newCard: CandidateCardItem = {
-            id: `c-${Date.now()}`,
-            name: data.submission.split(' — ')[0] || 'Scheduled Candidate',
-            role: data.submission.split(' — ')[1] || 'Candidate Role',
-            experience: '4 Yrs',
-            currentCompany: 'Verified Applicant',
-            stage: 'Interview Scheduled',
-            stageProgress: 3,
-            lastActivity: 'Scheduled via form',
-            assignedRecruiter: 'Harish Gadipally',
-            team: 'Engineering Team',
-            department: 'Software Engineering',
-            dateTime: `${data.date} • ${data.time}`,
-            meetingMode: data.interviewMode === 'Offline / In-Person' ? 'In-Person' : 'Zoom',
-            meetingUrl: data.meetingLink || 'https://meet.google.com/xxx-xxx-xxx',
-            statusBadge: data.status || 'Scheduled',
-            statusColor: 'blue',
-            notes: data.notes ? [data.notes] : ['Interview scheduled successfully.'],
-          }
-          setCandidates([newCard, ...candidates])
-          showToast(`Interview for ${newCard.name} scheduled successfully!`)
-        }}
-      />
 
       {/* TOAST */}
       {toastMsg && (
