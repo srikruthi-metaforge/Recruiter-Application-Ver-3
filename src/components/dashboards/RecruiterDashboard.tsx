@@ -382,9 +382,6 @@ export function RecruiterDashboard({
               <thead>
                 <tr className="border-b border-slate-200/80 bg-slate-50/50">
                   <th className="px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    TYPE
-                  </th>
-                  <th className="px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                     REQUIREMENT ID
                   </th>
                   <th className="px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -405,7 +402,6 @@ export function RecruiterDashboard({
                 {paginatedReqs.length > 0 ? (
                   paginatedReqs.map((req, idx) => (
                     <tr key={req.id || idx} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="px-4 py-3.5 text-slate-600">{req.type}</td>
                       <td className="px-4 py-3.5 font-mono text-slate-900 font-semibold">
                         <button
                           onClick={() => {
@@ -448,7 +444,7 @@ export function RecruiterDashboard({
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-slate-400 text-xs font-medium">
+                    <td colSpan={5} className="py-8 text-center text-slate-400 text-xs font-medium">
                       No active requirements found matching your search.
                     </td>
                   </tr>
@@ -472,27 +468,11 @@ export function RecruiterDashboard({
 
       {/* My Recent Submissions Section */}
       <section className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">My Recent Submissions</h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Your latest candidate activity across requirements.
-            </p>
-          </div>
-
-          <select
-            value={recentSubmissionsFilter}
-            onChange={e => setRecentSubmissionsFilter(e.target.value)}
-            className="px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 self-end sm:self-auto"
-          >
-            <option value="All Status">All Status</option>
-            <option value="Submitted">Submitted</option>
-            <option value="Client Review">Client Review</option>
-            <option value="Interview Scheduled">Interview Scheduled</option>
-            <option value="Offered">Offered</option>
-            <option value="Placed">Placed</option>
-            <option value="Rejected">Rejected</option>
-          </select>
+        <div>
+          <h2 className="text-lg font-bold text-slate-900">My Recent Submissions</h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Your latest candidate activity across requirements.
+          </p>
         </div>
 
         {/* Submissions Table */}

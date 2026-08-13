@@ -41,6 +41,7 @@ import { PaginationFooter } from '../ui/PaginationFooter'
 import { RecruiterPerformanceChart } from '../ui/RecruiterPerformanceChart'
 import { RequirementCoverageChart } from '../ui/RequirementCoverageChart'
 import { MonthlyTimelinePerformanceChart } from '../ui/MonthlyTimelinePerformanceChart'
+import { StagePipelinePerformanceChart } from '../ui/StagePipelinePerformanceChart'
 import { ClientPOCSubmissionChart } from '../ui/ClientPOCSubmissionChart'
 import { DomainWiseSubmissionChart } from '../ui/DomainWiseSubmissionChart'
 import {
@@ -273,7 +274,9 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
         { id: 'REQ-101', title: 'Senior Java Full Stack Engineer', client: 'Infosys Ltd', status: 'Worked', submissions: 24, interviews: 2 },
         { id: 'REQ-102', title: 'React.js Frontend Architect', client: 'TCS Cyber', status: 'Worked', submissions: 18, interviews: 0 },
         { id: 'REQ-103', title: 'DevOps & AWS Cloud Lead', client: 'Wipro Technologies', status: 'Worked', submissions: 16, interviews: 0 },
-        { id: 'REQ-104', title: 'Python Machine Learning Specialist', client: 'Cognizant', status: 'Non-Worked', submissions: 0, interviews: 0 },
+        { id: 'REQ-104', title: 'Python Machine Learning Specialist', client: 'Cognizant', status: 'Non-Worked', submissions: 0, interviews: 0, reasonNote: 'Low CTC budget approval from client' },
+        { id: 'REQ-105', title: 'Cyber Security Risk Analyst', client: 'KPMG India', status: 'Non-Worked', submissions: 0, interviews: 0, reasonNote: 'Priority shifted to urgent LTTS REQ-2026-08' },
+        { id: 'REQ-106', title: 'ServiceNow Discovery Developer', client: 'Eximietas Design', status: 'Non-Worked', submissions: 0, interviews: 0, reasonNote: 'Awaiting updated JD & location clarification' },
       ],
     },
     {
@@ -587,6 +590,9 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
           {/* Chart 2: Monthly Timeline Requirements vs Total Submissions */}
           <MonthlyTimelinePerformanceChart />
 
+          {/* Chart 2.5: Stage Pipeline Performance Chart */}
+          <StagePipelinePerformanceChart />
+
           {/* Chart 3: Requirement Coverage Pie Chart */}
           <RequirementCoverageChart />
 
@@ -656,11 +662,11 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
             </div>
           </div>
 
-          {/* Monthly: Requirements vs Total Submissions with TAT Trend */}
+          {/* Monthly: Requirements vs Total Submissions with TAT Trend (Apr-Jul 2026) */}
           <MonthlyTimelinePerformanceChart />
 
-          {/* Individual Performance Timeline Trend Chart */}
-          <RecruiterPerformanceChart role="recruiter" recruiterName={myPersonalProfile.name} />
+          {/* Requirements and Candidate Submissions by Interview Stage */}
+          <StagePipelinePerformanceChart />
 
           {/* Assigned Requirements Breakdown Table */}
           <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-4">
@@ -693,6 +699,72 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                 >
                   Non-Worked ({myPersonalProfile.nonWorkedReqs})
                 </button>
+              </div>
+            </div>
+
+            {/* VISUAL DIAGRAM: WORKED VS NON-WORKED REQS BREAKDOWN */}
+            <div className="bg-slate-50/70 border border-slate-200/90 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="w-full md:w-1/2 flex items-center justify-center gap-6">
+                {/* Donut Progress Diagram */}
+                <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      className="text-amber-200"
+                      strokeWidth="4"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      className="text-[#2563EB]"
+                      strokeDasharray="50, 100"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <div className="absolute flex flex-col items-center justify-center text-center">
+                    <span className="text-xl font-extrabold text-slate-900 leading-none">6</span>
+                    <span className="text-[10px] font-semibold text-slate-500">Assigned</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-[#2563EB] shrink-0" />
+                    <span className="font-bold text-slate-800">Worked REQs:</span>
+                    <span className="font-extrabold text-[#2563EB]">3 REQs (50%)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-amber-500 shrink-0" />
+                    <span className="font-bold text-slate-800">Non-Worked REQs:</span>
+                    <span className="font-extrabold text-amber-700">3 REQs (50%)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Non-Worked Reasons Summary Diagram Panel */}
+              <div className="w-full md:w-1/2 bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs space-y-2 text-xs">
+                <div className="font-extrabold text-slate-900 border-b border-slate-100 pb-1.5 flex items-center justify-between">
+                  <span>Non-Worked Reasons Summary Diagram</span>
+                  <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold">3 Unworked REQs</span>
+                </div>
+                <div className="space-y-1.5 text-[11px]">
+                  <div className="flex items-center justify-between text-slate-700 bg-amber-50/50 px-2.5 py-1 rounded-lg border border-amber-100">
+                    <span className="font-medium truncate">• Low CTC budget approval from client</span>
+                    <span className="font-bold text-amber-900 shrink-0 ml-2">1 REQ (33%)</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-700 bg-amber-50/50 px-2.5 py-1 rounded-lg border border-amber-100">
+                    <span className="font-medium truncate">• Priority shifted to urgent LTTS REQ</span>
+                    <span className="font-bold text-amber-900 shrink-0 ml-2">1 REQ (33%)</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-700 bg-amber-50/50 px-2.5 py-1 rounded-lg border border-amber-100">
+                    <span className="font-medium truncate">• Awaiting updated JD & location clarification</span>
+                    <span className="font-bold text-amber-900 shrink-0 ml-2">1 REQ (33%)</span>
+                  </div>
+                </div>
               </div>
             </div>
 

@@ -231,57 +231,6 @@ export function MonthlyTimelinePerformanceChart() {
           </ResponsiveContainer>
         </div>
       </div>
-
-      {/* 3. FIRST-SUBMISSION DETAIL LOG TABLE */}
-      <div className="pt-4 border-t border-slate-100 space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-[#6B3BF6]" />
-            <span>First-Submission Detail Log (Apr-Jul 2026)</span>
-          </h3>
-          <button
-            onClick={() => setShowLogTable(!showLogTable)}
-            className="text-xs font-bold text-[#6B3BF6] hover:underline cursor-pointer"
-          >
-            {showLogTable ? 'Hide Detail Log' : 'Show Detail Log (6)'}
-          </button>
-        </div>
-
-        {showLogTable && (
-          <div className="border border-slate-200/80 rounded-2xl overflow-hidden shadow-2xs">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3 px-4">Requirement ID</th>
-                  <th className="py-3 px-4">Requirement Subject</th>
-                  <th className="py-3 px-4">Recruiter</th>
-                  <th className="py-3 px-4">Client POC</th>
-                  <th className="py-3 px-4">Received Date & Time</th>
-                  <th className="py-3 px-4">Submitted Date & Time</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
-                {logs.map(log => (
-                  <tr key={log.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-3 px-4 font-bold text-slate-900">{log.id}</td>
-                    <td className="py-3 px-4 font-semibold text-slate-800">{log.subject}</td>
-                    <td className="py-3 px-4 font-bold text-purple-700">{log.recruiter}</td>
-                    <td className="py-3 px-4 text-slate-600">{log.clientPOC}</td>
-                    <td className="py-3 px-4 text-slate-500">
-                      <div>{log.receivedDate}</div>
-                      <span className="text-[10px] text-slate-400">{log.receivedTime}</span>
-                    </td>
-                    <td className="py-3 px-4 text-emerald-700 font-bold">
-                      <div>{log.submittedDate}</div>
-                      <span className="text-[10px] text-emerald-600 font-normal">{log.submittedTime}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
     </div>
   )
 }

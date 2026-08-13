@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react'
-import { Submission } from '../../types'
+import { Submission, Requirement, Role } from '../../types'
+import { RequirementDetailOverview } from './RequirementDetailOverview'
 import { PaginationFooter } from '../ui/PaginationFooter'
 import { PageHeader } from '../layout/PageHeader'
 import { SubmissionCandidateDetailModal } from '../modals/SubmissionCandidateDetailModal'
@@ -14,9 +15,12 @@ import {
   CheckCircle,
   Clock,
   Filter,
+  Plus,
+  Edit2,
+  Check,
+  X,
+  ExternalLink,
 } from 'lucide-react'
-
-import { Role } from '../../types'
 
 interface SubmissionsPageProps {
   role?: Role
@@ -28,11 +32,14 @@ interface ScreenshotSubmission {
   id: string
   candidateName: string
   requirement: string
+  reqId?: string
+  clientName?: string
   experience: string
   currentCompany: string
   submittedBy: string
   submittedOn: string
   status: string
+  rejectionReason?: string
 }
 
 const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
@@ -40,6 +47,8 @@ const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
     id: 'SUB-001',
     candidateName: 'TEJENDRA RAMAN',
     requirement: 'DPS NET backend BLR HYD',
+    reqId: 'REQ-2026-06-08-001',
+    clientName: 'Metaforge IT',
     experience: '9 Years',
     currentCompany: 'HCL Technologies Ltd',
     submittedBy: 'Suresh kulkarni',
@@ -50,6 +59,8 @@ const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
     id: 'SUB-002',
     candidateName: 'Trupti Akash More',
     requirement: 'DPS NET backend BLR HYD',
+    reqId: 'REQ-2026-06-08-002',
+    clientName: 'Wipro Digital',
     experience: '10 Years',
     currentCompany: 'LTI Mindtree',
     submittedBy: 'Suresh kulkarni',
@@ -60,6 +71,8 @@ const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
     id: 'SUB-003',
     candidateName: 'Anjali',
     requirement: 'Autosar Development Engineer',
+    reqId: 'REQ-2026-06-08-003',
+    clientName: 'Continental Automotive',
     experience: '8 Years 9 Months',
     currentCompany:
       'AUMOVIO SE (India) Pvt. Ltd (Formerly Continental Automotive Pvt Ltd)',
@@ -71,6 +84,8 @@ const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
     id: 'SUB-004',
     candidateName: 'SATEESH KUMAR',
     requirement: 'DPS NET backend BLR HYD',
+    reqId: 'REQ-2026-06-08-001',
+    clientName: 'Metaforge IT',
     experience: '10 Years',
     currentCompany: 'Virtual Employee Pvt. Ltd.',
     submittedBy: 'Suresh kulkarni',
@@ -81,6 +96,8 @@ const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
     id: 'SUB-005',
     candidateName: 'Jinal Vora',
     requirement: 'DPS NET backend BLR HYD',
+    reqId: 'REQ-2026-06-08-001',
+    clientName: 'ITC Limited',
     experience: '7 Years 2 Months',
     currentCompany: 'Tech Systems India',
     submittedBy: 'rahimoon Shaik',
@@ -91,6 +108,8 @@ const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
     id: 'SUB-006',
     candidateName: 'ABHIJEET BALWANT MALI',
     requirement: 'DPS NET backend BLR HYD',
+    reqId: 'REQ-2026-06-08-004',
+    clientName: 'Infosys Tech',
     experience: '9 Years 10 Months',
     currentCompany: 'Infosys Pvt Ltd',
     submittedBy: 'lakshmi.v Recruiter',
@@ -101,6 +120,8 @@ const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
     id: 'SUB-007',
     candidateName: 'RIHAN KHAN',
     requirement: 'SP3D Modeler',
+    reqId: 'REQ-2026-06-08-005',
+    clientName: 'L&T Engineering',
     experience: '5 Years 5 Months',
     currentCompany: 'Engineering Tech Services',
     submittedBy: 'lakshmi.v Recruiter',
@@ -119,10 +140,38 @@ export function SubmissionsPage({
   const [dateFilter, setDateFilter] = useState('Today')
   const [customStartDate, setCustomStartDate] = useState('')
   const [customEndDate, setCustomEndDate] = useState('')
-  const [statusFilter, setStatusFilter] = useState('All')
+  const [statusFilter, setStatusFilter] = useState('Submitted to Lead')
   const [selectedSub, setSelectedSub] = useState<ScreenshotSubmission | null>(
     null
   )
+
+  const [selectedReqDetail, setSelectedReqDetail] = useState<Requirement | null>(null)
+
+  const handleOpenReqOverview = (reqId: string, position: string, company: string) => {
+    setSelectedReqDetail({
+      id: reqId,
+      title: position,
+      client: company,
+      company: company,
+      status: 'Open',
+      createdDate: '12 Aug 2026',
+      submissionsCount: 7,
+      interviewsCount: 2,
+      owner: 'Harish Gadipally',
+      assignedRecruiter: 'Harish Gadipally',
+      experienceRequired: '5 - 10 Years',
+      location: 'Hyderabad / Remote',
+      salaryRange: '₹18 - ₹28 LPA',
+      skills: ['.NET Core', 'C#', 'SQL Server', 'Microservices', 'Azure'],
+      description: `Requirement details for ${position} at ${company}. Full job overview, candidate pipeline, and submission history.`,
+    } as any)
+  }
+
+  // Rejection reasons map (read-only in table column, set via candidate profile modal)
+  const [reasons, setReasons] = useState<Record<string, string>>({
+    'SUB-005': 'Notice period > 60 days',
+    'SUB-007': 'Expected CTC exceeds approved budget limit',
+  })
 
   // Map initial submissions array or screenshot default data
   const combinedSubmissions: ScreenshotSubmission[] = useMemo(() => {
@@ -195,23 +244,19 @@ export function SubmissionsPage({
       }
 
       // Status filter
-      if (statusFilter !== 'All') {
-        const itemStatus = item.status.toLowerCase().trim()
-        const filterVal = statusFilter.toLowerCase().trim()
+      const itemStatus = item.status.toLowerCase().trim()
+      const filterVal = statusFilter.toLowerCase().trim()
 
-        if (filterVal === 'submitted to lead') {
-          if (!itemStatus.includes('lead')) return false
-        } else if (filterVal === 'submitted to client') {
-          if (!itemStatus.includes('client')) return false
-        } else if (filterVal === 'submitted') {
-          if (itemStatus !== 'submitted' && !itemStatus.includes('submit')) return false
-        } else if (filterVal === 'interview') {
-          if (!itemStatus.includes('interview')) return false
-        } else if (filterVal === 'selected') {
-          if (!itemStatus.includes('select') && !itemStatus.includes('place')) return false
-        } else if (filterVal === 'rejected') {
-          if (!itemStatus.includes('reject')) return false
-        }
+      if (filterVal === 'submitted to lead') {
+        if (!itemStatus.includes('lead') && !itemStatus.includes('submit')) return false
+      } else if (filterVal === 'interview scheduled') {
+        if (!itemStatus.includes('interview')) return false
+      } else if (filterVal === 'selected') {
+        if (!itemStatus.includes('select')) return false
+      } else if (filterVal === 'placed') {
+        if (!itemStatus.includes('place')) return false
+      } else if (filterVal === 'rejected') {
+        if (!itemStatus.includes('reject')) return false
       }
 
       return true
@@ -244,6 +289,15 @@ export function SubmissionsPage({
       return 'bg-rose-100 text-rose-800 border-rose-200'
     }
     return 'bg-slate-100 text-slate-700 border-slate-200'
+  }
+
+  if (selectedReqDetail) {
+    return (
+      <RequirementDetailOverview
+        requirement={selectedReqDetail}
+        onBack={() => setSelectedReqDetail(null)}
+      />
+    )
   }
 
   return (
@@ -376,12 +430,10 @@ export function SubmissionsPage({
                 onChange={e => setStatusFilter(e.target.value)}
                 className="w-full appearance-none pl-3.5 pr-8 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-700 bg-white font-medium cursor-pointer"
               >
-                <option value="All">All Statuses</option>
                 <option value="Submitted to Lead">Submitted to Lead</option>
-                <option value="Submitted to Client">Submitted to Client</option>
-                <option value="Submitted">Submitted</option>
-                <option value="Interview">Interview Scheduled</option>
-                <option value="Selected">Selected / Placed</option>
+                <option value="Interview Scheduled">Interview Scheduled</option>
+                <option value="Selected">Selected</option>
+                <option value="Placed">Placed</option>
                 <option value="Rejected">Rejected</option>
               </select>
               <ChevronDown className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -395,18 +447,20 @@ export function SubmissionsPage({
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                <th className="py-3.5 px-4">CANDIDATE & REQUIREMENT</th>
+              <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                <th className="py-3.5 px-4">CANDIDATE & ROLE</th>
+                <th className="py-3.5 px-4">REQUIREMENT ID</th>
                 <th className="py-3.5 px-4">CURRENT COMPANY & EXP</th>
                 <th className="py-3.5 px-4">SUBMITTED BY & DATE</th>
+                <th className="py-3.5 px-4">SUBMITTED TO (CLIENT)</th>
                 <th className="py-3.5 px-4">STATUS</th>
-                <th className="py-3.5 px-4 text-right">ACTION</th>
+                <th className="py-3.5 px-4">REASON FOR REJECTION</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
                     <p className="font-bold text-sm">No candidate submissions found</p>
                     <p className="text-xs mt-1">Try adjusting your search query or date range filter above</p>
                   </td>
@@ -415,26 +469,43 @@ export function SubmissionsPage({
                 filteredData.map(sub => (
                   <tr
                     key={sub.id}
-                    className="hover:bg-purple-50/30 transition-colors cursor-pointer"
-                    onClick={() => setSelectedSub(sub)}
+                    className="hover:bg-purple-50/30 transition-colors"
                   >
-                    <td className="py-4 px-4">
+                    {/* 1. CANDIDATE & ROLE */}
+                    <td className="py-4 px-4 max-w-xs">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-[#EEF2FF] text-[#5B51D8] font-extrabold flex items-center justify-center text-xs shrink-0 border border-[#C7D2FE]">
                           {sub.candidateName.charAt(0)}
                         </div>
                         <div>
-                          <div className="font-extrabold text-slate-900 text-xs">
+                          <button
+                            onClick={() => setSelectedSub(sub)}
+                            className="font-extrabold text-slate-900 text-xs hover:text-[#6B3BF6] hover:underline text-left cursor-pointer transition-colors block"
+                            title="Click to view candidate profile"
+                          >
                             {sub.candidateName}
-                          </div>
-                          <div className="text-[11px] text-[#6B3BF6] font-bold mt-0.5">
+                          </button>
+                          <div className="text-[11px] text-slate-600 font-semibold mt-0.5">
                             {sub.requirement}
                           </div>
                         </div>
                       </div>
                     </td>
 
-                    <td className="py-4 px-4">
+                    {/* 2. REQUIREMENT ID */}
+                    <td className="py-4 px-4 whitespace-nowrap">
+                      <button
+                        onClick={() => handleOpenReqOverview(sub.reqId || 'REQ-2026-08-12-001', sub.requirement, sub.clientName || 'ITC Limited')}
+                        className="px-2.5 py-1 rounded-md text-[11px] font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-mono flex items-center gap-1 cursor-pointer transition-all hover:underline shadow-2xs"
+                        title="Click to view Requirement Overview"
+                      >
+                        <span>{sub.reqId || 'REQ-2026-08-12-001'}</span>
+                        <ExternalLink className="w-3 h-3 text-blue-600" />
+                      </button>
+                    </td>
+
+                    {/* 3. CURRENT COMPANY & EXP */}
+                    <td className="py-4 px-4 whitespace-nowrap">
                       <div className="font-bold text-slate-800 text-xs">
                         {sub.currentCompany}
                       </div>
@@ -443,7 +514,8 @@ export function SubmissionsPage({
                       </div>
                     </td>
 
-                    <td className="py-4 px-4">
+                    {/* 4. SUBMITTED BY & DATE */}
+                    <td className="py-4 px-4 whitespace-nowrap">
                       <div className="font-bold text-purple-900 text-xs">
                         {sub.submittedBy}
                       </div>
@@ -452,7 +524,18 @@ export function SubmissionsPage({
                       </div>
                     </td>
 
-                    <td className="py-4 px-4">
+                    {/* 5. SUBMITTED TO (CLIENT NAME) */}
+                    <td className="py-4 px-4 whitespace-nowrap">
+                      <div className="font-extrabold text-slate-900 text-xs">
+                        {sub.clientName || 'ITC Limited'}
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-normal mt-0.5">
+                        Direct Client
+                      </div>
+                    </td>
+
+                    {/* 6. STATUS */}
+                    <td className="py-4 px-4 whitespace-nowrap">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-extrabold border inline-block ${getStatusBadgeStyle(
                           sub.status
@@ -462,16 +545,15 @@ export function SubmissionsPage({
                       </span>
                     </td>
 
-                    <td className="py-4 px-4 text-right">
-                      <button
-                        onClick={e => {
-                          e.stopPropagation()
-                          setSelectedSub(sub)
-                        }}
-                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs cursor-pointer transition-colors"
-                      >
-                        View Details
-                      </button>
+                    {/* 7. REASON FOR REJECTION */}
+                    <td className="py-4 px-4">
+                      {reasons[sub.id] || sub.rejectionReason ? (
+                        <span className="text-slate-700 font-medium text-xs block leading-relaxed max-w-xs">
+                          {reasons[sub.id] || sub.rejectionReason}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 font-normal text-xs">—</span>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -509,6 +591,10 @@ export function SubmissionsPage({
             currentCtc: '14 LPA',
             expectedCtc: '18 LPA',
             skills: ['Java', 'Spring Boot', 'Microservices', 'SQL'],
+          }}
+          rejectionReason={reasons[selectedSub.id] || selectedSub.rejectionReason}
+          onSaveRejectionReason={(id, newReason) => {
+            setReasons(prev => ({ ...prev, [id]: newReason }))
           }}
           onClose={() => setSelectedSub(null)}
         />
