@@ -12,9 +12,10 @@ interface Props {
   recruiters: Recruiter[]
   requirements: Requirement[]
   interviews: Interview[]
+  onOpenSubmit?: (reqId?: string) => void
 }
 
-export function LeadDashboard({ recruiters, requirements, interviews }: Props) {
+export function LeadDashboard({ recruiters, requirements, interviews, onOpenSubmit }: Props) {
   const [candidatesList, setCandidatesList] = useState<Candidate[]>(INITIAL_CANDIDATES)
   const [candViewMode, setCandViewMode] = useState<'add' | 'repository'>('add')
 
@@ -40,6 +41,7 @@ export function LeadDashboard({ recruiters, requirements, interviews }: Props) {
           requirements={requirements}
           interviews={interviews}
           recruiters={recruiters}
+          onOpenSubmit={onOpenSubmit}
         />
       </div>
 
@@ -48,10 +50,12 @@ export function LeadDashboard({ recruiters, requirements, interviews }: Props) {
         {candViewMode === 'repository' ? (
           <CandidateRepositoryPage
             candidates={candidatesList}
+            requirements={requirements}
             onOpenAddForm={() => setCandViewMode('add')}
           />
         ) : (
           <AddCandidatePage
+            requirements={requirements}
             onOpenRepository={() => setCandViewMode('repository')}
             onAddCandidate={c => setCandidatesList([c, ...candidatesList])}
           />

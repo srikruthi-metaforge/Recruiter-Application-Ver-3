@@ -14,6 +14,7 @@ import {
   FileSpreadsheet,
   CheckCircle2,
   AlertTriangle,
+  X,
   XCircle,
   TrendingUp,
   Clock,
@@ -35,6 +36,7 @@ import {
   ArrowLeft,
   PieChart as PieIcon,
   Layers,
+  Crown,
 } from 'lucide-react'
 import { Role } from '../../types'
 import { PaginationFooter } from '../ui/PaginationFooter'
@@ -52,27 +54,101 @@ import {
   ClientDetailAnalyticsPage,
   ClientPerformanceData,
 } from './ClientDetailAnalyticsPage'
+import { ClientWiseTeamPerformanceChart } from '../ui/ClientWiseTeamPerformanceChart'
+
+interface ClientSubmissionInfo {
+  client: string
+  submissions: number
+}
+
+interface SubmittedClientsPillCellProps {
+  clients: string[]
+}
+
+function SubmittedClientsPillCell({ clients }: SubmittedClientsPillCellProps) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  if (!clients || clients.length === 0) {
+    return <span className="text-slate-400 font-medium">—</span>
+  }
+
+  const primaryClient = clients[0]
+  const remainingCount = clients.length - 1
+
+  return (
+    <div className="relative inline-flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+      {/* Primary Client Pill Badge */}
+      <span className="inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-extrabold bg-[#EEF2FF] text-[#5B51D8] border border-[#C7D2FE] shadow-2xs">
+        {primaryClient}
+      </span>
+
+      {/* Counter Pill (+N more) */}
+      {remainingCount > 0 && (
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-extrabold bg-purple-100/90 hover:bg-purple-200 text-[#6B3BF6] border border-purple-200 transition-all cursor-pointer shadow-2xs active:scale-95"
+          >
+            <span>+{remainingCount} more</span>
+            <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {/* Popover Dropdown Card */}
+          {isOpen && (
+            <div className="absolute left-0 top-full mt-1.5 z-40 w-52 bg-white border border-slate-200 rounded-2xl p-3 shadow-xl animate-in fade-in zoom-in-95 duration-100">
+              <div className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2 border-b border-slate-100 pb-1.5 flex items-center justify-between">
+                <span>Submitted Clients ({clients.length})</span>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-0.5">
+                {clients.map((client, idx) => (
+                  <div
+                    key={idx}
+                    className="px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-800 bg-slate-50 hover:bg-purple-50 hover:text-[#6B3BF6] transition-colors flex items-center gap-2 border border-slate-100"
+                  >
+                    <Building2 className="w-3.5 h-3.5 text-[#6B3BF6] shrink-0" />
+                    <span className="truncate">{client}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 interface ReportsPageProps {
   role?: Role
 }
 
 export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
-  // Main report view mode: 'reports' (Tables starting page) vs 'charts' (Dedicated Visual Charts Page)
-  const [reportViewMode, setReportViewMode] = useState<'reports' | 'charts'>('reports')
+  // Active View Mode: 'self' (Self Performance) | 'charts' (Open Interactive Charts Page) | 'team' (Team Performance Tables)
+  const [activeReportView, setActiveReportView] = useState<'self' | 'charts' | 'team'>(
+    role === 'recruiter' ? 'self' : 'team'
+  )
 
   const [activeSubTab, setActiveSubTab] = useState<'recruiter' | 'client'>('recruiter')
   const [dateRange, setDateRange] = useState('30_days')
   const [selectedDept, setSelectedDept] = useState('All Departments')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('All Statuses')
+  const [clientFilter, setClientFilter] = useState('All Clients')
 
   // Recruiter personal tab filter
   const [personalTab, setPersonalTab] = useState<'worked' | 'non_worked'>('worked')
 
   // Pagination for recruiters performance table
   const [recruiterPage, setRecruiterPage] = useState(1)
-  const [recruiterPageSize, setRecruiterPageSize] = useState(6)
+  const [recruiterPageSize, setRecruiterPageSize] = useState(10)
 
   // Selected recruiter & client for detailed drill-down pages (Admin only)
   const [selectedRecruiter, setSelectedRecruiter] = useState<RecruiterDetailData | null>(null)
@@ -249,160 +325,18 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
     },
   ]
 
-  // All Recruiters Performance List
+  // All Recruiters & Team Lead Performance List — Ordered by Team Lead first, followed by Team Members under each Lead
   const recruitersPerformanceList: RecruiterDetailData[] = [
+    // =========================================================================
+    // 👑 TEAM 1: HARISH GADIPALLY (TEAM LEAD) & HIS TEAM MEMBERS
+    // =========================================================================
     {
-      id: 'rec-1',
-      name: 'lakshmi.v Recruiter',
-      role: 'Lead',
-      team: 'Engineering Team',
-      avatar: 'L',
-      requirementsCount: 72,
-      workedReqs: 58,
-      nonWorkedReqs: 14,
-      submissionsCount: 194,
-      shortlistedCount: 84,
-      noSubmissionsCount: 32,
-      interviewsCount: 2,
-      hiresCount: 12,
-      conversionRate: '0%',
-      dailyTaskStatus: 'Done (5/5)',
-      weeklyProgress: '5 / 25',
-      weeklyProgressPct: 20,
-      status: 'On Track',
-      requirementsList: [
-        { id: 'REQ-101', title: 'Senior Java Full Stack Engineer', client: 'Infosys Ltd', status: 'Worked', submissions: 24, interviews: 2 },
-        { id: 'REQ-102', title: 'React.js Frontend Architect', client: 'TCS Cyber', status: 'Worked', submissions: 18, interviews: 0 },
-        { id: 'REQ-103', title: 'DevOps & AWS Cloud Lead', client: 'Wipro Technologies', status: 'Worked', submissions: 16, interviews: 0 },
-        { id: 'REQ-104', title: 'Python Machine Learning Specialist', client: 'Cognizant', status: 'Non-Worked', submissions: 0, interviews: 0, reasonNote: 'Low CTC budget approval from client' },
-        { id: 'REQ-105', title: 'Cyber Security Risk Analyst', client: 'KPMG India', status: 'Non-Worked', submissions: 0, interviews: 0, reasonNote: 'Priority shifted to urgent LTTS REQ-2026-08' },
-        { id: 'REQ-106', title: 'ServiceNow Discovery Developer', client: 'Eximietas Design', status: 'Non-Worked', submissions: 0, interviews: 0, reasonNote: 'Awaiting updated JD & location clarification' },
-      ],
-    },
-    {
-      id: 'rec-2',
-      name: 'Lingoji Pavani',
-      role: 'Lead',
-      team: 'Engineering Team',
-      avatar: 'L',
-      requirementsCount: 29,
-      workedReqs: 21,
-      nonWorkedReqs: 8,
-      submissionsCount: 38,
-      shortlistedCount: 14,
-      noSubmissionsCount: 10,
-      interviewsCount: 0,
-      hiresCount: 5,
-      conversionRate: '0%',
-      dailyTaskStatus: 'In progress (3/5) - 2 to go',
-      weeklyProgress: '3 / 25',
-      weeklyProgressPct: 12,
-      status: 'Critical',
-      requirementsList: [
-        { id: 'REQ-201', title: 'SAP MM + Ariba Functional Lead', client: 'ITC Infotech', status: 'Worked', submissions: 14, interviews: 0 },
-        { id: 'REQ-202', title: 'MIG Welding Fixtures Designer', client: 'LTTS Automotive', status: 'Worked', submissions: 12, interviews: 0 },
-        { id: 'REQ-203', title: 'Embedded C++ Systems Engineer', client: 'Bosch Global', status: 'Non-Worked', submissions: 0, interviews: 0 },
-      ],
-    },
-    {
-      id: 'rec-3',
-      name: 'rahimoon Shaik',
-      role: 'Lead',
-      team: 'Automotive Team',
-      avatar: 'R',
-      requirementsCount: 50,
-      workedReqs: 36,
-      nonWorkedReqs: 14,
-      submissionsCount: 82,
-      shortlistedCount: 28,
-      noSubmissionsCount: 18,
-      interviewsCount: 0,
-      hiresCount: 7,
-      conversionRate: '0%',
-      dailyTaskStatus: 'In progress (2/5) - 3 to go',
-      weeklyProgress: '2 / 25',
-      weeklyProgressPct: 8,
-      status: 'Critical',
-      requirementsList: [
-        { id: 'REQ-301', title: 'Catia V5 Chassis Design Engineer', client: 'LTTS Mobility', status: 'Worked', submissions: 22, interviews: 0 },
-        { id: 'REQ-302', title: 'AUTOSAR Software Architect', client: 'Continental', status: 'Worked', submissions: 14, interviews: 0 },
-        { id: 'REQ-303', title: 'Vehicle Crash & Safety Analyst', client: 'Tata Motors', status: 'Non-Worked', submissions: 0, interviews: 0 },
-      ],
-    },
-    {
-      id: 'rec-4',
-      name: 'Suresh kulkarni',
-      role: 'Lead',
-      team: 'ERP & SAP Team',
-      avatar: 'S',
-      requirementsCount: 27,
-      workedReqs: 19,
-      nonWorkedReqs: 8,
-      submissionsCount: 46,
-      shortlistedCount: 16,
-      noSubmissionsCount: 9,
-      interviewsCount: 0,
-      hiresCount: 4,
-      conversionRate: '0%',
-      dailyTaskStatus: 'In progress (2/5) - 3 to go',
-      weeklyProgress: '2 / 25',
-      weeklyProgressPct: 8,
-      status: 'Critical',
-      requirementsList: [
-        { id: 'REQ-401', title: 'PLM / PDM Engineer', client: 'TE Connectivity', status: 'Worked', submissions: 18, interviews: 0 },
-        { id: 'REQ-402', title: 'Change Management Specialist', client: 'TE Connectivity', status: 'Worked', submissions: 14, interviews: 0 },
-        { id: 'REQ-403', title: 'Windchill Solution Architect', client: 'PTC Digital', status: 'Non-Worked', submissions: 0, interviews: 0 },
-      ],
-    },
-    {
-      id: 'rec-5',
-      name: 'Adirala sathvika',
-      role: 'Recruiter',
-      team: 'Software Engineering',
-      avatar: 'A',
-      requirementsCount: 1,
-      workedReqs: 0,
-      nonWorkedReqs: 1,
-      submissionsCount: 0,
-      shortlistedCount: 0,
-      noSubmissionsCount: 1,
-      interviewsCount: 0,
-      hiresCount: 0,
-      conversionRate: '0%',
-      dailyTaskStatus: 'In progress (0/5) - 5 to go',
-      weeklyProgress: '0 / 25',
-      weeklyProgressPct: 0,
-      status: 'Critical',
-      requirementsList: [
-        { id: 'REQ-501', title: 'Junior QA Automation Tester', client: 'Wipro', status: 'Non-Worked', submissions: 0, interviews: 0 },
-      ],
-    },
-    {
-      id: 'rec-6',
-      name: 'Arvind GR',
-      role: 'Recruiter',
-      team: 'Engineering Team',
-      avatar: 'A',
-      requirementsCount: 0,
-      workedReqs: 0,
-      nonWorkedReqs: 0,
-      submissionsCount: 0,
-      shortlistedCount: 0,
-      noSubmissionsCount: 0,
-      interviewsCount: 0,
-      hiresCount: 0,
-      conversionRate: '0%',
-      dailyTaskStatus: 'In progress (0/5) - 5 to go',
-      weeklyProgress: '0 / 25',
-      weeklyProgressPct: 0,
-      status: 'Critical',
-      requirementsList: [],
-    },
-    {
-      id: 'rec-7',
-      name: 'Harish Gadipally',
-      role: 'Lead Recruiter',
-      team: 'Engineering Team',
+      id: 'rec-lead-0',
+      name: 'Harish Gadipally (Team Lead)',
+      role: 'Team Lead',
+      teamLead: 'Harish Gadipally',
+      primaryClient: 'Accenture',
+      team: 'Engineering Pod',
       avatar: 'H',
       requirementsCount: 45,
       workedReqs: 38,
@@ -418,21 +352,329 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
       weeklyProgressPct: 88,
       status: 'On Track',
       requirementsList: [
-        { id: 'REQ-701', title: 'Lead Java Full Stack Developer', client: 'LTTS Automotive', status: 'Worked', submissions: 42, interviews: 12 },
-        { id: 'REQ-702', title: 'Senior React Native Mobile Dev', client: 'TCS Cyber', status: 'Worked', submissions: 36, interviews: 10 },
+        { id: 'REQ-701', title: 'Lead Java Full Stack Developer', client: 'Accenture', status: 'Worked', submissions: 42, interviews: 12 },
+        { id: 'REQ-702', title: 'Senior React Native Mobile Dev', client: 'LTTS Automotive', status: 'Worked', submissions: 36, interviews: 10 },
         { id: 'REQ-703', title: 'Cloud Solutions Architect', client: 'Infosys', status: 'Worked', submissions: 28, interviews: 8 },
         { id: 'REQ-704', title: 'Cyber Security Analyst', client: 'HCL Technologies', status: 'Non-Worked', submissions: 0, interviews: 0 },
       ],
     },
+    {
+      id: 'rec-m1',
+      name: 'Marcus Chen',
+      role: 'Senior Technical Recruiter',
+      teamLead: 'Harish Gadipally',
+      primaryClient: 'Accenture',
+      team: 'Engineering Pod',
+      avatar: 'M',
+      requirementsCount: 14,
+      workedReqs: 12,
+      nonWorkedReqs: 2,
+      submissionsCount: 48,
+      shortlistedCount: 18,
+      noSubmissionsCount: 3,
+      interviewsCount: 12,
+      hiresCount: 4,
+      conversionRate: '25.0%',
+      dailyTaskStatus: 'Done (5/5)',
+      weeklyProgress: '20 / 25',
+      weeklyProgressPct: 80,
+      status: 'On Track',
+      requirementsList: [
+        { id: 'REQ-701', title: 'Lead Java Full Stack Developer', client: 'Accenture', status: 'Worked', submissions: 24, interviews: 8 },
+        { id: 'REQ-702', title: 'Senior React Native Mobile Dev', client: 'Accenture', status: 'Worked', submissions: 24, interviews: 4 },
+      ],
+    },
+    {
+      id: 'rec-p1',
+      name: 'Priya Sharma',
+      role: 'IT Recruiter',
+      teamLead: 'Harish Gadipally',
+      primaryClient: 'Accenture',
+      team: 'Engineering Pod',
+      avatar: 'P',
+      requirementsCount: 12,
+      workedReqs: 10,
+      nonWorkedReqs: 2,
+      submissionsCount: 36,
+      shortlistedCount: 14,
+      noSubmissionsCount: 2,
+      interviewsCount: 9,
+      hiresCount: 3,
+      conversionRate: '21.4%',
+      dailyTaskStatus: 'Done (4/5)',
+      weeklyProgress: '18 / 25',
+      weeklyProgressPct: 72,
+      status: 'On Track',
+      requirementsList: [
+        { id: 'REQ-701', title: 'Lead Java Full Stack Developer', client: 'Accenture', status: 'Worked', submissions: 18, interviews: 5 },
+        { id: 'REQ-703', title: 'Cloud Solutions Architect', client: 'Accenture', status: 'Worked', submissions: 18, interviews: 4 },
+      ],
+    },
+    {
+      id: 'rec-4',
+      name: 'Suresh Kulkarni',
+      role: 'ERP Technical Recruiter',
+      teamLead: 'Harish Gadipally',
+      primaryClient: 'Accenture',
+      team: 'Engineering Pod',
+      avatar: 'S',
+      requirementsCount: 27,
+      workedReqs: 19,
+      nonWorkedReqs: 8,
+      submissionsCount: 46,
+      shortlistedCount: 16,
+      noSubmissionsCount: 9,
+      interviewsCount: 5,
+      hiresCount: 4,
+      conversionRate: '18.5%',
+      dailyTaskStatus: 'In progress (2/5) - 3 to go',
+      weeklyProgress: '12 / 25',
+      weeklyProgressPct: 48,
+      status: 'On Track',
+      requirementsList: [
+        { id: 'REQ-401', title: 'PLM / PDM Engineer', client: 'Accenture', status: 'Worked', submissions: 18, interviews: 3 },
+        { id: 'REQ-402', title: 'Change Management Specialist', client: 'Accenture', status: 'Worked', submissions: 14, interviews: 2 },
+      ],
+    },
+    {
+      id: 'rec-5',
+      name: 'Adirala Sathvika',
+      role: 'Junior Recruiter',
+      teamLead: 'Harish Gadipally',
+      primaryClient: 'Wipro',
+      team: 'Engineering Pod',
+      avatar: 'A',
+      requirementsCount: 1,
+      workedReqs: 0,
+      nonWorkedReqs: 1,
+      submissionsCount: 0,
+      shortlistedCount: 0,
+      noSubmissionsCount: 1,
+      interviewsCount: 0,
+      hiresCount: 0,
+      conversionRate: '0%',
+      dailyTaskStatus: 'In progress (0/5) - 5 to go',
+      weeklyProgress: '0 / 25',
+      weeklyProgressPct: 0,
+      status: 'Critical',
+      requirementsList: [
+        { id: 'REQ-501', title: 'Junior QA Automation Tester', client: 'Wipro', status: 'Non-Worked', submissions: 0, interviews: 0, reasonNote: 'Location constraint / No local candidates available' },
+      ],
+    },
+    {
+      id: 'rec-6',
+      name: 'Arvind GR',
+      role: 'Sourcing Specialist',
+      teamLead: 'Harish Gadipally',
+      primaryClient: 'Infosys',
+      team: 'Engineering Pod',
+      avatar: 'A',
+      requirementsCount: 4,
+      workedReqs: 3,
+      nonWorkedReqs: 1,
+      submissionsCount: 12,
+      shortlistedCount: 4,
+      noSubmissionsCount: 1,
+      interviewsCount: 3,
+      hiresCount: 1,
+      conversionRate: '15.0%',
+      dailyTaskStatus: 'Done (3/5)',
+      weeklyProgress: '12 / 25',
+      weeklyProgressPct: 48,
+      status: 'On Track',
+      requirementsList: [
+        { id: 'REQ-601', title: 'Frontend Developer', client: 'Infosys', status: 'Worked', submissions: 12, interviews: 3 },
+      ],
+    },
+
+    // =========================================================================
+    // 👑 TEAM 2: TOM WALSH (TEAM LEAD) & HIS TEAM MEMBERS
+    // =========================================================================
+    {
+      id: 'rec-lead-2',
+      name: 'Tom Walsh (Team Lead)',
+      role: 'Team Lead',
+      teamLead: 'Tom Walsh',
+      primaryClient: 'Goldman Sachs',
+      team: 'Enterprise Accounts Pod',
+      avatar: 'T',
+      requirementsCount: 52,
+      workedReqs: 44,
+      nonWorkedReqs: 8,
+      submissionsCount: 168,
+      shortlistedCount: 62,
+      noSubmissionsCount: 10,
+      interviewsCount: 24,
+      hiresCount: 9,
+      conversionRate: '28.4%',
+      dailyTaskStatus: 'Done (5/5)',
+      weeklyProgress: '24 / 25',
+      weeklyProgressPct: 96,
+      status: 'On Track',
+      requirementsList: [
+        { id: 'REQ-TW01', title: 'Principal Financial Architect', client: 'Goldman Sachs', status: 'Worked', submissions: 32, interviews: 8 },
+        { id: 'REQ-TW02', title: 'Lead Quantitative Developer', client: 'JPMorgan Chase', status: 'Worked', submissions: 28, interviews: 6 },
+      ],
+    },
+    {
+      id: 'rec-1',
+      name: 'Lakshmi V',
+      role: 'Lead Technical Recruiter',
+      teamLead: 'Tom Walsh',
+      primaryClient: 'Goldman Sachs',
+      team: 'Enterprise Accounts Pod',
+      avatar: 'L',
+      requirementsCount: 72,
+      workedReqs: 58,
+      nonWorkedReqs: 14,
+      submissionsCount: 194,
+      shortlistedCount: 84,
+      noSubmissionsCount: 32,
+      interviewsCount: 22,
+      hiresCount: 12,
+      conversionRate: '26.2%',
+      dailyTaskStatus: 'Done (5/5)',
+      weeklyProgress: '21 / 25',
+      weeklyProgressPct: 84,
+      status: 'On Track',
+      requirementsList: [
+        { id: 'REQ-101', title: 'Senior Java Full Stack Engineer', client: 'Goldman Sachs', status: 'Worked', submissions: 24, interviews: 8 },
+        { id: 'REQ-102', title: 'React.js Frontend Architect', client: 'Goldman Sachs', status: 'Worked', submissions: 18, interviews: 5 },
+      ],
+    },
+    {
+      id: 'rec-t1',
+      name: 'Sarah Kim',
+      role: 'FinTech Technical Recruiter',
+      teamLead: 'Tom Walsh',
+      primaryClient: 'JPMorgan Chase',
+      team: 'Enterprise Accounts Pod',
+      avatar: 'S',
+      requirementsCount: 18,
+      workedReqs: 15,
+      nonWorkedReqs: 3,
+      submissionsCount: 54,
+      shortlistedCount: 22,
+      noSubmissionsCount: 4,
+      interviewsCount: 14,
+      hiresCount: 5,
+      conversionRate: '27.7%',
+      dailyTaskStatus: 'Done (5/5)',
+      weeklyProgress: '22 / 25',
+      weeklyProgressPct: 88,
+      status: 'On Track',
+      requirementsList: [
+        { id: 'REQ-SK01', title: 'Risk Systems Developer', client: 'JPMorgan Chase', status: 'Worked', submissions: 30, interviews: 8 },
+      ],
+    },
+
+    // =========================================================================
+    // 👑 TEAM 3: RAHUL VERMA (TEAM LEAD) & HIS TEAM MEMBERS
+    // =========================================================================
+    {
+      id: 'rec-lead-3',
+      name: 'Rahul Verma (Team Lead)',
+      role: 'Team Lead',
+      teamLead: 'Rahul Verma',
+      primaryClient: 'Morgan Stanley',
+      team: 'Cloud & ERP Pod',
+      avatar: 'R',
+      requirementsCount: 38,
+      workedReqs: 32,
+      nonWorkedReqs: 6,
+      submissionsCount: 110,
+      shortlistedCount: 42,
+      noSubmissionsCount: 8,
+      interviewsCount: 18,
+      hiresCount: 7,
+      conversionRate: '24.1%',
+      dailyTaskStatus: 'Done (5/5)',
+      weeklyProgress: '20 / 25',
+      weeklyProgressPct: 80,
+      status: 'On Track',
+      requirementsList: [
+        { id: 'REQ-RV01', title: 'Cloud Infrastructure Director', client: 'Morgan Stanley', status: 'Worked', submissions: 28, interviews: 6 },
+      ],
+    },
+    {
+      id: 'rec-r1',
+      name: 'Neha Gupta',
+      role: 'SAP & Cloud Specialist',
+      teamLead: 'Rahul Verma',
+      primaryClient: 'Morgan Stanley',
+      team: 'Cloud & ERP Pod',
+      avatar: 'N',
+      requirementsCount: 16,
+      workedReqs: 14,
+      nonWorkedReqs: 2,
+      submissionsCount: 42,
+      shortlistedCount: 18,
+      noSubmissionsCount: 3,
+      interviewsCount: 10,
+      hiresCount: 4,
+      conversionRate: '23.8%',
+      dailyTaskStatus: 'Done (4/5)',
+      weeklyProgress: '19 / 25',
+      weeklyProgressPct: 76,
+      status: 'On Track',
+      requirementsList: [
+        { id: 'REQ-NG01', title: 'SAP HANA Lead Consultant', client: 'Morgan Stanley', status: 'Worked', submissions: 22, interviews: 5 },
+      ],
+    },
   ]
+
+  const getRecruiterClientBreakdown = (r: RecruiterDetailData): ClientSubmissionInfo[] => {
+    const map = new Map<string, number>()
+    r.requirementsList.forEach(req => {
+      if (req.client && req.client !== '—') {
+        map.set(req.client, (map.get(req.client) || 0) + req.submissions)
+      }
+    })
+    const result: ClientSubmissionInfo[] = Array.from(map.entries()).map(([client, submissions]) => ({
+      client,
+      submissions,
+    }))
+    result.sort((a, b) => b.submissions - a.submissions)
+    return result
+  }
+
+  const getRecruiterSubmittedClients = (r: RecruiterDetailData): string => {
+    const breakdown = getRecruiterClientBreakdown(r)
+    if (breakdown.length === 0) return '—'
+    return breakdown.map(b => b.client).join(', ')
+  }
+
+  const allUniqueClientsList = useMemo(() => {
+    const clientsSet = new Set<string>()
+    recruitersPerformanceList.forEach(r => {
+      r.requirementsList.forEach(req => {
+        if (req.client && req.client !== '—') {
+          clientsSet.add(req.client)
+        }
+      })
+    })
+    return Array.from(clientsSet).sort()
+  }, [recruitersPerformanceList])
 
   const filteredRecruiters = useMemo(() => {
     return recruitersPerformanceList.filter(r => {
+      // Team Lead role should exclusively see their own performance and their team members' performance
+      if (role === 'lead') {
+        const lead = (r.teamLead || '').toLowerCase()
+        const name = r.name.toLowerCase()
+        const isMyTeam = lead.includes('harish') || name.includes('harish')
+        if (!isMyTeam) return false
+      }
+
       if (searchQuery.trim() && !r.name.toLowerCase().includes(searchQuery.toLowerCase())) return false
       if (statusFilter !== 'All Statuses' && r.status !== statusFilter) return false
+      if (clientFilter !== 'All Clients') {
+        const submittedClients = getRecruiterSubmittedClients(r)
+        if (!submittedClients.toLowerCase().includes(clientFilter.toLowerCase())) return false
+      }
       return true
     })
-  }, [recruitersPerformanceList, searchQuery, statusFilter])
+  }, [recruitersPerformanceList, searchQuery, statusFilter, clientFilter, role])
 
   const paginatedRecruiters = useMemo(() => {
     const start = (recruiterPage - 1) * recruiterPageSize
@@ -455,7 +697,10 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
     return (
       <RecruiterDetailAnalyticsPage
         recruiter={selectedRecruiter}
-        onBack={() => setSelectedRecruiter(null)}
+        onBack={() => {
+          setSelectedRecruiter(null)
+          setActiveReportView('team')
+        }}
       />
     )
   }
@@ -464,7 +709,10 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
     return (
       <ClientDetailAnalyticsPage
         client={selectedClient}
-        onBack={() => setSelectedClient(null)}
+        onBack={() => {
+          setSelectedClient(null)
+          setActiveReportView('team')
+        }}
       />
     )
   }
@@ -475,32 +723,47 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
+            {activeReportView !== 'team' && (
+              <button
+                type="button"
+                onClick={() => setActiveReportView('team')}
+                className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all cursor-pointer border border-slate-200/90 flex items-center justify-center shadow-2xs shrink-0"
+                title="Back to Default Daily Reports Page"
+              >
+                <ArrowLeft className="w-4 h-4 text-slate-700" />
+              </button>
+            )}
+
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-              {reportViewMode === 'charts' ? 'Visual Analytics & Charts' : 'Reports & Performance'}
+              {activeReportView === 'charts'
+                ? 'Visual Analytics & Charts'
+                : activeReportView === 'self'
+                ? 'Reports & Performance'
+                : 'Team Performance & Reports'}
             </h1>
 
-            {role === 'superadmin' && (
+            {(role === 'superadmin' || role === 'devteam') && activeReportView !== 'self' && (
               <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-rose-100 text-rose-800 border border-rose-200 inline-flex items-center gap-1.5 shadow-2xs">
                 <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse" />
-                <span>🔴 Super Admin View (Executive Analytics)</span>
+                <span>🔴 {role === 'devteam' ? 'Dev Team Access (Super Admin Privileges)' : 'Super Admin View (Executive Analytics)'}</span>
               </span>
             )}
 
-            {role === 'admin' && (
+            {role === 'admin' && activeReportView !== 'self' && (
               <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-900 border border-amber-200 inline-flex items-center gap-1.5 shadow-2xs">
                 <span className="w-2 h-2 rounded-full bg-amber-600 animate-pulse" />
                 <span>🟠 Admin View (Operational Performance)</span>
               </span>
             )}
 
-            {role === 'lead' && (
+            {role === 'lead' && activeReportView !== 'self' && (
               <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-blue-100 text-blue-900 border border-blue-200 inline-flex items-center gap-1.5 shadow-2xs">
                 <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
                 <span>🔵 Team Lead View (Team Execution)</span>
               </span>
             )}
 
-            {role === 'recruiter' && (
+            {activeReportView === 'self' && (
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#EEF2FF] text-[#5B51D8] border border-[#C7D2FE] inline-flex items-center gap-1.5 shadow-2xs">
                 <ShieldCheck className="w-3.5 h-3.5 text-[#5B51D8]" />
                 <span>My Individual Performance View</span>
@@ -509,64 +772,52 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
           </div>
 
           <p className="text-xs text-slate-500 mt-1">
-            {reportViewMode === 'charts'
+            {activeReportView === 'charts'
               ? 'Executive visual charts, monthly timelines, coverage ratios, and client POC analytics.'
-              : role === 'recruiter'
+              : activeReportView === 'self'
               ? 'Your personal sourcing metrics, conversion funnel, assigned requirements, and turnaround time.'
               : 'Company-wide hiring performance, recruiter performance table, and client performance records.'}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {/* Main View Mode Toggle (Tables Starting Page vs Dedicated Charts Page) */}
-          {role !== 'recruiter' && (
-            <button
-              onClick={() => setReportViewMode(reportViewMode === 'reports' ? 'charts' : 'reports')}
-              className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all shadow-2xs flex items-center gap-2 cursor-pointer ${
-                reportViewMode === 'charts'
-                  ? 'bg-purple-50 text-[#6B3BF6] border border-purple-200 hover:bg-purple-100'
-                  : 'bg-[#6B3BF6] text-white hover:bg-[#5833E0] active:scale-98'
-              }`}
-            >
-              {reportViewMode === 'charts' ? (
-                <>
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>← Back to Reports & Tables</span>
-                </>
-              ) : (
-                <>
-                  <BarChart3 className="w-4 h-4" />
-                  <span>📊 Analytics & Charts Page (5)</span>
-                </>
-              )}
-            </button>
+          {/* Main View Mode Toggle (Self Performance vs Team Performance) — Hidden for Super Admin & Dev Team */}
+          {role !== 'recruiter' && role !== 'superadmin' && role !== 'devteam' && (
+            <div className="flex items-center gap-1 p-1 bg-slate-100 border border-slate-200 rounded-2xl text-xs font-bold shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setActiveReportView(activeReportView === 'self' ? 'team' : 'self')}
+                className={`px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeReportView === 'self'
+                    ? 'bg-[#6B3BF6] text-white shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                }`}
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>Self Performance</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveReportView(activeReportView === 'charts' ? 'team' : 'charts')}
+                className={`px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeReportView === 'charts'
+                    ? 'bg-[#6B3BF6] text-white shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                }`}
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span>Team Performance</span>
+              </button>
+            </div>
           )}
-
-          <select
-            value={dateRange}
-            onChange={e => setDateRange(e.target.value)}
-            className="px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
-          >
-            <option value="7_days">Last 7 Days</option>
-            <option value="30_days">Last 30 Days</option>
-            <option value="90_days">Last 90 Days</option>
-            <option value="year">This Year</option>
-          </select>
-
-          <button
-            onClick={() => showToast(`Exporting ${role.toUpperCase()} Performance CSV Report...`)}
-            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-2xs transition-all flex items-center gap-2 cursor-pointer active:scale-98"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export Report</span>
-          </button>
         </div>
       </div>
 
       {/* ======================================================================== */}
       {/* VIEW MODE 1: DEDICATED VISUAL ANALYTICS & CHARTS PAGE                    */}
       {/* ======================================================================== */}
-      {reportViewMode === 'charts' && role !== 'recruiter' ? (
+      {activeReportView === 'charts' ? (
         <div className="space-y-6 animate-in fade-in duration-150">
           <div className="flex items-center justify-between bg-purple-50 border border-purple-200 p-4 rounded-2xl">
             <div className="flex items-center gap-3">
@@ -577,7 +828,7 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
               </div>
             </div>
             <button
-              onClick={() => setReportViewMode('reports')}
+              onClick={() => setActiveReportView('team')}
               className="px-3 py-1.5 bg-white text-[#6B3BF6] font-bold text-xs rounded-xl border border-purple-200 shadow-2xs hover:bg-purple-100 transition-all cursor-pointer"
             >
               Back to Recruiter & Client Tables
@@ -597,14 +848,17 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
           <RequirementCoverageChart />
 
           {/* Chart 4: Client POC Submissions vs Total Requirements */}
-          <ClientPOCSubmissionChart />
+          <ClientPOCSubmissionChart role={role} />
 
           {/* Chart 5: Domain / Department Submission Analysis */}
-          <DomainWiseSubmissionChart />
+          {role !== 'lead' && <DomainWiseSubmissionChart />}
+
+          {/* Chart 6: Overall Particular Client-wise Performance & Team Breakdown Chart */}
+          <ClientWiseTeamPerformanceChart />
         </div>
-      ) : role === 'recruiter' ? (
+      ) : activeReportView === 'self' || role === 'recruiter' ? (
         /* ======================================================================== */
-        /* RECRUITER ROLE: INDIVIDUAL PERFORMANCE OVERVIEW ONLY                     */
+        /* VIEW MODE 2: SELF PERFORMANCE (INDIVIDUAL PERFORMANCE OVERVIEW)          */
         /* ======================================================================== */
         <div className="space-y-6 animate-in fade-in duration-150">
           {/* 4 Individual Performance KPI Cards */}
@@ -662,13 +916,7 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
             </div>
           </div>
 
-          {/* Monthly: Requirements vs Total Submissions with TAT Trend (Apr-Jul 2026) */}
-          <MonthlyTimelinePerformanceChart />
-
-          {/* Requirements and Candidate Submissions by Interview Stage */}
-          <StagePipelinePerformanceChart />
-
-          {/* Assigned Requirements Breakdown Table */}
+          {/* 1) My Assigned Requirements Breakdown Table */}
           <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
@@ -841,14 +1089,20 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
               </table>
             </div>
           </div>
+
+          {/* 2) Monthly: Requirements vs Total Submissions with TAT Trend (Apr-Jul 2026) */}
+          <MonthlyTimelinePerformanceChart />
+
+          {/* 3) Requirements and Candidate Submissions by Interview Stage */}
+          <StagePipelinePerformanceChart />
         </div>
       ) : (
         /* ======================================================================== */
         /* VIEW MODE 2: SUPER ADMIN / ADMIN STARTING PAGE WITH TABLES               */
         /* ======================================================================== */
         <div className="space-y-6">
-          {/* Super Admin Executive KPIs */}
-          {role === 'superadmin' && (
+          {/* Super Admin / Dev Team Executive KPIs */}
+          {(role === 'superadmin' || role === 'devteam') && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="bg-[#EEF2FF] border border-[#C7D2FE] rounded-2xl p-4 space-y-2 shadow-2xs">
                 <div className="flex items-center justify-between">
@@ -911,13 +1165,6 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                 <p className="text-xs text-slate-600">View Recruiter Sourcing Graphs, Monthly Timelines, Coverage Pie Charts & Client POC Analytics</p>
               </div>
             </div>
-
-            <button
-              onClick={() => setReportViewMode('charts')}
-              className="px-4 py-2 bg-[#6B3BF6] hover:bg-[#5833E0] text-white text-xs font-bold rounded-xl shadow-2xs transition-all flex items-center gap-2 cursor-pointer active:scale-98"
-            >
-              <span>Render All Visual Charts Page →</span>
-            </button>
           </div>
 
           {/* All Recruiters / Client Performance Tables */}
@@ -940,29 +1187,33 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                   </span>
                 </button>
 
-                <button
-                  onClick={() => setActiveSubTab('client')}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
-                    activeSubTab === 'client'
-                      ? 'bg-purple-50 text-[#6B3BF6] border border-purple-200 shadow-2xs'
-                      : 'text-slate-500 hover:bg-slate-50'
-                  }`}
-                >
-                  <Building2 className="w-4 h-4 text-[#6B3BF6]" />
-                  <span>Client Performance</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#6B3BF6]/10 text-[#6B3BF6]">
-                    {clientPerformanceList.length}
-                  </span>
-                </button>
+                {role !== 'lead' && (
+                  <button
+                    onClick={() => setActiveSubTab('client')}
+                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
+                      activeSubTab === 'client'
+                        ? 'bg-purple-50 text-[#6B3BF6] border border-purple-200 shadow-2xs font-bold'
+                        : 'text-slate-500 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Building2 className="w-4 h-4 text-[#6B3BF6]" />
+                    <span>Client Performance</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#6B3BF6]/10 text-[#6B3BF6]">
+                      {clientPerformanceList.length}
+                    </span>
+                  </button>
+                )}
               </div>
 
-              <button
-                onClick={() => setReportViewMode('charts')}
-                className="text-xs font-bold text-[#6B3BF6] hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#6B3BF6]" />
-                <span>Open Interactive Charts Page →</span>
-              </button>
+              {role !== 'lead' && (
+                <button
+                  onClick={() => setActiveReportView('charts')}
+                  className="text-xs font-bold text-[#6B3BF6] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[#6B3BF6]" />
+                  <span>Open Interactive Charts Page →</span>
+                </button>
+              )}
             </div>
 
             {/* Recruiter Performance Tab */}
@@ -972,7 +1223,7 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                   <div>
                     <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Recruiter Performance</h2>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      Individual metrics, daily targets, and weekly progress ({recruitersPerformanceList.length} recruiters).
+                      Individual metrics, daily targets, and weekly progress ({recruitersPerformanceList.length} total members including Team Lead).
                     </p>
                   </div>
 
@@ -987,6 +1238,19 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                         className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6B3BF6]"
                       />
                     </div>
+
+                    <select
+                      value={clientFilter}
+                      onChange={e => setClientFilter(e.target.value)}
+                      className="px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
+                    >
+                      <option value="All Clients">All Clients</option>
+                      {allUniqueClientsList.map(c => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
 
                     <select
                       value={statusFilter}
@@ -1006,94 +1270,127 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                     <thead>
                       <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                         <th className="py-3.5 px-4 w-10 text-center">#</th>
-                        <th className="py-3.5 px-4">RECRUITER</th>
-                        <th className="py-3.5 px-4">REQUIREMENTS</th>
+                        <th className="py-3.5 px-4">RECRUITER / MEMBER</th>
+                        <th className="py-3.5 px-4">TEAM LEAD & ASSIGNED CLIENT</th>
+                        <th className="py-3.5 px-4">REQUIREMENTS COUNT</th>
                         <th className="py-3.5 px-4">TOTAL SUBMISSIONS</th>
-                        <th className="py-3.5 px-4">TOTAL INTERVIEW</th>
-                        <th className="py-3.5 px-4">DAILY TASK</th>
-                        <th className="py-3.5 px-4">WEEKLY PROGRESS</th>
-                        <th className="py-3.5 px-4">CONVERSION</th>
+                        <th className="py-3.5 px-4">SUBMITTED TO (CLIENT)</th>
+                        <th className="py-3.5 px-4">TOTAL INTERVIEWS</th>
                         <th className="py-3.5 px-4">STATUS</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
                       {paginatedRecruiters.map((r, index) => {
                         const rankNumber = (recruiterPage - 1) * recruiterPageSize + index + 1
+                        const leadName = r.teamLead || 'Harish Gadipally'
+                        const primaryClientName = r.primaryClient || 'Accenture'
+                        const clientBreakdownList = getRecruiterClientBreakdown(r).map(b => b.client)
+                        const displayClients = clientBreakdownList.length > 0 ? clientBreakdownList : [primaryClientName]
+                        const isTeamLead = r.role.toLowerCase().includes('lead') || r.name.includes('(Team Lead)')
+                        const showTeamGroupHeader = index === 0 || paginatedRecruiters[index - 1].teamLead !== r.teamLead
+
                         return (
-                          <tr
-                            key={r.id}
-                            onClick={() => setSelectedRecruiter(r)}
-                            className="hover:bg-purple-50/40 transition-colors cursor-pointer group"
-                          >
-                            <td className="py-3.5 px-4 text-center font-bold text-slate-400">
-                              {rankNumber === 1 ? '🏆' : rankNumber}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-full bg-purple-100 text-[#6B3BF6] font-bold flex items-center justify-center text-xs shrink-0 border border-purple-200">
-                                  {r.avatar}
-                                </div>
-                                <div>
-                                  <div className="font-bold text-slate-900 group-hover:text-[#6B3BF6] transition-colors">
-                                    {r.name}
+                          <React.Fragment key={r.id}>
+                            {/* Team Pod Header Banner */}
+                            {showTeamGroupHeader && (
+                              <tr className="bg-slate-100/90 text-xs font-bold text-slate-800 border-y border-slate-200">
+                                <td colSpan={8} className="py-2 px-4 bg-[#6B3BF6]/5 border-l-4 border-l-[#6B3BF6]">
+                                  <div className="flex items-center gap-2">
+                                    <Crown className="w-4 h-4 text-[#6B3BF6]" />
+                                    <span className="font-extrabold text-slate-900 uppercase tracking-wider text-[11px]">
+                                      {r.team || 'RECRUITMENT POD'} — TEAM LEAD: {r.teamLead}
+                                    </span>
                                   </div>
-                                  <div className="text-[10px] text-slate-400 font-normal">{r.role}</div>
+                                </td>
+                              </tr>
+                            )}
+
+                            <tr
+                              onClick={() => setSelectedRecruiter(r)}
+                              className="hover:bg-purple-50/40 transition-colors cursor-pointer group"
+                            >
+                              <td className="py-3.5 px-4 text-center font-bold text-slate-400">
+                                {isTeamLead ? '👑' : rankNumber}
+                              </td>
+
+                              {/* RECRUITER / MEMBER */}
+                              <td className="py-3.5 px-4">
+                                <div className={`flex items-center gap-2.5 ${!isTeamLead ? 'pl-3' : ''}`}>
+                                  <div className="w-8 h-8 rounded-full bg-purple-100 text-[#6B3BF6] font-bold flex items-center justify-center text-xs shrink-0 border border-purple-200">
+                                    {r.avatar}
+                                  </div>
+                                  <div>
+                                    <div className="font-bold text-slate-900 group-hover:text-[#6B3BF6] transition-colors flex items-center gap-1.5">
+                                      {!isTeamLead && <span className="text-slate-400 font-normal">↳</span>}
+                                      <span>{r.name}</span>
+                                      {isTeamLead ? (
+                                        <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
+                                          <Crown className="w-2.5 h-2.5" />
+                                          <span>Team Lead</span>
+                                        </span>
+                                      ) : (
+                                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                          Team Member
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-[10px] text-slate-500 font-medium">{r.role} • {r.team}</div>
+                                  </div>
                                 </div>
-                              </div>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="font-extrabold text-blue-600 underline hover:text-blue-800 tabular-nums">
-                                {r.requirementsCount}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="font-extrabold text-purple-700 underline hover:text-purple-900 tabular-nums">
-                                {r.submissionsCount}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 font-extrabold text-slate-800 tabular-nums">
-                              {r.interviewsCount || '—'}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              {r.dailyTaskStatus.startsWith('Done') ? (
-                                <span className="px-2.5 py-1 bg-amber-100 text-amber-900 rounded-lg text-[11px] font-bold border border-amber-200">
-                                  {r.dailyTaskStatus}
+                              </td>
+
+                              {/* TEAM LEAD & ASSIGNED CLIENT */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1">
+                                  {isTeamLead ? (
+                                    <span>👑 Team Lead (Self)</span>
+                                  ) : (
+                                    <span>Reports to: {leadName}</span>
+                                  )}
+                                </div>
+                                <div className="text-[10px] text-purple-700 font-extrabold flex items-center gap-1 mt-0.5">
+                                  <Building2 className="w-3 h-3 text-purple-600 inline" />
+                                  <span>{primaryClientName}</span>
+                                </div>
+                              </td>
+
+                              {/* REQUIREMENTS COUNT */}
+                              <td className="py-3.5 px-4">
+                                <span className="font-extrabold text-blue-600 underline hover:text-blue-800 tabular-nums">
+                                  {r.requirementsCount} Reqs
                                 </span>
-                              ) : (
-                                <span className="px-2.5 py-1 bg-amber-100/70 text-amber-900 rounded-lg text-[11px] font-bold border border-amber-200">
-                                  {r.dailyTaskStatus.split(' - ')[0]}
+                              </td>
+
+                              {/* TOTAL SUBMISSIONS */}
+                              <td className="py-3.5 px-4">
+                                <span className="font-extrabold text-purple-700 underline hover:text-purple-900 tabular-nums">
+                                  {r.submissionsCount} Submissions
                                 </span>
-                              )}
-                            </td>
-                            <td className="py-3.5 px-4 w-36">
-                              <div className="space-y-1">
-                                <div className="flex justify-between text-[10px] font-bold text-slate-600">
-                                  <span>{r.weeklyProgress}</span>
-                                  <span>{r.weeklyProgressPct}%</span>
-                                </div>
-                                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                  <div
-                                    className="h-full bg-[#6B3BF6] rounded-full"
-                                    style={{ width: `${r.weeklyProgressPct}%` }}
-                                  />
-                                </div>
-                              </div>
-                            </td>
-                            <td className="py-3.5 px-4 text-[11px]">
-                              <div className="text-slate-600 font-semibold">Conversion: {r.conversionRate}</div>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                ● {r.status}
-                              </span>
-                            </td>
-                          </tr>
+                              </td>
+
+                              {/* SUBMITTED TO (CLIENT) */}
+                              <td className="py-3.5 px-4" onClick={e => e.stopPropagation()}>
+                                <SubmittedClientsPillCell clients={displayClients} />
+                              </td>
+
+                              {/* TOTAL INTERVIEWS */}
+                              <td className="py-3.5 px-4 font-extrabold text-slate-800 tabular-nums">
+                                {r.interviewsCount || 0} Interviews
+                              </td>
+
+                              {/* STATUS */}
+                              <td className="py-3.5 px-4">
+                                <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                  ● {r.status}
+                                </span>
+                              </td>
+                            </tr>
+                          </React.Fragment>
                         )
                       })}
                     </tbody>
                   </table>
                 </div>
-
                 <PaginationFooter
                   currentPage={recruiterPage}
                   totalPages={Math.ceil(filteredRecruiters.length / recruiterPageSize)}
@@ -1108,13 +1405,16 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
 
             {/* Client Performance Tab */}
             {activeSubTab === 'client' && (
-              <div className="space-y-5">
+              <div className="space-y-6">
                 <div>
                   <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Client Performance</h2>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Metrics by client — click Req Sent, Req Assigned, Submissions, Open, or Closed to view that client's records.
+                    Metrics by client — click any client account row to open deep analytics, or select a particular client in the chart below to inspect performance.
                   </p>
                 </div>
+
+                {/* OVERALL PERFORMANCE CHART FOR PARTICULAR CLIENT */}
+                <ClientWiseTeamPerformanceChart />
 
                 <div className="overflow-x-auto border border-slate-200/80 rounded-2xl">
                   <table className="w-full text-left border-collapse text-xs">
@@ -1176,6 +1476,13 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                     </tbody>
                   </table>
                 </div>
+              </div>
+            )}
+
+            {/* Client-wise Team Performance Graphs Tab */}
+            {activeSubTab === 'client_graphs' && (
+              <div className="animate-in fade-in duration-150">
+                <ClientWiseTeamPerformanceChart />
               </div>
             )}
           </div>

@@ -12,6 +12,7 @@ import {
   Phone,
   Mail,
   User,
+  Users,
   Calendar,
   ExternalLink,
   Edit2,
@@ -33,8 +34,10 @@ import {
   FileSignature,
   Printer,
   Share2,
+  ChevronDown,
 } from 'lucide-react'
 import { Role } from '../../types'
+import { PaginationFooter } from '../ui/PaginationFooter'
 
 export interface ClientRecord {
   id: string
@@ -44,7 +47,11 @@ export interface ClientRecord {
   pocEmail: string
   pocPhone: string
   location: string
+  teamLead: string
+  teamMemberCount: number
+  teamMembers: string[]
   activeReqs: number
+  totalSubmissions: number
   totalPlacements: number
   commercialFee: string // e.g. "8.33% Annual CTC"
   paymentTerms: string // e.g. "30 Days Net"
@@ -59,76 +66,92 @@ export interface ClientRecord {
 
 const INITIAL_CLIENTS: ClientRecord[] = [
   {
-    id: 'CLI-101',
-    name: 'Infosys Ltd',
-    domain: 'Software & Cloud Services',
+    id: 'CLI-100',
+    name: 'Accenture',
+    domain: 'Enterprise Cloud & Tech Services',
     pocName: 'Kallol Chakraborty',
-    pocEmail: 'kallol.c@infosys.com',
-    pocPhone: '+91 98765 43210',
+    pocEmail: 'kallol.c@accenture.com',
+    pocPhone: '+91 98765 11223',
     location: 'Bangalore / Hyderabad',
-    activeReqs: 14,
-    totalPlacements: 42,
+    teamLead: 'Harish Gadipally',
+    teamMemberCount: 3,
+    teamMembers: ['Marcus Chen', 'Priya Sharma', 'Suresh kulkarni'],
+    activeReqs: 45,
+    totalSubmissions: 142,
+    totalPlacements: 38,
     commercialFee: '8.33% Annual CTC',
     paymentTerms: '30 Days Net',
-    slaTAT: '3.0 Days',
+    slaTAT: '1.8 Days',
+    agreementStatus: 'Active - Executed',
+    agreementStartDate: '10 Jan 2025',
+    agreementEndDate: '09 Jan 2028',
+    agreementDocName: 'Accenture_Master_Services_Agreement_2025.pdf',
+    signedBy: 'Kallol Chakraborty (VP Talent Sourcing)',
+    signedDate: '10 Jan 2025',
+  },
+  {
+    id: 'CLI-101',
+    name: 'Goldman Sachs',
+    domain: 'Financial Technology & Investment',
+    pocName: 'Trayeetanu Ganguly',
+    pocEmail: 'trayeetanu.g@goldmansachs.com',
+    pocPhone: '+91 98765 43210',
+    location: 'Bangalore / Mumbai',
+    teamLead: 'Tom Walsh',
+    teamMemberCount: 3,
+    teamMembers: ['lakshmi.v Recruiter', 'Lingoji Pavani', 'Arvind GR'],
+    activeReqs: 32,
+    totalSubmissions: 98,
+    totalPlacements: 26,
+    commercialFee: '12.0% Annual CTC',
+    paymentTerms: '30 Days Net',
+    slaTAT: '2.0 Days',
     agreementStatus: 'Active - Executed',
     agreementStartDate: '15 Jan 2025',
     agreementEndDate: '14 Jan 2028',
-    agreementDocName: 'Infosys_Master_Services_Agreement_2025.pdf',
-    signedBy: 'Kallol Chakraborty (VP Procurement)',
+    agreementDocName: 'GoldmanSachs_Vendor_MSA_2025.pdf',
+    signedBy: 'Trayeetanu Ganguly (VP Procurement)',
     signedDate: '15 Jan 2025',
   },
   {
     id: 'CLI-102',
-    name: 'LTTS Mobility (L&T Technology Services)',
-    domain: 'Hardware & Automotive Engineering',
-    pocName: 'Trayeetanu Ganguly',
-    pocEmail: 'trayeetanu.g@ltts.com',
+    name: 'Tesla',
+    domain: 'EV, Energy & AI Sourcing',
+    pocName: 'Kiran N',
+    pocEmail: 'kiran.n@tesla.com',
     pocPhone: '+91 98123 45678',
-    location: 'Vadodara / Chennai',
-    activeReqs: 18,
-    totalPlacements: 56,
-    commercialFee: '10.0% Annual CTC',
+    location: 'Pune / Remote',
+    teamLead: 'Nina Brooks',
+    teamMemberCount: 3,
+    teamMembers: ['rahimoon Shaik', 'Adirala sathvika', 'Charlie Darwin'],
+    activeReqs: 28,
+    totalSubmissions: 84,
+    totalPlacements: 22,
+    commercialFee: '15.0% Annual CTC',
     paymentTerms: '45 Days Net',
-    slaTAT: '4.0 Days',
+    slaTAT: '2.2 Days',
     agreementStatus: 'Active - Executed',
     agreementStartDate: '01 Mar 2024',
     agreementEndDate: '28 Feb 2027',
-    agreementDocName: 'LTTS_Vendor_Empanelment_Agreement.pdf',
-    signedBy: 'Trayeetanu Ganguly (Engineering Head)',
+    agreementDocName: 'Tesla_Global_Staffing_Agreement.pdf',
+    signedBy: 'Kiran N (Head of Talent)',
     signedDate: '01 Mar 2024',
   },
   {
     id: 'CLI-103',
-    name: 'TCS Cyber Security',
-    domain: 'Enterprise Security & IT',
-    pocName: 'Trayeetanu Ganguly',
-    pocEmail: 'trayeetanu.g@tcs.com',
-    pocPhone: '+91 97654 32109',
-    location: 'Mumbai / Pune',
-    activeReqs: 9,
-    totalPlacements: 28,
-    commercialFee: '8.33% Annual CTC',
-    paymentTerms: '30 Days Net',
-    slaTAT: '3.5 Days',
-    agreementStatus: 'Active - Executed',
-    agreementStartDate: '10 Jun 2025',
-    agreementEndDate: '09 Jun 2028',
-    agreementDocName: 'TCS_Cyber_MSA_Signed.pdf',
-    signedBy: 'Trayeetanu Ganguly (Delivery Dir)',
-    signedDate: '10 Jun 2025',
-  },
-  {
-    id: 'CLI-104',
     name: 'ITC Infotech',
     domain: 'Enterprise SAP & ERP',
     pocName: 'Pranati Paul',
     pocEmail: 'pranati.paul@itc.in',
     pocPhone: '+91 99887 76655',
     location: 'Kolkata / Bangalore',
-    activeReqs: 11,
-    totalPlacements: 31,
-    commercialFee: '12.0% Annual CTC',
+    teamLead: 'Ray Diaz',
+    teamMemberCount: 3,
+    teamMembers: ['Harini Sindey', 'Viswanath Reddy', 'Rachana Golkonda'],
+    activeReqs: 24,
+    totalSubmissions: 72,
+    totalPlacements: 19,
+    commercialFee: '10.0% Annual CTC',
     paymentTerms: '30 Days Net',
     slaTAT: '2.5 Days',
     agreementStatus: 'Active - Executed',
@@ -139,23 +162,51 @@ const INITIAL_CLIENTS: ClientRecord[] = [
     signedDate: '20 Nov 2024',
   },
   {
+    id: 'CLI-104',
+    name: 'LTTS Mobility',
+    domain: 'Hardware & Automotive Engineering',
+    pocName: 'Trayeetanu Ganguly',
+    pocEmail: 'trayeetanu.g@ltts.com',
+    pocPhone: '+91 97654 32109',
+    location: 'Vadodara / Chennai',
+    teamLead: 'Harish Gadipally',
+    teamMemberCount: 2,
+    teamMembers: ['Marcus Chen', 'Priya Sharma'],
+    activeReqs: 18,
+    totalSubmissions: 56,
+    totalPlacements: 15,
+    commercialFee: '10.0% Annual CTC',
+    paymentTerms: '45 Days Net',
+    slaTAT: '2.8 Days',
+    agreementStatus: 'Active - Executed',
+    agreementStartDate: '10 Jun 2025',
+    agreementEndDate: '09 Jun 2028',
+    agreementDocName: 'LTTS_Mobility_Empanelment.pdf',
+    signedBy: 'Trayeetanu Ganguly (Delivery Dir)',
+    signedDate: '10 Jun 2025',
+  },
+  {
     id: 'CLI-105',
-    name: 'Deloitte Digital',
-    domain: 'AI, Data & Analytics',
-    pocName: 'Kiran N',
-    pocEmail: 'kiran.n@deloitte.com',
+    name: 'Infosys Ltd',
+    domain: 'Software & Cloud Services',
+    pocName: 'Kallol Chakraborty',
+    pocEmail: 'kallol.c@infosys.com',
     pocPhone: '+91 91234 56789',
-    location: 'Gurgaon / Hyderabad',
-    activeReqs: 15,
-    totalPlacements: 49,
-    commercialFee: '15.0% Annual CTC',
-    paymentTerms: '60 Days Net',
+    location: 'Bangalore / Hyderabad',
+    teamLead: 'Tom Walsh',
+    teamMemberCount: 2,
+    teamMembers: ['lakshmi.v Recruiter', 'Lingoji Pavani'],
+    activeReqs: 14,
+    totalSubmissions: 42,
+    totalPlacements: 12,
+    commercialFee: '8.33% Annual CTC',
+    paymentTerms: '30 Days Net',
     slaTAT: '3.0 Days',
     agreementStatus: 'Active - Executed',
     agreementStartDate: '05 Feb 2025',
     agreementEndDate: '04 Feb 2028',
-    agreementDocName: 'Deloitte_Global_Vendor_SLA.pdf',
-    signedBy: 'Kiran N (Practice Lead)',
+    agreementDocName: 'Infosys_Global_Vendor_SLA.pdf',
+    signedBy: 'Kallol Chakraborty (VP Procurement)',
     signedDate: '05 Feb 2025',
   },
 ]
@@ -168,6 +219,7 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
   const [clients, setClients] = useState<ClientRecord[]>(INITIAL_CLIENTS)
   const [viewMode, setViewMode] = useState<'list' | 'add' | 'view_agreement'>('list')
   const [selectedClientForAgreement, setSelectedClientForAgreement] = useState<ClientRecord | null>(null)
+  const [activeDropdownClientId, setActiveDropdownClientId] = useState<string | null>(null)
 
   const [searchQuery, setSearchQuery] = useState('')
   const [domainFilter, setDomainFilter] = useState('All Domains')
@@ -212,6 +264,17 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
       return true
     })
   }, [clients, searchQuery, domainFilter])
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 10
+
+  const totalPages = Math.ceil(filteredClients.length / pageSize) || 1
+
+  const paginatedClients = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredClients.slice(start, start + pageSize)
+  }, [filteredClients, currentPage, pageSize])
 
   // Open Full-Page Agreement View
   const openAgreementPage = (client: ClientRecord) => {
@@ -857,14 +920,16 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                 <th className="py-3.5 px-4">CLIENT ORGANIZATION</th>
-                <th className="py-3.5 px-4">PRIMARY POC & CONTACT</th>
-                <th className="py-3.5 px-4">COMMERCIALS & SLA</th>
-                <th className="py-3.5 px-4">AGREEMENT STATUS</th>
+                <th className="py-3.5 px-4">TEAM LEAD</th>
+                <th className="py-3.5 px-4">TEAM MEMBERS WORKING</th>
+                <th className="py-3.5 px-4 text-center">REQUIREMENTS</th>
+                <th className="py-3.5 px-4 text-center">SUBMISSIONS</th>
+                <th className="py-3.5 px-4">POC & COMMERCIALS</th>
                 <th className="py-3.5 px-4 text-right">ACTIONS</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
-              {filteredClients.map(client => (
+              {paginatedClients.map(client => (
                 <tr key={client.id} className="hover:bg-purple-50/30 transition-colors">
                   {/* Column 1: Client Organization */}
                   <td className="py-4 px-4 font-bold text-slate-900">
@@ -885,61 +950,115 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
                     </div>
                   </td>
 
-                  {/* Column 2: Primary POC & Contact */}
-                  <td className="py-4 px-4">
-                    <div className="space-y-1">
+                  {/* Column 2: Team Lead */}
+                  <td className="py-4 px-4 whitespace-nowrap">
+                    <div className="flex items-center gap-1.5 font-extrabold text-slate-900 text-xs">
+                      <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      <span>{client.teamLead}</span>
+                    </div>
+                    <div className="text-[10px] text-purple-700 font-semibold mt-0.5">Assigned Team Lead</div>
+                  </td>
+
+                  {/* Column 3: Team Members Working */}
+                  <td className="py-4 px-4 whitespace-nowrap min-w-56">
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setActiveDropdownClientId(activeDropdownClientId === client.id ? null : client.id)}
+                        className={`px-3 py-1.5 rounded-xl border text-xs font-extrabold cursor-pointer transition-all flex items-center justify-between gap-2 shadow-2xs ${
+                          activeDropdownClientId === client.id
+                            ? 'bg-[#6B3BF6] text-white border-[#5833E0] ring-2 ring-[#6B3BF6]/20'
+                            : 'bg-purple-50 hover:bg-purple-100 text-[#6B3BF6] border-purple-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 truncate">
+                          <Users className="w-3.5 h-3.5 shrink-0" />
+                          <span>{client.teamMemberCount} Members</span>
+                          <span className="opacity-75 font-normal text-[11px] truncate">({client.teamMembers[0]}...)</span>
+                        </div>
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 shrink-0 ${activeDropdownClientId === client.id ? 'rotate-180 text-white' : 'text-[#6B3BF6]'}`} />
+                      </button>
+
+                      {/* Custom Animated UI Dropdown Popover */}
+                      {activeDropdownClientId === client.id && (
+                        <>
+                          {/* Backdrop overlay to close */}
+                          <div
+                            className="fixed inset-0 z-40"
+                            onClick={() => setActiveDropdownClientId(null)}
+                          />
+
+                          <div className="absolute left-0 top-full mt-1.5 w-64 bg-white rounded-2xl border border-slate-200 shadow-xl z-50 p-3 space-y-2 font-sans animate-in fade-in zoom-in-95 duration-150">
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                                <Users className="w-3 h-3 text-[#6B3BF6]" />
+                                <span>Assigned Recruiters</span>
+                              </span>
+                              <span className="px-2 py-0.5 rounded-full bg-purple-100 text-[#6B3BF6] text-[10px] font-extrabold">
+                                {client.teamMemberCount} Members
+                              </span>
+                            </div>
+
+                            <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                              {client.teamMembers.map((member, idx) => (
+                                <div
+                                  key={member}
+                                  className="p-2 rounded-xl bg-slate-50 hover:bg-purple-50/80 border border-slate-100 transition-colors flex items-center gap-2.5"
+                                >
+                                  <div className="w-7 h-7 rounded-lg bg-purple-100 text-[#6B3BF6] font-extrabold text-xs flex items-center justify-center shrink-0 border border-purple-200">
+                                    {member.charAt(0)}
+                                  </div>
+                                  <div className="truncate">
+                                    <div className="font-extrabold text-slate-900 text-xs truncate">{member}</div>
+                                    <div className="text-[10px] text-slate-500 font-medium">
+                                      {idx === 0 ? 'Lead Recruiter' : 'Team Member'}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </td>
+
+                  {/* Column 4: Requirements Count */}
+                  <td className="py-4 px-4 whitespace-nowrap text-center">
+                    <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-blue-50 text-blue-800 border border-blue-200 tabular-nums">
+                      {client.activeReqs} Requirements
+                    </span>
+                  </td>
+
+                  {/* Column 5: Submissions Count */}
+                  <td className="py-4 px-4 whitespace-nowrap text-center">
+                    <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-purple-50 text-purple-900 border border-purple-200 tabular-nums">
+                      {client.totalSubmissions} Submissions
+                    </span>
+                  </td>
+
+                  {/* Column 6: POC & Commercials */}
+                  <td className="py-4 px-4 whitespace-nowrap">
+                    <div className="space-y-0.5">
                       <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1">
-                        <User className="w-3.5 h-3.5 text-purple-600" />
+                        <User className="w-3 h-3 text-purple-600" />
                         <span>{client.pocName}</span>
                       </div>
-                      <div className="text-[11px] text-blue-700 font-semibold flex items-center gap-1">
-                        <Mail className="w-3 h-3 text-slate-400" />
-                        <span>{client.pocEmail}</span>
-                      </div>
-                      <div className="text-[10px] text-slate-500 flex items-center gap-1">
-                        <Phone className="w-3 h-3 text-slate-400" />
-                        <span>{client.pocPhone}</span>
+                      <div className="text-[10px] text-emerald-800 font-extrabold">
+                        Fee: {client.commercialFee} ({client.slaTAT} TAT)
                       </div>
                     </div>
                   </td>
 
-                  {/* Column 3: Commercials & SLA */}
-                  <td className="py-4 px-4">
-                    <div className="space-y-1">
-                      <div className="text-xs font-extrabold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 inline-block">
-                        Fee: {client.commercialFee}
-                      </div>
-                      <div className="text-[10px] text-slate-600 font-medium">
-                        Payment: <strong className="text-slate-900">{client.paymentTerms}</strong>
-                      </div>
-                      <div className="text-[10px] text-slate-600 font-medium">
-                        SLA TAT: <strong className="text-[#6B3BF6]">{client.slaTAT}</strong>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Column 4: Agreement Status */}
-                  <td className="py-4 px-4">
-                    <div className="space-y-1">
-                      <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300 inline-flex items-center gap-1.5 shadow-2xs">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
-                        <span>{client.agreementStatus}</span>
-                      </span>
-                      <p className="text-[10px] text-slate-500 font-medium block">
-                        Valid: {client.agreementStartDate} — {client.agreementEndDate}
-                      </p>
-                    </div>
-                  </td>
-
-                  {/* Column 5: Actions */}
+                  {/* Column 7: Actions */}
                   <td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
                     {/* FULL-PAGE VIEW AGREEMENT BUTTON */}
                     <button
                       onClick={() => openAgreementPage(client)}
-                      className="px-3.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#6B3BF6] font-extrabold cursor-pointer inline-flex items-center gap-1.5 text-xs border border-purple-200 shadow-2xs transition-all active:scale-98"
+                      className="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#6B3BF6] font-extrabold cursor-pointer inline-flex items-center gap-1.5 text-xs border border-purple-200 shadow-2xs transition-all active:scale-98"
                     >
                       <FileText className="w-3.5 h-3.5 text-[#6B3BF6]" />
-                      <span>View Agreement</span>
+                      <span>View MSA Agreement</span>
                     </button>
                   </td>
                 </tr>
@@ -947,6 +1066,15 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
             </tbody>
           </table>
         </div>
+
+        {/* 10-ITEM PAGINATION FOOTER */}
+        <PaginationFooter
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredClients.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+        />
       </div>
 
       {/* TOAST */}

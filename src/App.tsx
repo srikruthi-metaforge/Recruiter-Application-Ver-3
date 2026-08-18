@@ -14,11 +14,9 @@ import { brand } from './theme'
 import { Sidebar } from './components/layout/Sidebar'
 import { PageContainer } from './components/layout/PageContainer'
 
-import { SuperAdminDashboard } from './components/dashboards/SuperAdminDashboard'
-import { AdminDashboard } from './components/dashboards/AdminDashboard'
 import { LeadDashboard } from './components/dashboards/LeadDashboard'
 import { RecruiterDashboard } from './components/dashboards/RecruiterDashboard'
-import { ClientDashboard } from './components/dashboards/ClientDashboard'
+import { DevTeamDashboard } from './components/dashboards/DevTeamDashboard'
 import { ModulePage } from './components/pages/ModulePage'
 
 import { RoleSelectPage } from './components/auth/RoleSelectPage'
@@ -50,7 +48,9 @@ export default function App() {
   })
 
   const [loginRole, setLoginRole] = useState<Role>(role)
-  const [activeNav, setActiveNav] = useState('Dashboard')
+  const [activeNav, setActiveNav] = useState(() => {
+    return (role === 'superadmin' || role === 'devteam' || role === 'admin') ? 'Requirements' : 'Dashboard'
+  })
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   const [requirements, setRequirements] = useState<Requirement[]>(INITIAL_REQUIREMENTS)
@@ -78,10 +78,20 @@ export default function App() {
       // ignore
     }
     setScreen('role-select')
-    setActiveNav('Dashboard')
+    setActiveNav('Requirements')
   }
 
-  const handleNavSelect = (nav: string) => setActiveNav(nav)
+  const handleNavSelect = (nav: string) => {
+    if (nav === 'Candidates' || nav === 'Candidate Search') {
+      setSelectedReqIdForSubmit(null)
+    }
+    setActiveNav(nav)
+  }
+
+  const handleOpenSubmitCandidateFromDashboard = (reqId?: string) => {
+    setSelectedReqIdForSubmit(reqId || null)
+    setActiveNav('Candidates')
+  }
 
   const handleAddRequirement = (newReq: Requirement) => {
     setRequirements([newReq, ...requirements])
@@ -107,7 +117,7 @@ export default function App() {
 
   const handleOpenSubmitForReq = (reqId?: string) => {
     setSelectedReqIdForSubmit(reqId || null)
-    setIsSubmitCandidateOpen(true)
+    setActiveNav('Candidates')
   }
 
   const handleOpenFeedbackForInterview = (iv: Interview) => {
@@ -143,11 +153,7 @@ export default function App() {
           } catch (e) {
             // ignore
           }
-          if (r === 'superadmin' || r === 'admin') {
-            setActiveNav('Requirements')
-          } else {
-            setActiveNav('Dashboard')
-          }
+          setActiveNav((r === 'superadmin' || r === 'devteam' || r === 'admin') ? 'Requirements' : 'Dashboard')
           setScreen('app')
         }}
         onBack={() => setScreen('role-select')}
@@ -166,42 +172,31 @@ export default function App() {
   }
 
   const renderContent = () => {
-    if (activeNav === 'Dashboard') {
+    const effectiveNav = (role === 'superadmin' || role === 'devteam' || role === 'admin') && activeNav === 'Dashboard' ? 'Requirements' : activeNav
+
+    if (effectiveNav === 'Dashboard') {
       switch (role) {
-        case 'superadmin':
-        case 'admin':
-          // Dashboard removed for Super Admin and Admin - fall back to Requirements
+        case 'devteam':
           return (
-            <ModulePage
-              pageKey="Requirements"
-              role={role}
-              requirements={requirements}
-              submissions={submissions}
-              interviews={interviews}
+            <DevTeamDashboard
+              admins={admins}
+              leads={leads}
               recruiters={recruiters}
-              onOpenSubmit={handleOpenSubmitForReq}
-              onOpenFeedback={handleOpenFeedbackForInterview}
-              onOpenCandidate={handleOpenCandidateDetail}
+              requirements={requirements}
+              interviews={interviews}
               onUpdateRequirements={setRequirements}
+              onOpenSubmit={handleOpenSubmitForReq}
             />
           )
         case 'lead':
-          return (
-            <LeadDashboard
-              recruiters={recruiters}
-              requirements={requirements}
-              interviews={interviews}
-            />
-          )
-        case 'client':
-          return <ClientDashboard />
+        case 'recruiter':
         default:
           return (
             <RecruiterDashboard
               submissions={submissions}
               interviews={interviews}
               requirements={requirements}
-              onOpenSubmitCandidate={() => setActiveNav('Candidates')}
+              onOpenSubmitCandidate={handleOpenSubmitCandidateFromDashboard}
               onOpenFeedbackModal={handleOpenFeedbackForInterview}
               onOpenCandidateDetail={handleOpenCandidateDetail}
             />
@@ -209,13 +204,13 @@ export default function App() {
       }
     }
 
-    if (activeNav === 'Requirements' && role === 'recruiter') {
+    if (effectiveNav === 'Requirements' && role === 'recruiter') {
       return (
         <RecruiterDashboard
           submissions={submissions}
           interviews={interviews}
           requirements={requirements}
-          onOpenSubmitCandidate={() => setActiveNav('Candidates')}
+          onOpenSubmitCandidate={handleOpenSubmitCandidateFromDashboard}
           onOpenFeedbackModal={handleOpenFeedbackForInterview}
           onOpenCandidateDetail={handleOpenCandidateDetail}
         />
@@ -230,10 +225,12 @@ export default function App() {
         submissions={submissions}
         interviews={interviews}
         recruiters={recruiters}
+        selectedReqId={selectedReqIdForSubmit}
         onOpenSubmit={role !== 'client' ? handleOpenSubmitForReq : undefined}
         onOpenFeedback={handleOpenFeedbackForInterview}
         onOpenCandidate={handleOpenCandidateDetail}
         onUpdateRequirements={setRequirements}
+        onSelectRequirement={setSelectedReqIdForSubmit}
       />
     )
   }

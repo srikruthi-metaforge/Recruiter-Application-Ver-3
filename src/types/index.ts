@@ -1,4 +1,4 @@
-export type Role = 'superadmin' | 'admin' | 'lead' | 'recruiter' | 'client'
+export type Role = 'superadmin' | 'admin' | 'lead' | 'recruiter' | 'devteam'
 
 export type AuthScreen = 'role-select' | 'role-login' | 'forgot' | 'app'
 
@@ -54,6 +54,7 @@ export interface Recruiter {
   taskStatus: 'POSITIVE' | 'CRITICAL'
   submissionType: 'Direct Sourcing' | 'LinkedIn Recruiter' | 'Agency Portal' | 'Referral' | 'Internal DB'
   primaryClient: string
+  tat?: string // Turn Around Time
 }
 
 export interface Lead {
@@ -65,6 +66,8 @@ export interface Lead {
   interviews: number
   placements: number
   email?: string
+  clientAccount?: string
+  clientAccounts?: string[]
 }
 
 export interface Admin {

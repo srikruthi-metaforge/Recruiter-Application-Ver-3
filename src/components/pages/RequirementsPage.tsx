@@ -320,7 +320,7 @@ export function RequirementsPage({
   }
 
   const roleLabel =
-    role === 'superadmin'
+    role === 'superadmin' || role === 'devteam'
       ? 'Super Admin View'
       : role === 'admin'
         ? 'Admin View'

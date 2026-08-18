@@ -82,6 +82,14 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null
 }
 
+// Team Lead's own team performance data (Harish Gadipally & team members)
+const LEAD_TEAM_CHART_DATA: RecruiterChartMetric[] = [
+  { name: 'Harish G. (Lead)', fullName: 'Harish Gadipally (Team Lead)', totalSubmissions: 142, totalRequirements: 45, firstSubmissions: 48, avgTATDays: 1.2 },
+  { name: 'Marcus C.', fullName: 'Marcus Chen (Senior Recruiter)', totalSubmissions: 48, totalRequirements: 14, firstSubmissions: 18, avgTATDays: 1.5 },
+  { name: 'Priya S.', fullName: 'Priya Sharma (IT Recruiter)', totalSubmissions: 36, totalRequirements: 12, firstSubmissions: 14, avgTATDays: 1.8 },
+  { name: 'Suresh K.', fullName: 'Suresh kulkarni (Recruiter)', totalSubmissions: 46, totalRequirements: 27, firstSubmissions: 16, avgTATDays: 2.1 },
+]
+
 export function RecruiterPerformanceChart({
   role = 'recruiter',
   recruiterName = 'Harish Gadipally',
@@ -89,6 +97,9 @@ export function RecruiterPerformanceChart({
   const [chartEngine, setChartEngine] = useState<'recharts' | 'plotly'>('recharts')
 
   const chartData = useMemo(() => {
+    if (role === 'lead') {
+      return LEAD_TEAM_CHART_DATA
+    }
     if (role === 'recruiter') {
       return RECRUITER_PERSONAL_TREND_DATA
     }

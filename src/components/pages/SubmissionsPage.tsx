@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { Submission, Requirement, Role } from '../../types'
 import { RequirementDetailOverview } from './RequirementDetailOverview'
+import { CreateJobDemandForm } from './CreateJobDemandForm'
 import { PaginationFooter } from '../ui/PaginationFooter'
 import { PageHeader } from '../layout/PageHeader'
 import { SubmissionCandidateDetailModal } from '../modals/SubmissionCandidateDetailModal'
@@ -16,6 +17,7 @@ import {
   Clock,
   Filter,
   Plus,
+  UserPlus,
   Edit2,
   Check,
   X,
@@ -25,7 +27,9 @@ import {
 interface SubmissionsPageProps {
   role?: Role
   submissions?: Submission[]
-  onOpenSubmitCandidate?: () => void
+  requirements?: Requirement[]
+  onOpenSubmitCandidate?: (reqId?: string) => void
+  onUpdateRequirements?: (updated: Requirement[]) => void
 }
 
 interface ScreenshotSubmission {
@@ -44,88 +48,126 @@ interface ScreenshotSubmission {
 
 const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
   {
-    id: 'SUB-001',
+    id: 'SUB-201',
+    candidateName: 'Alex Turner',
+    requirement: 'Senior React Developer',
+    reqId: 'REQ-2026-08-12-001',
+    clientName: 'Accenture',
+    experience: '7 Years 6 Months',
+    currentCompany: 'Cognizant Technology Solutions',
+    submittedBy: 'Marcus Chen',
+    submittedOn: 'Aug 17, 2026',
+    status: 'Submitted to Client',
+  },
+  {
+    id: 'SUB-202',
+    candidateName: 'Vidyasagar Gade',
+    requirement: 'Cloud Solutions Architect',
+    reqId: 'REQ-2026-08-12-003',
+    clientName: 'Accenture',
+    experience: '10 Years',
+    currentCompany: 'Infosys Ltd',
+    submittedBy: 'Priya Sharma',
+    submittedOn: 'Aug 16, 2026',
+    status: 'Interview Scheduled',
+  },
+  {
+    id: 'SUB-203',
+    candidateName: 'Suresh Kulkarni (Candidate)',
+    requirement: 'PLM / PDM Lead Engineer',
+    reqId: 'REQ-2026-08-12-004',
+    clientName: 'Accenture',
+    experience: '8 Years 2 Months',
+    currentCompany: 'Wipro Limited',
+    submittedBy: 'Suresh kulkarni',
+    submittedOn: 'Aug 16, 2026',
+    status: 'Rejected',
+    rejectionReason: 'Technical evaluation score below threshold (C++ & PLM architecture round)',
+  },
+  {
+    id: 'SUB-204',
+    candidateName: 'Harish Gadipally (Lead Candidate)',
+    requirement: 'Senior React / Fullstack Architect',
+    reqId: 'REQ-2026-08-12-001',
+    clientName: 'Accenture',
+    experience: '12 Years',
+    currentCompany: 'Metaforge IT Solutions',
+    submittedBy: 'Harish Gadipally',
+    submittedOn: 'Aug 15, 2026',
+    status: 'Submitted to Client',
+  },
+  {
+    id: 'SUB-205',
+    candidateName: 'Rania Khalil',
+    requirement: 'Java Cloud Architect',
+    reqId: 'REQ-2026-08-06-005',
+    clientName: 'Goldman Sachs',
+    experience: '11 Years',
+    currentCompany: 'Morgan Stanley',
+    submittedBy: 'lakshmi.v Recruiter',
+    submittedOn: 'Aug 14, 2026',
+    status: 'Interview Scheduled',
+  },
+  {
+    id: 'SUB-206',
+    candidateName: 'Abhijit Narke',
+    requirement: 'Java Lead Engineer',
+    reqId: 'REQ-2026-08-06-005',
+    clientName: 'Goldman Sachs',
+    experience: '9 Years',
+    currentCompany: 'Barclays India',
+    submittedBy: 'Lingoji Pavani',
+    submittedOn: 'Aug 14, 2026',
+    status: 'Rejected',
+    rejectionReason: 'Notice period exceeds 60 days budget limit',
+  },
+  {
+    id: 'SUB-207',
+    candidateName: 'Kanchan Meshram',
+    requirement: 'Automotive Embedded Systems Engineer',
+    reqId: 'REQ-2026-08-07-006',
+    clientName: 'Tesla',
+    experience: '6 Years 8 Months',
+    currentCompany: 'Bosch Engineering',
+    submittedBy: 'rahimoon Shaik',
+    submittedOn: 'Aug 13, 2026',
+    status: 'Submitted to Client',
+  },
+  {
+    id: 'SUB-208',
+    candidateName: 'Ben Wallace',
+    requirement: 'Python ML Specialist',
+    reqId: 'REQ-2026-08-07-007',
+    clientName: 'Tesla',
+    experience: '5 Years 4 Months',
+    currentCompany: 'Nvidia India',
+    submittedBy: 'Adirala sathvika',
+    submittedOn: 'Aug 13, 2026',
+    status: 'Rejected',
+    rejectionReason: 'Salary expectation exceeds approved budget for Senior Machine Learning band',
+  },
+  {
+    id: 'SUB-209',
+    candidateName: 'Arpit Srivastav',
+    requirement: 'SAP MM + Ariba Functional Lead',
+    reqId: 'REQ-2026-07-20-009',
+    clientName: 'ITC Infotech',
+    experience: '8 Years',
+    currentCompany: 'ITC Limited',
+    submittedBy: 'Harini Sindey',
+    submittedOn: 'Aug 12, 2026',
+    status: 'Selected in Interview',
+  },
+  {
+    id: 'SUB-210',
     candidateName: 'TEJENDRA RAMAN',
-    requirement: 'DPS NET backend BLR HYD',
+    requirement: '.NET Core Backend Architect',
     reqId: 'REQ-2026-06-08-001',
-    clientName: 'Metaforge IT',
+    clientName: 'LTTS Mobility',
     experience: '9 Years',
     currentCompany: 'HCL Technologies Ltd',
-    submittedBy: 'Suresh kulkarni',
-    submittedOn: 'Aug 06, 26',
-    status: 'Submitted to Client',
-  },
-  {
-    id: 'SUB-002',
-    candidateName: 'Trupti Akash More',
-    requirement: 'DPS NET backend BLR HYD',
-    reqId: 'REQ-2026-06-08-002',
-    clientName: 'Wipro Digital',
-    experience: '10 Years',
-    currentCompany: 'LTI Mindtree',
-    submittedBy: 'Suresh kulkarni',
-    submittedOn: 'Aug 06, 26',
-    status: 'Submitted to Lead',
-  },
-  {
-    id: 'SUB-003',
-    candidateName: 'Anjali',
-    requirement: 'Autosar Development Engineer',
-    reqId: 'REQ-2026-06-08-003',
-    clientName: 'Continental Automotive',
-    experience: '8 Years 9 Months',
-    currentCompany:
-      'AUMOVIO SE (India) Pvt. Ltd (Formerly Continental Automotive Pvt Ltd)',
-    submittedBy: 'Harini Sindey',
-    submittedOn: 'Aug 06, 26',
-    status: 'Interview',
-  },
-  {
-    id: 'SUB-004',
-    candidateName: 'SATEESH KUMAR',
-    requirement: 'DPS NET backend BLR HYD',
-    reqId: 'REQ-2026-06-08-001',
-    clientName: 'Metaforge IT',
-    experience: '10 Years',
-    currentCompany: 'Virtual Employee Pvt. Ltd.',
-    submittedBy: 'Suresh kulkarni',
-    submittedOn: 'Aug 06, 26',
-    status: 'Submitted to Client',
-  },
-  {
-    id: 'SUB-005',
-    candidateName: 'Jinal Vora',
-    requirement: 'DPS NET backend BLR HYD',
-    reqId: 'REQ-2026-06-08-001',
-    clientName: 'ITC Limited',
-    experience: '7 Years 2 Months',
-    currentCompany: 'Tech Systems India',
-    submittedBy: 'rahimoon Shaik',
-    submittedOn: 'Aug 06, 26',
-    status: 'Submitted',
-  },
-  {
-    id: 'SUB-006',
-    candidateName: 'ABHIJEET BALWANT MALI',
-    requirement: 'DPS NET backend BLR HYD',
-    reqId: 'REQ-2026-06-08-004',
-    clientName: 'Infosys Tech',
-    experience: '9 Years 10 Months',
-    currentCompany: 'Infosys Pvt Ltd',
-    submittedBy: 'lakshmi.v Recruiter',
-    submittedOn: 'Aug 06, 26',
-    status: 'Selected',
-  },
-  {
-    id: 'SUB-007',
-    candidateName: 'RIHAN KHAN',
-    requirement: 'SP3D Modeler',
-    reqId: 'REQ-2026-06-08-005',
-    clientName: 'L&T Engineering',
-    experience: '5 Years 5 Months',
-    currentCompany: 'Engineering Tech Services',
-    submittedBy: 'lakshmi.v Recruiter',
-    submittedOn: 'Aug 06, 26',
+    submittedBy: 'Viswanath Reddy',
+    submittedOn: 'Aug 11, 2026',
     status: 'Submitted to Client',
   },
 ]
@@ -133,38 +175,52 @@ const DEFAULT_SCREENSHOT_SUBMISSIONS: ScreenshotSubmission[] = [
 export function SubmissionsPage({
   role,
   submissions = [],
+  requirements = [],
   onOpenSubmitCandidate,
+  onUpdateRequirements,
 }: SubmissionsPageProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  // Default to Today, removed All Dates, Last 7 days, Last week, Last month, This year
-  const [dateFilter, setDateFilter] = useState('Today')
+  const [dateFilter, setDateFilter] = useState('All')
   const [customStartDate, setCustomStartDate] = useState('')
   const [customEndDate, setCustomEndDate] = useState('')
-  const [statusFilter, setStatusFilter] = useState('Submitted to Lead')
+  const [statusFilter, setStatusFilter] = useState('All')
   const [selectedSub, setSelectedSub] = useState<ScreenshotSubmission | null>(
     null
   )
 
   const [selectedReqDetail, setSelectedReqDetail] = useState<Requirement | null>(null)
+  const [isEditingReq, setIsEditingReq] = useState(false)
+  const [editingReq, setEditingReq] = useState<Requirement | null>(null)
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg)
+    setTimeout(() => setToastMsg(null), 3500)
+  }
 
   const handleOpenReqOverview = (reqId: string, position: string, company: string) => {
-    setSelectedReqDetail({
-      id: reqId,
-      title: position,
-      client: company,
-      company: company,
-      status: 'Open',
-      createdDate: '12 Aug 2026',
-      submissionsCount: 7,
-      interviewsCount: 2,
-      owner: 'Harish Gadipally',
-      assignedRecruiter: 'Harish Gadipally',
-      experienceRequired: '5 - 10 Years',
-      location: 'Hyderabad / Remote',
-      salaryRange: '₹18 - ₹28 LPA',
-      skills: ['.NET Core', 'C#', 'SQL Server', 'Microservices', 'Azure'],
-      description: `Requirement details for ${position} at ${company}. Full job overview, candidate pipeline, and submission history.`,
-    } as any)
+    const existing = requirements.find(r => r.id === reqId || r.title === position)
+    if (existing) {
+      setSelectedReqDetail(existing)
+    } else {
+      setSelectedReqDetail({
+        id: reqId,
+        title: position,
+        client: company,
+        company: company,
+        status: 'Open',
+        createdDate: '12 Aug 2026',
+        submissionsCount: 7,
+        interviewsCount: 2,
+        owner: 'Harish Gadipally',
+        assignedRecruiter: 'Harish Gadipally',
+        experienceRequired: '5 - 10 Years',
+        location: 'Hyderabad / Remote',
+        salaryRange: '₹18 - ₹28 LPA',
+        skills: ['.NET Core', 'C#', 'SQL Server', 'Microservices', 'Azure'],
+        description: `Requirement details for ${position} at ${company}. Full job overview, candidate pipeline, and submission history.`,
+      } as any)
+    }
   }
 
   // Rejection reasons map (read-only in table column, set via candidate profile modal)
@@ -191,26 +247,33 @@ export function SubmissionsPage({
     return DEFAULT_SCREENSHOT_SUBMISSIONS
   }, [submissions])
 
-  // Scope submissions data for recruiter role (only see their own work, zero exposure to other recruiters)
+  // Scope filter: 'all' (members + lead), 'my_submissions' (lead only), 'team_members' (members only)
+  const [scopeTab, setScopeTab] = useState<'all' | 'my_submissions' | 'team_members'>('all')
+
+  // Scope submissions data for team lead and recruiter roles
   const scopeSubmissions = useMemo(() => {
+    if (role === 'lead') {
+      // Team Lead sees both team members' submissions and their own individual submissions
+      return combinedSubmissions.filter(item => {
+        const by = item.submittedBy.toLowerCase()
+        if (scopeTab === 'my_submissions') {
+          return by.includes('harish') || by.includes('lead')
+        }
+        if (scopeTab === 'team_members') {
+          return !by.includes('harish') && !by.includes('lead')
+        }
+        // 'all' tab shows both team members and Team Lead individual submissions
+        return true
+      })
+    }
     if (role === 'recruiter') {
-      return combinedSubmissions
-        .filter(item => {
-          const by = item.submittedBy.toLowerCase()
-          return (
-            by.includes('suresh') ||
-            by.includes('harish') ||
-            by.includes('lakshmi') ||
-            by.includes('recruiter')
-          )
-        })
-        .map(item => ({
-          ...item,
-          submittedBy: 'Harish Gadipally (You)',
-        }))
+      return combinedSubmissions.filter(item => {
+        const by = item.submittedBy.toLowerCase()
+        return by.includes('marcus') || by.includes('recruiter')
+      })
     }
     return combinedSubmissions
-  }, [combinedSubmissions, role])
+  }, [combinedSubmissions, role, scopeTab])
 
   // Dynamic filter
   const filteredData = useMemo(() => {
@@ -228,35 +291,33 @@ export function SubmissionsPage({
         }
       }
 
-      // Date filter (Today is default)
+      // Date filter
       const d = item.submittedOn || ''
-      if (dateFilter === 'Today') {
-        if (!d.includes('Aug 06') && !d.includes('Aug 11') && !d.includes('Today')) return false
-      } else if (dateFilter === 'Yesterday') {
-        if (!d.includes('Aug 05') && !d.includes('Aug 10') && !d.includes('Yesterday')) return false
-      } else if (dateFilter === 'This week') {
-        if (!d.includes('Aug')) return false
-      } else if (dateFilter === 'This month') {
-        if (!d.includes('Aug')) return false
-      } else if (dateFilter === 'Custom range') {
-        if (customStartDate && d < customStartDate) return false
-        if (customEndDate && d > customEndDate) return false
+      if (dateFilter !== 'All') {
+        if (dateFilter === 'Today') {
+          if (!d.includes('Aug 17') && !d.includes('Today')) return false
+        } else if (dateFilter === 'Yesterday') {
+          if (!d.includes('Aug 16') && !d.includes('Yesterday')) return false
+        } else if (dateFilter === 'This week' || dateFilter === 'This month') {
+          if (!d.includes('Aug')) return false
+        } else if (dateFilter === 'Custom range') {
+          if (customStartDate && d < customStartDate) return false
+          if (customEndDate && d > customEndDate) return false
+        }
       }
 
       // Status filter
       const itemStatus = item.status.toLowerCase().trim()
       const filterVal = statusFilter.toLowerCase().trim()
 
-      if (filterVal === 'submitted to lead') {
-        if (!itemStatus.includes('lead') && !itemStatus.includes('submit')) return false
-      } else if (filterVal === 'interview scheduled') {
-        if (!itemStatus.includes('interview')) return false
-      } else if (filterVal === 'selected') {
-        if (!itemStatus.includes('select')) return false
-      } else if (filterVal === 'placed') {
-        if (!itemStatus.includes('place')) return false
-      } else if (filterVal === 'rejected') {
-        if (!itemStatus.includes('reject')) return false
+      if (filterVal !== 'all') {
+        if (filterVal === 'submitted to lead') {
+          if (!itemStatus.includes('lead') && !itemStatus.includes('submit')) return false
+        } else if (filterVal === 'interview scheduled') {
+          if (!itemStatus.includes('interview')) return false
+        } else if (filterVal === 'selected') {
+          if (!itemStatus.includes('select')) return false
+        }
       }
 
       return true
@@ -269,6 +330,16 @@ export function SubmissionsPage({
     customEndDate,
     statusFilter,
   ])
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 10
+
+  const totalPages = Math.ceil(filteredData.length / pageSize) || 1
+
+  const paginatedSubmissions = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredData.slice(start, start + pageSize)
+  }, [filteredData, currentPage, pageSize])
 
   // Get status pill style
   const getStatusBadgeStyle = (status: string) => {
@@ -291,11 +362,40 @@ export function SubmissionsPage({
     return 'bg-slate-100 text-slate-700 border-slate-200'
   }
 
+  if (isEditingReq && editingReq) {
+    return (
+      <CreateJobDemandForm
+        userRole={role === 'superadmin' ? 'Super Admin View' : role === 'admin' ? 'Admin View' : 'Recruiter View'}
+        mode="edit"
+        initialData={editingReq}
+        onCancel={() => {
+          setIsEditingReq(false)
+          setEditingReq(null)
+        }}
+        onSubmit={updatedReq => {
+          setSelectedReqDetail(updatedReq)
+          if (onUpdateRequirements && requirements.length > 0) {
+            const updatedList = requirements.map(r => (r.id === updatedReq.id ? updatedReq : r))
+            onUpdateRequirements(updatedList)
+          }
+          setIsEditingReq(false)
+          setEditingReq(null)
+          showToast('Requirement details updated successfully!')
+        }}
+      />
+    )
+  }
+
   if (selectedReqDetail) {
     return (
       <RequirementDetailOverview
         requirement={selectedReqDetail}
         onBack={() => setSelectedReqDetail(null)}
+        onAddCandidate={() => onOpenSubmitCandidate?.(selectedReqDetail.id)}
+        onEditRequirement={() => {
+          setEditingReq(selectedReqDetail)
+          setIsEditingReq(true)
+        }}
       />
     )
   }
@@ -364,6 +464,41 @@ export function SubmissionsPage({
       </div>
 
       {/* 3. Filter Controls Bar */}
+      {role === 'lead' && (
+        <div className="bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/80 flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setScopeTab('all')}
+            className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+              scopeTab === 'all'
+                ? 'bg-white text-purple-700 shadow-xs border border-purple-200'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            All Team Submissions (Team Members + My Submissions)
+          </button>
+          <button
+            onClick={() => setScopeTab('my_submissions')}
+            className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+              scopeTab === 'my_submissions'
+                ? 'bg-white text-purple-700 shadow-xs border border-purple-200'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            My Individual Submissions (Team Lead)
+          </button>
+          <button
+            onClick={() => setScopeTab('team_members')}
+            className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+              scopeTab === 'team_members'
+                ? 'bg-white text-purple-700 shadow-xs border border-purple-200'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Team Members Submissions Only
+          </button>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-sm">
         <div className="flex flex-col sm:flex-row items-center gap-3 justify-between">
           {/* Search Bar */}
@@ -388,13 +523,14 @@ export function SubmissionsPage({
 
           {/* Right Filter Dropdowns */}
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-            {/* Date filter dropdown (TODAY DEFAULT, REMOVED ALL DATES, LAST 7 DAYS, LAST WEEK, LAST MONTH, THIS YEAR) */}
-            <div className="relative w-full sm:w-40">
+            {/* Date filter dropdown */}
+            <div className="relative w-full sm:w-44">
               <select
                 value={dateFilter}
                 onChange={e => setDateFilter(e.target.value)}
                 className="w-full appearance-none pl-3.5 pr-8 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-700 bg-white font-bold cursor-pointer"
               >
+                <option value="All">All Submissions</option>
                 <option value="Today">Today</option>
                 <option value="Yesterday">Yesterday</option>
                 <option value="This week">This week</option>
@@ -424,15 +560,16 @@ export function SubmissionsPage({
             )}
 
             {/* Status Filter Dropdown */}
-            <div className="relative w-full sm:w-44">
+            <div className="relative w-full sm:w-48">
               <select
                 value={statusFilter}
                 onChange={e => setStatusFilter(e.target.value)}
-                className="w-full appearance-none pl-3.5 pr-8 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-700 bg-white font-medium cursor-pointer"
+                className="w-full appearance-none pl-3.5 pr-8 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-700 bg-white font-bold cursor-pointer"
               >
-                <option value="Submitted to Lead">Submitted to Lead</option>
+                <option value="All">All Candidate Statuses</option>
+                <option value="Submitted to Lead">Submitted to Lead / Client</option>
                 <option value="Interview Scheduled">Interview Scheduled</option>
-                <option value="Selected">Selected</option>
+                <option value="Selected">Selected in Interview</option>
                 <option value="Placed">Placed</option>
                 <option value="Rejected">Rejected</option>
               </select>
@@ -458,7 +595,7 @@ export function SubmissionsPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
-              {filteredData.length === 0 ? (
+              {paginatedSubmissions.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
                     <p className="font-bold text-sm">No candidate submissions found</p>
@@ -466,7 +603,7 @@ export function SubmissionsPage({
                   </td>
                 </tr>
               ) : (
-                filteredData.map(sub => (
+                paginatedSubmissions.map(sub => (
                   <tr
                     key={sub.id}
                     className="hover:bg-purple-50/30 transition-colors"
@@ -516,8 +653,13 @@ export function SubmissionsPage({
 
                     {/* 4. SUBMITTED BY & DATE */}
                     <td className="py-4 px-4 whitespace-nowrap">
-                      <div className="font-bold text-purple-900 text-xs">
-                        {sub.submittedBy}
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-extrabold text-slate-900 text-xs">{sub.submittedBy}</span>
+                        {sub.submittedBy.toLowerCase().includes('harish') && (
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-extrabold border border-emerald-200">
+                            Team Lead
+                          </span>
+                        )}
                       </div>
                       <div className="text-[10px] text-slate-500 font-normal mt-0.5">
                         {sub.submittedOn}
@@ -563,11 +705,11 @@ export function SubmissionsPage({
         </div>
 
         <PaginationFooter
-          currentPage={1}
-          totalPages={1}
+          currentPage={currentPage}
+          totalPages={totalPages}
           totalItems={filteredData.length}
-          pageSize={10}
-          onPageChange={() => {}}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
         />
       </div>
 
@@ -598,6 +740,14 @@ export function SubmissionsPage({
           }}
           onClose={() => setSelectedSub(null)}
         />
+      )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 text-xs font-medium animate-in fade-in duration-200 border border-slate-800">
+          <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMsg}</span>
+        </div>
       )}
     </div>
   )

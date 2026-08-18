@@ -10,7 +10,9 @@ import {
   Users,
   TrendingUp,
   BarChart3,
+  Sparkles,
 } from 'lucide-react'
+import { ClientWiseTeamPerformanceChart } from '../ui/ClientWiseTeamPerformanceChart'
 
 export interface ClientPerformanceData {
   id: string
@@ -42,6 +44,7 @@ export function ClientDetailAnalyticsPage({
   onBack,
 }: ClientDetailAnalyticsPageProps) {
   const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const [showGraphs, setShowGraphs] = useState(false)
 
   const showToast = (msg: string) => {
     setToastMsg(msg)
@@ -78,6 +81,18 @@ export function ClientDetailAnalyticsPage({
 
         <div className="flex items-center gap-3">
           <button
+            onClick={() => setShowGraphs(!showGraphs)}
+            className={`px-4 py-2 text-xs font-bold rounded-xl shadow-2xs transition-all flex items-center gap-2 cursor-pointer border ${
+              showGraphs
+                ? 'bg-[#6B3BF6] text-white border-purple-600'
+                : 'bg-purple-50 text-[#6B3BF6] border-purple-200 hover:bg-purple-100'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            <span>{showGraphs ? 'Hide Performance Graphs' : '📊 View Client Performance Graphs'}</span>
+          </button>
+
+          <button
             onClick={() => showToast(`Exporting ${client.clientName} Performance CSV...`)}
             className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-2xs transition-all flex items-center gap-2 cursor-pointer active:scale-98"
           >
@@ -86,6 +101,13 @@ export function ClientDetailAnalyticsPage({
           </button>
         </div>
       </div>
+
+      {/* CLIENT OVERVIEW PERFORMANCE GRAPHS (TOGGLED) */}
+      {showGraphs && (
+        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+          <ClientWiseTeamPerformanceChart />
+        </div>
+      )}
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">

@@ -36,6 +36,7 @@ import {
 import { Interview, Role, Requirement } from '../../types'
 import { ScheduleInterviewModal } from '../modals/ScheduleInterviewModal'
 import { RequirementDetailOverview } from './RequirementDetailOverview'
+import { PaginationFooter } from '../ui/PaginationFooter'
 
 export interface ScheduleRowItem {
   id: string
@@ -47,6 +48,8 @@ export interface ScheduleRowItem {
   mode: string // 'Online' | 'In-Person'
   status: 'Upcoming' | 'In Progress' | 'Completed' | 'Scheduled'
   requirementId?: string
+  teamLead?: string
+  submittedBy?: string
 }
 
 export interface FinalDecisionRowItem {
@@ -57,15 +60,20 @@ export interface FinalDecisionRowItem {
   decision: 'Selected for Interview' | 'Rejected in Interview' | 'Pending'
   rejectionReason: string
   offerLetter: string
+  client?: string
+  teamLead?: string
+  submittedBy?: string
 }
 
 const DEFAULT_SCHEDULE_ROWS: ScheduleRowItem[] = [
   {
     id: '0',
-    candidateName: 'Harish Gadipally',
-    position: 'Senior React / Fullstack Engineer',
-    company: 'LTTS Enterprise',
-    round: 'L1',
+    candidateName: 'Harish Gadipally (Team Lead Candidate)',
+    position: 'Senior React / Fullstack Architect',
+    company: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Harish Gadipally',
+    round: 'L1 Technical',
     dateTime: 'Today, 12:00 PM',
     mode: 'Online',
     status: 'Upcoming',
@@ -74,57 +82,93 @@ const DEFAULT_SCHEDULE_ROWS: ScheduleRowItem[] = [
   {
     id: '1',
     candidateName: 'Arpit Srivastav',
-    position: 'MIG welding Fixtures / Modular Fixtures',
-    company: 'ltts',
-    round: 'L1',
-    dateTime: '2026-05-21 18:00',
+    position: 'Senior React Native Mobile Dev',
+    company: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Marcus Chen',
+    round: 'L2 Technical',
+    dateTime: '2026-08-18 18:00',
     mode: 'Online',
     status: 'Completed',
-    requirementId: 'REQ-2026-05-21-001',
+    requirementId: 'REQ-2026-08-12-002',
   },
   {
     id: '2',
     candidateName: 'Vidyasagar Gade',
-    position: 'SAP MM+Ariba',
-    company: 'itc',
-    round: 'Final',
-    dateTime: '2026-06-08 14:00',
+    position: 'Cloud Solutions Architect',
+    company: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Priya Sharma',
+    round: 'Final HR Round',
+    dateTime: '2026-08-19 14:00',
     mode: 'Online',
     status: 'Completed',
-    requirementId: 'REQ-2026-06-08-001',
+    requirementId: 'REQ-2026-08-12-003',
   },
   {
     id: '3',
-    candidateName: 'Vidyasagar Gade',
-    position: 'SAP MM+Ariba',
-    company: 'itc',
-    round: 'L1',
-    dateTime: '2026-06-08 10:00',
+    candidateName: 'Suresh Kulkarni (Team Member Candidate)',
+    position: 'PLM / PDM Lead Engineer',
+    company: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Suresh kulkarni',
+    round: 'L1 Technical',
+    dateTime: '2026-08-19 10:00',
     mode: 'Online',
     status: 'In Progress',
-    requirementId: 'REQ-2026-06-08-001',
+    requirementId: 'REQ-2026-08-12-004',
   },
   {
     id: '4',
-    candidateName: 'Candidate (draft)',
-    position: 'service Now mapping& Discovery',
-    company: 'Eximietas Design',
-    round: 'L1',
-    dateTime: '2026-06-09 13:06',
+    candidateName: 'Alex Turner',
+    position: 'Lead Java Engineer',
+    company: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Marcus Chen',
+    round: 'Technical Round 1',
+    dateTime: '2026-08-20 13:06',
     mode: 'Online',
     status: 'Upcoming',
-    requirementId: 'REQ-2026-06-09-002',
+    requirementId: 'REQ-2026-08-12-005',
   },
   {
     id: '5',
     candidateName: 'Kanchan Meshram',
-    position: 'AI Developer',
-    company: 'Deloitte',
-    round: 'L1',
-    dateTime: '2026-06-10 11:45',
+    position: 'AI Solutions Specialist',
+    company: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Priya Sharma',
+    round: 'Technical Round 2',
+    dateTime: '2026-08-20 11:45',
     mode: 'Online',
     status: 'Completed',
-    requirementId: 'REQ-2026-06-10-003',
+    requirementId: 'REQ-2026-08-12-006',
+  },
+  {
+    id: '6',
+    candidateName: 'Rania Khalil',
+    position: 'Java Architect',
+    company: 'Goldman Sachs',
+    teamLead: 'Tom Walsh',
+    submittedBy: 'lakshmi.v Recruiter',
+    round: 'Manager Round',
+    dateTime: 'Aug 06, 02:00 PM',
+    mode: 'Online',
+    status: 'In Progress',
+    requirementId: 'REQ-2026-08-06-005',
+  },
+  {
+    id: '7',
+    candidateName: 'Ben Wallace',
+    position: 'Python ML Engineer',
+    company: 'Tesla',
+    teamLead: 'Nina Brooks',
+    submittedBy: 'Recruiter',
+    round: 'Screening',
+    dateTime: 'Aug 07, 11:00 AM',
+    mode: 'Online',
+    status: 'Completed',
+    requirementId: 'REQ-2026-08-07-006',
   },
 ]
 
@@ -132,29 +176,38 @@ const DEFAULT_FINAL_DECISIONS: FinalDecisionRowItem[] = [
   {
     id: 'fd-1',
     candidateName: 'Abhijit Narke',
-    requirementId: 'REQ-2026-07-08-014',
-    requirement: 'Mechanical Design Engineer(Catia V5) for LTTS',
+    requirementId: 'REQ-2026-08-12-001',
+    requirement: 'Senior React / Fullstack Architect for Accenture',
     decision: 'Selected for Interview',
     rejectionReason: '—',
     offerLetter: '—',
+    client: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Marcus Chen',
   },
   {
     id: 'fd-2',
     candidateName: 'Kiran Shantaram More',
-    requirementId: 'REQ-2026-07-08-014',
-    requirement: 'Mechanical Design Engineer(Catia V5) for LTTS',
+    requirementId: 'REQ-2026-08-12-002',
+    requirement: 'Senior React Native Mobile Dev for Accenture',
     decision: 'Selected for Interview',
     rejectionReason: '—',
     offerLetter: '—',
+    client: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Priya Sharma',
   },
   {
     id: 'fd-3',
     candidateName: 'Vidyasagar Gade',
-    requirementId: 'REQ-2026-06-08-001',
-    requirement: 'SAP MM+Ariba itc',
+    requirementId: 'REQ-2026-08-12-003',
+    requirement: 'Cloud Solutions Architect for Accenture',
     decision: 'Selected for Interview',
     rejectionReason: '—',
     offerLetter: '—',
+    client: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Harish Gadipally',
   },
 ]
 
@@ -181,6 +234,8 @@ export function InterviewTrackingPage({
   const [finalDecisions, setFinalDecisions] = useState<FinalDecisionRowItem[]>(DEFAULT_FINAL_DECISIONS)
 
   // Modals & Requirement Overview State
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
+  const [calendarStateFilter, setCalendarStateFilter] = useState<'all' | 'Upcoming' | 'In Progress' | 'Completed'>('all')
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleRowItem | null>(null)
   const [remindModalCandidate, setRemindModalCandidate] = useState<ScheduleRowItem | null>(null)
@@ -215,15 +270,56 @@ export function InterviewTrackingPage({
     } as any)
   }
 
+  // Map passed interviews prop into ScheduleRowItems
+  const mappedPropInterviews: ScheduleRowItem[] = useMemo(() => {
+    if (interviews && interviews.length > 0) {
+      return interviews.map((iv, idx) => {
+        const sStr = (iv.status as string) || ''
+        const isUpcoming = sStr === 'Confirmed' || sStr === 'Scheduled'
+        const isCompleted = sStr === 'Passed' || sStr === 'Completed' || sStr === 'Rejected'
+        const isInProgress = sStr === 'In Progress' || sStr === 'Pending'
+
+        const mappedStatus: 'Upcoming' | 'In Progress' | 'Completed' = isUpcoming
+          ? 'Upcoming'
+          : isCompleted
+          ? 'Completed'
+          : isInProgress
+          ? 'In Progress'
+          : 'Upcoming'
+
+        return {
+          id: iv.id || `prop-iv-${idx}`,
+          candidateName: iv.candidate,
+          position: iv.position,
+          company: iv.client,
+          round: iv.stage || 'L1',
+          dateTime: iv.date || 'Aug 06, 10:00 AM',
+          mode: 'Online',
+          status: mappedStatus,
+          requirementId: `REQ-2026-0${idx + 1}`,
+        }
+      })
+    }
+    return []
+  }, [interviews])
+
+  // Combine state scheduleList with mappedPropInterviews
+  const combinedScheduleList = useMemo(() => {
+    const existingIds = new Set(scheduleList.map(s => s.id))
+    const extras = mappedPropInterviews.filter(m => !existingIds.has(m.id))
+    return [...scheduleList, ...extras]
+  }, [scheduleList, mappedPropInterviews])
+
   // Filter Schedule Rows
   const filteredScheduleList = useMemo(() => {
-    return scheduleList.filter(row => {
+    return combinedScheduleList.filter(row => {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim()
         const matchName = row.candidateName.toLowerCase().includes(q)
         const matchPos = row.position.toLowerCase().includes(q)
         const matchComp = row.company.toLowerCase().includes(q)
-        if (!matchName && !matchPos && !matchComp) return false
+        const matchRound = row.round.toLowerCase().includes(q)
+        if (!matchName && !matchPos && !matchComp && !matchRound) return false
       }
 
       if (statusToggle === 'upcoming') {
@@ -235,9 +331,38 @@ export function InterviewTrackingPage({
       if (statusToggle === 'completed') {
         return row.status === 'Completed'
       }
+      // 'all' shows ALL interviews across all rounds (L1, L2, Technical, HR, Final, etc.) and statuses!
       return true
     })
-  }, [scheduleList, searchQuery, statusToggle])
+  }, [combinedScheduleList, searchQuery, statusToggle])
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 10
+
+  const totalPages = Math.ceil(filteredScheduleList.length / pageSize) || 1
+
+  const paginatedScheduleList = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredScheduleList.slice(start, start + pageSize)
+  }, [filteredScheduleList, currentPage, pageSize])
+
+  const getRoundBadgeStyle = (round: string) => {
+    const r = round.toLowerCase()
+    if (r.includes('l1') || r.includes('screening')) {
+      return 'bg-purple-100 text-purple-800 border-purple-200'
+    }
+    if (r.includes('l2') || r.includes('technical')) {
+      return 'bg-blue-100 text-blue-800 border-blue-200'
+    }
+    if (r.includes('manager') || r.includes('hr')) {
+      return 'bg-amber-100 text-amber-800 border-amber-200'
+    }
+    if (r.includes('final')) {
+      return 'bg-emerald-100 text-emerald-800 border-emerald-200'
+    }
+    return 'bg-slate-100 text-slate-800 border-slate-200'
+  }
 
   // Move Upcoming Interview to In Progress
   const handleShiftToInProgress = (id: string, candidateName: string) => {
@@ -332,6 +457,17 @@ export function InterviewTrackingPage({
             Track upcoming interviews, in-progress sessions, final decisions, and offer letters
           </p>
         </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsCalendarModalOpen(true)}
+            className="px-4 py-2.5 bg-[#6B3BF6] hover:bg-[#5B2DF0] text-white rounded-2xl text-xs font-extrabold shadow-md transition-all cursor-pointer flex items-center gap-2 active:scale-98"
+          >
+            <CalendarIcon className="w-4 h-4 text-white" />
+            <span>Open Interview Calendar View</span>
+          </button>
+        </div>
       </div>
 
       {/* 2. TOGGLE SWITCHER & SEARCH BAR (DEFAULT: UPCOMING INTERVIEWS) */}
@@ -353,7 +489,7 @@ export function InterviewTrackingPage({
                 statusToggle === 'upcoming' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-900'
               }`}
             >
-              {scheduleList.filter(s => s.status === 'Upcoming' || s.status === 'Scheduled').length}
+              {combinedScheduleList.filter(s => s.status === 'Upcoming' || s.status === 'Scheduled').length}
             </span>
           </button>
 
@@ -372,7 +508,7 @@ export function InterviewTrackingPage({
                 statusToggle === 'in_progress' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-900'
               }`}
             >
-              {scheduleList.filter(s => s.status === 'In Progress').length}
+              {combinedScheduleList.filter(s => s.status === 'In Progress').length}
             </span>
           </button>
 
@@ -391,7 +527,7 @@ export function InterviewTrackingPage({
                 statusToggle === 'completed' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-900'
               }`}
             >
-              {scheduleList.filter(s => s.status === 'Completed').length}
+              {combinedScheduleList.filter(s => s.status === 'Completed').length}
             </span>
           </button>
 
@@ -403,7 +539,8 @@ export function InterviewTrackingPage({
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
             }`}
           >
-            <span>All ({scheduleList.length})</span>
+            <Users className="w-4 h-4" />
+            <span>All ({combinedScheduleList.length})</span>
           </button>
         </div>
 
@@ -464,10 +601,10 @@ export function InterviewTrackingPage({
               ? 'In Progress Interviews'
               : statusToggle === 'completed'
               ? 'Completed Interviews'
-              : 'Interview Schedule'}
+              : 'All Scheduled & Conducted Interviews'}
           </h2>
           <span className="text-xs text-slate-400 font-medium">
-            Showing {filteredScheduleList.length} of {scheduleList.length} interviews
+            Showing {filteredScheduleList.length} of {combinedScheduleList.length} interviews
           </span>
         </div>
 
@@ -475,7 +612,28 @@ export function InterviewTrackingPage({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/50">
-                {statusToggle === 'upcoming' ? (
+                {statusToggle === 'all' ? (
+                  <>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      CANDIDATE NAME
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      REQUIREMENT ID & ROLE
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      CLIENT
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      INTERVIEW ROUND
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      MODE & SCHEDULE
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      STATUS
+                    </th>
+                  </>
+                ) : statusToggle === 'upcoming' ? (
                   <>
                     <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                       NAME
@@ -513,24 +671,88 @@ export function InterviewTrackingPage({
                     <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                       MODE
                     </th>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      EVALUATION ACTIONS
-                    </th>
                   </>
                 )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
-              {filteredScheduleList.length === 0 ? (
+              {paginatedScheduleList.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-10 text-center text-slate-400">
+                  <td colSpan={statusToggle === 'in_progress' || statusToggle === 'completed' ? 5 : 6} className="py-10 text-center text-slate-400">
                     No interviews in this section.
                   </td>
                 </tr>
               ) : (
-                filteredScheduleList.map(row => (
+                paginatedScheduleList.map(row => (
                   <tr key={row.id} className="hover:bg-purple-50/30 transition-colors">
-                    {statusToggle === 'upcoming' ? (
+                    {statusToggle === 'all' ? (
+                      <>
+                        {/* 1. CANDIDATE NAME */}
+                        <td className="px-4 py-4 font-extrabold text-slate-900 flex items-center gap-2">
+                          <User className="w-4 h-4 text-slate-400" />
+                          <span>{row.candidateName}</span>
+                        </td>
+
+                        {/* 2. REQUIREMENT ID + ROLE */}
+                        <td className="px-4 py-4 max-w-xs">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <button
+                              onClick={() => handleOpenReqOverview(row.requirementId || 'REQ-2026-08-12-001', row.position, row.company)}
+                              className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-mono hover:underline cursor-pointer transition-all flex items-center gap-1"
+                              title="Click to view Requirement Overview"
+                            >
+                              <span>{row.requirementId || 'REQ-2026-08-12-001'}</span>
+                              <ExternalLink className="w-2.5 h-2.5 text-blue-600" />
+                            </button>
+                          </div>
+                          <div className="font-extrabold text-slate-900 text-xs">{row.position}</div>
+                        </td>
+
+                        {/* 3. CLIENT */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                            <Building2 className="w-3.5 h-3.5 text-purple-600 inline shrink-0" />
+                            <span>{row.company || 'Accenture'}</span>
+                            <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              Active Client
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+                            Lead: {row.teamLead || 'Harish Gadipally'} | By: {row.submittedBy || 'Marcus Chen'}
+                          </div>
+                        </td>
+
+                        {/* 4. ROUND */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${getRoundBadgeStyle(row.round)}`}>
+                            {row.round}
+                          </span>
+                        </td>
+
+                        {/* 5. MODE & SCHEDULE */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-1.5 text-xs text-blue-600 font-semibold">
+                            <Laptop className="w-3.5 h-3.5 text-blue-500" />
+                            <span>{row.mode} ({row.dateTime})</span>
+                          </div>
+                        </td>
+
+                        {/* 6. STATUS */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${
+                              row.status === 'Upcoming' || row.status === 'Scheduled'
+                                ? 'bg-purple-100 text-purple-800 border-purple-200'
+                                : row.status === 'In Progress'
+                                ? 'bg-amber-100 text-amber-800 border-amber-200'
+                                : 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                            }`}
+                          >
+                            {row.status}
+                          </span>
+                        </td>
+                      </>
+                    ) : statusToggle === 'upcoming' ? (
                       <>
                         {/* 1. NAME */}
                         <td className="px-4 py-4 font-extrabold text-slate-900 flex items-center gap-2">
@@ -554,8 +776,17 @@ export function InterviewTrackingPage({
                         </td>
 
                         {/* 3. CLIENT */}
-                        <td className="px-4 py-4 whitespace-nowrap font-bold text-slate-800">
-                          {row.company}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                            <Building2 className="w-3.5 h-3.5 text-purple-600 inline shrink-0" />
+                            <span>{row.company || 'Accenture'}</span>
+                            <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              Active Client
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+                            Lead: {row.teamLead || 'Harish Gadipally'} | By: {row.submittedBy || 'Marcus Chen'}
+                          </div>
                         </td>
 
                         {/* 4. ROUND */}
@@ -579,7 +810,7 @@ export function InterviewTrackingPage({
                           </div>
                         </td>
 
-                        {/* 5. SCHEDULE ACTIONS: EDIT & REMIND */}
+                        {/* 6. SCHEDULE ACTIONS: EDIT & REMIND */}
                         <td className="px-4 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <button
@@ -625,18 +856,23 @@ export function InterviewTrackingPage({
                         </td>
 
                         {/* 3. CLIENT */}
-                        <td className="px-4 py-4 whitespace-nowrap font-bold text-slate-800">
-                          {row.company}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                            <Building2 className="w-3.5 h-3.5 text-purple-600 inline shrink-0" />
+                            <span>{row.company || 'Accenture'}</span>
+                            <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              Active Client
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+                            Lead: {row.teamLead || 'Harish Gadipally'} | By: {row.submittedBy || 'Marcus Chen'}
+                          </div>
                         </td>
 
                         {/* 4. ROUND */}
                         <td className="px-4 py-4 whitespace-nowrap">
                           <span
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold ${
-                              row.round === 'Final'
-                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                                : 'bg-purple-100 text-purple-800 border border-purple-200'
-                            }`}
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${getRoundBadgeStyle(row.round)}`}
                           >
                             {row.round}
                           </span>
@@ -649,49 +885,6 @@ export function InterviewTrackingPage({
                             <span>{row.mode} ({row.dateTime})</span>
                           </div>
                         </td>
-
-                        {/* 6. EVALUATION ACTIONS / RESULT */}
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          {statusToggle === 'completed' ? (
-                            <span
-                              className={`px-3.5 py-1.5 rounded-full text-xs font-extrabold border inline-flex items-center gap-1.5 ${
-                                (finalDecisions.find(f => f.candidateName.toLowerCase() === row.candidateName.toLowerCase())?.decision || 'Selected for Interview').includes('Selected')
-                                  ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                                  : 'bg-rose-100 text-rose-900 border-rose-300'
-                              }`}
-                            >
-                              {(finalDecisions.find(f => f.candidateName.toLowerCase() === row.candidateName.toLowerCase())?.decision || 'Selected for Interview').includes('Selected') ? (
-                                <>
-                                  <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
-                                  <span>Selected in Interview</span>
-                                </>
-                              ) : (
-                                <>
-                                  <UserX className="w-3.5 h-3.5 text-rose-700" />
-                                  <span>Rejected in Interview</span>
-                                </>
-                              )}
-                            </span>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleSelectInInterview(row)}
-                                className="px-3.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl cursor-pointer shadow-2xs flex items-center gap-1"
-                              >
-                                <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
-                                <span>Selected in Interview</span>
-                              </button>
-
-                              <button
-                                onClick={() => handleRejectInInterview(row)}
-                                className="px-3.5 py-1.5 bg-white hover:bg-rose-50 border border-rose-300 text-rose-700 text-xs font-bold rounded-xl cursor-pointer shadow-2xs flex items-center gap-1"
-                              >
-                                <UserX className="w-3.5 h-3.5 text-rose-600" />
-                                <span>Rejected in Interview</span>
-                              </button>
-                            </div>
-                          )}
-                        </td>
                       </>
                     )}
                   </tr>
@@ -701,19 +894,14 @@ export function InterviewTrackingPage({
           </table>
         </div>
 
-        {/* Schedule Pagination Controls */}
-        <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
-          <span>Showing 1-{filteredScheduleList.length} of {filteredScheduleList.length}</span>
-          <div className="flex items-center gap-2 font-bold">
-            <button className="p-1 rounded-lg border border-slate-200 text-slate-400 hover:text-slate-700 cursor-pointer">
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span>Page 1 of 1</span>
-            <button className="p-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer">
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        {/* 10-ITEM PAGINATION FOOTER */}
+        <PaginationFooter
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredScheduleList.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+        />
       </div>
 
 
@@ -914,6 +1102,185 @@ export function InterviewTrackingPage({
               >
                 <UserX className="w-3.5 h-3.5" />
                 <span>Submit Rejection & Move to Final Decision</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. INTERACTIVE INTERVIEW CALENDAR MODAL */}
+      {isCalendarModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl border border-slate-200 max-w-4xl w-full p-6 space-y-5 shadow-2xl animate-in zoom-in-95 duration-200 font-sans max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <CalendarIcon className="w-5 h-5 text-[#6B3BF6]" />
+                  <h3 className="text-lg font-extrabold text-slate-900">August 2026 — Interview Schedule Calendar</h3>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-100 text-[#6B3BF6] border border-purple-200">
+                    Live Calendar View
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Interviews mapped by scheduled date, status state (Upcoming, In Progress, Completed), and client company
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {/* State Filter Buttons */}
+                <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-extrabold">
+                  <button
+                    onClick={() => setCalendarStateFilter('all')}
+                    className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                      calendarStateFilter === 'all'
+                        ? 'bg-white text-purple-700 shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    All States
+                  </button>
+                  <button
+                    onClick={() => setCalendarStateFilter('Upcoming')}
+                    className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                      calendarStateFilter === 'Upcoming'
+                        ? 'bg-[#6B3BF6] text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Upcoming
+                  </button>
+                  <button
+                    onClick={() => setCalendarStateFilter('In Progress')}
+                    className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                      calendarStateFilter === 'In Progress'
+                        ? 'bg-amber-600 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    In Progress
+                  </button>
+                  <button
+                    onClick={() => setCalendarStateFilter('Completed')}
+                    className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                      calendarStateFilter === 'Completed'
+                        ? 'bg-emerald-600 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Completed
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setIsCalendarModalOpen(false)}
+                  className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-full transition-all cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Days of Week Bar */}
+            <div className="grid grid-cols-7 gap-2 text-center text-[11px] font-extrabold text-slate-500 uppercase tracking-wider bg-slate-50 p-2 rounded-xl border border-slate-100">
+              <span>Sun</span>
+              <span>Mon</span>
+              <span>Tue</span>
+              <span>Wed</span>
+              <span>Thu</span>
+              <span>Fri</span>
+              <span>Sat</span>
+            </div>
+
+            {/* Monthly Calendar Grid (Aug 2026) */}
+            <div className="grid grid-cols-7 gap-2">
+              {/* Previous month filler days */}
+              {[26, 27, 28, 29, 30, 31].map(d => (
+                <div key={`prev-${d}`} className="min-h-24 p-2 bg-slate-50/40 rounded-2xl border border-slate-100/60 opacity-40">
+                  <span className="text-[10px] font-bold text-slate-400">{d}</span>
+                </div>
+              ))}
+
+              {/* August Days 1 - 31 */}
+              {Array.from({ length: 31 }, (_, i) => i + 1).map(day => {
+                const dayStr = day < 10 ? `0${day}` : `${day}`
+                const dayInterviews = combinedScheduleList.filter(s => {
+                  if (calendarStateFilter !== 'all' && s.status !== calendarStateFilter) return false
+                  return s.dateTime.includes(`Aug ${dayStr}`) || s.dateTime.includes(`2026-08-${dayStr}`) || (day === 17 && s.dateTime.includes('Today'))
+                })
+
+                return (
+                  <div
+                    key={`aug-${day}`}
+                    className={`min-h-28 p-2.5 rounded-2xl border transition-all flex flex-col justify-between ${
+                      day === 17
+                        ? 'bg-purple-50/40 border-purple-300 ring-2 ring-[#6B3BF6]/20'
+                        : 'bg-white border-slate-200/80 hover:border-purple-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-xs font-extrabold ${day === 17 ? 'text-[#6B3BF6] bg-purple-100 px-2 py-0.5 rounded-full' : 'text-slate-700'}`}>
+                        Aug {day}
+                      </span>
+                      {dayInterviews.length > 0 && (
+                        <span className="w-2 h-2 rounded-full bg-[#6B3BF6] animate-pulse" />
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5 overflow-y-auto max-h-20">
+                      {dayInterviews.length === 0 ? (
+                        <span className="text-[10px] text-slate-300 font-medium italic block pt-2">No interviews</span>
+                      ) : (
+                        dayInterviews.map(item => (
+                          <div
+                            key={item.id}
+                            onClick={() => {
+                              setIsCalendarModalOpen(false)
+                              setSelectedSchedule(item)
+                            }}
+                            className={`p-1.5 rounded-xl border text-[10px] font-extrabold cursor-pointer transition-all hover:scale-102 shadow-2xs space-y-0.5 ${
+                              item.status === 'Upcoming' || item.status === 'Scheduled'
+                                ? 'bg-purple-100/90 text-purple-900 border-purple-200 hover:bg-purple-200'
+                                : item.status === 'In Progress'
+                                ? 'bg-amber-100/90 text-amber-900 border-amber-200 hover:bg-amber-200'
+                                : 'bg-emerald-100/90 text-emerald-900 border-emerald-200 hover:bg-emerald-200'
+                            }`}
+                            title={`Click to view/edit ${item.candidateName}'s interview`}
+                          >
+                            <div className="truncate text-slate-900">{item.candidateName}</div>
+                            <div className="text-[9px] font-semibold text-purple-700 flex items-center justify-between">
+                              <span>{item.company}</span>
+                              <span className="opacity-80">{item.round}</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Modal Footer Legend */}
+            <div className="flex flex-wrap items-center justify-between pt-3 border-t border-slate-100 text-xs">
+              <div className="flex items-center gap-4">
+                <span className="text-slate-500 font-bold">Interview Status States:</span>
+                <span className="flex items-center gap-1 text-[#6B3BF6] font-extrabold">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#6B3BF6]" /> Upcoming / Scheduled
+                </span>
+                <span className="flex items-center gap-1 text-amber-700 font-extrabold">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-600" /> In Progress (Result Pending)
+                </span>
+                <span className="flex items-center gap-1 text-emerald-700 font-extrabold">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" /> Completed
+                </span>
+              </div>
+
+              <button
+                onClick={() => setIsCalendarModalOpen(false)}
+                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-extrabold transition-all cursor-pointer"
+              >
+                Close Calendar
               </button>
             </div>
           </div>

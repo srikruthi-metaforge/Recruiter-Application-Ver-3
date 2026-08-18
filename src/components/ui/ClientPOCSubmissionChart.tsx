@@ -11,6 +11,8 @@ import {
 } from 'recharts'
 import { UserCheck, Building2, BarChart2 } from 'lucide-react'
 
+import { Role } from '../../types'
+
 export interface ClientPOCMetric {
   pocName: string
   submissions: number
@@ -30,6 +32,17 @@ const CLIENT_POC_DATA: ClientPOCMetric[] = [
   { pocName: 'Nikitha', submissions: 1, totalRequirements: 1 },
   { pocName: 'Pampa Sengarai', submissions: 1, totalRequirements: 1 },
 ]
+
+// Team Lead specific client POC data
+const LEAD_CLIENT_POC_DATA: ClientPOCMetric[] = [
+  { pocName: 'Accenture Tech Hiring Desk', submissions: 142, totalRequirements: 45 },
+  { pocName: 'Accenture Cloud Delivery POC', submissions: 84, totalRequirements: 24 },
+  { pocName: 'LTTS Automotive Desk', submissions: 46, totalRequirements: 14 },
+]
+
+interface ClientPOCSubmissionChartProps {
+  role?: Role
+}
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -56,8 +69,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null
 }
 
-export function ClientPOCSubmissionChart() {
-  const [data] = useState<ClientPOCMetric[]>(CLIENT_POC_DATA)
+export function ClientPOCSubmissionChart({ role }: ClientPOCSubmissionChartProps) {
+  const data = role === 'lead' ? LEAD_CLIENT_POC_DATA : CLIENT_POC_DATA
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-5 font-sans">

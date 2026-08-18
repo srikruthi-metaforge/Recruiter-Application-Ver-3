@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { Mail, Lock, Eye, EyeOff, ArrowLeft, ArrowRight } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, ArrowLeft, ArrowRight, ShieldCheck, Sparkles, CheckCircle2, KeyRound } from 'lucide-react'
 import { Role } from '../../types'
 import { DEMO_ACCOUNTS } from '../../data/mockData'
-import { brand, roleTheme } from '../../theme'
+import { brand, roleTheme, authTheme } from '../../theme'
+import { MetaforgeLogo } from '../common/MetaforgeLogo'
 
 interface RoleLoginPageProps {
   role: Role
@@ -46,150 +47,222 @@ export function RoleLoginPage({ role, onLogin, onBack, onForgot }: RoleLoginPage
   }
 
   return (
-    <div className="min-h-screen flex" style={{ background: brand.background }}>
-      {/* Role-branded panel */}
-      <div
-        className="hidden lg:flex lg:w-[440px] xl:w-[480px] flex-col justify-between p-12 text-white flex-shrink-0"
-        style={{ background: theme.gradient }}
-      >
-        <div>
-          <button
-            onClick={onBack}
-            className="flex items-center gap-1.5 text-white/70 hover:text-white text-sm mb-12 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" /> All portals
-          </button>
+    <div className="min-h-screen flex bg-slate-50 overflow-x-hidden font-sans">
+      {/* Left panel - Unified Deep Navy Showcase with Role Branding */}
+      <div className="hidden lg:flex lg:w-[480px] xl:w-[540px] 2xl:w-[600px] flex-shrink-0 bg-[#0B1021] flex-col justify-between relative overflow-hidden text-white border-r border-slate-800/80">
+        {/* Subtle grid overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.12]"
+          style={{
+            backgroundImage: 'linear-gradient(#3B82F6 1px, transparent 1px), linear-gradient(90deg, #3B82F6 1px, transparent 1px)',
+            backgroundSize: '40px 40px',
+          }}
+        />
 
-          <div className="flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 rounded-lg bg-white/15 flex items-center justify-center font-bold text-sm">
-              TF
-            </div>
-            <div>
-              <p className="font-semibold text-lg">{brand.name}</p>
-              <p className="text-xs text-white/60">{theme.label} Portal</p>
+        {/* Ambient lighting glows with subtle role accent tint */}
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-600/25 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[420px] h-[420px] bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col h-full px-10 xl:px-14 py-12">
+          {/* Back button & Logo */}
+          <div>
+            <button
+              onClick={onBack}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 hover:text-white text-xs font-mono transition-all mb-10 border border-white/10"
+            >
+              <ArrowLeft className="w-4 h-4" /> All Portals
+            </button>
+
+            <div className="flex items-center gap-3 mb-12">
+              <MetaforgeLogo variant="light" size="lg" />
+              <div>
+                <p className="text-[10px] text-slate-400 font-mono tracking-widest uppercase font-semibold">
+                  Recruiter Intelligence Platform
+                </p>
+              </div>
             </div>
           </div>
 
-          <h1 className="text-3xl font-bold leading-snug mb-3">{theme.portalTitle}</h1>
-          <p className="text-white/75 text-sm leading-relaxed max-w-xs">{theme.portalDesc}</p>
-        </div>
-
-        <div className="rounded-xl bg-white/10 p-4">
-          <p className="text-xs text-white/50 mb-2 uppercase tracking-wide font-medium">Demo account</p>
-          <p className="text-sm font-medium">{account.name}</p>
-          <p className="text-xs text-white/60 mt-0.5">{account.email}</p>
-        </div>
-      </div>
-
-      {/* Login form */}
-      <div className="flex-1 flex items-center justify-center p-6 md:p-10">
-        <div className="w-full max-w-sm">
-          <button
-            onClick={onBack}
-            className="lg:hidden flex items-center gap-1.5 text-sm mb-6 transition-colors"
-            style={{ color: brand.textSecondary }}
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to portals
-          </button>
-
-          <div
-            className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold mb-4"
-            style={{ background: theme.accentLight, color: theme.accent }}
-          >
-            {theme.label} Login
-          </div>
-
-          <h2 className="text-2xl font-bold mb-1" style={{ color: brand.text }}>
-            Welcome back
-          </h2>
-          <p className="text-sm mb-6" style={{ color: brand.textSecondary }}>
-            Sign in to access your {theme.label.toLowerCase()} workspace.
-          </p>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: brand.text }}>
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: brand.textMuted }} />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder={account.email}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 transition-all"
-                  style={{ borderColor: brand.border, color: brand.text, boxShadow: 'none' }}
-                  onFocus={e => (e.currentTarget.style.outline = `2px solid ${theme.accent}33`)}
-                  onBlur={e => (e.currentTarget.style.outline = 'none')}
-                  required
-                />
-              </div>
+          {/* Role Portal Details */}
+          <div className="flex-1 flex flex-col justify-center py-4">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/25 text-blue-300 text-xs font-mono font-medium mb-6 w-max shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+              <span>Scoped Workspace</span>
             </div>
 
-            <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: brand.text }}>
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: brand.textMuted }} />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="Enter password"
-                  className="w-full pl-10 pr-10 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 transition-all"
-                  style={{ borderColor: brand.border, color: brand.text }}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
-                  style={{ color: brand.textMuted }}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
+            <h1 className="text-3xl xl:text-4xl font-extrabold text-white leading-tight mb-4 tracking-tight">
+              {theme.portalTitle}
+            </h1>
+            <p className="text-slate-300 text-sm xl:text-base leading-relaxed max-w-md mb-8">
+              {theme.portalDesc}
+            </p>
+
+            {/* Feature Checkmarks */}
+            <div className="space-y-3 mb-8">
+              {[
+                `Scoped dashboard & features for ${theme.label}`,
+                'Real-time metrics, live pipelines & analytics',
+                'Enterprise-grade security and role isolation',
+              ].map(f => (
+                <div key={f} className="flex items-center gap-3 text-xs xl:text-sm text-slate-300 font-medium">
+                  <div className="w-5 h-5 rounded-full bg-blue-500/15 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
+                  </div>
+                  <span>{f}</span>
+                </div>
+              ))}
             </div>
 
-            {error && (
-              <p className="text-xs px-3 py-2 rounded-lg" style={{ background: brand.dangerLight, color: brand.danger }}>
-                {error}
-              </p>
-            )}
-
-            <div className="flex items-center justify-between">
+            {/* Interactive Demo Box in left panel */}
+            <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-5 shadow-xl">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold flex items-center gap-1.5">
+                  <KeyRound className="w-3.5 h-3.5 text-blue-400" /> Demo Credentials
+                </span>
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                  Ready to Sign In
+                </span>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-white">{account.name}</p>
+                <p className="text-xs font-mono text-blue-300">{account.email}</p>
+              </div>
               <button
                 type="button"
                 onClick={fillDemo}
-                className="text-xs font-medium hover:underline"
-                style={{ color: theme.accent }}
+                className="mt-3.5 w-full py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 font-mono text-xs rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
               >
-                Use demo credentials
-              </button>
-              <button
-                type="button"
-                onClick={onForgot}
-                className="text-xs hover:underline"
-                style={{ color: brand.textSecondary }}
-              >
-                Forgot password?
+                Auto-fill credentials into form
               </button>
             </div>
+          </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2.5 rounded-lg text-white text-sm font-semibold flex items-center justify-center gap-2 transition-opacity disabled:opacity-60"
-              style={{ background: theme.accent }}
-            >
-              {loading ? 'Signing in…' : 'Sign in'}
-              {!loading && <ArrowRight className="w-4 h-4" />}
-            </button>
-          </form>
+          <div className="flex items-center justify-between text-slate-400 text-xs font-mono pt-6 border-t border-slate-800/60">
+            <span>© 2026 TalentFlow Inc.</span>
+            <span>v3.2.0 Enterprise</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Form Container - Enlarged, Modern & Screen-Suited */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-14 bg-slate-50 relative overflow-y-auto">
+        <div className="w-full max-w-lg xl:max-w-xl my-auto">
+          {/* Mobile Back Button */}
+          <button
+            onClick={onBack}
+            className="lg:hidden inline-flex items-center gap-2 text-xs font-mono text-slate-600 hover:text-slate-900 mb-6 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to all portals
+          </button>
+
+          {/* Form Card Box - Expanded & Attractive */}
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-10 lg:p-12 shadow-2xl shadow-slate-900/5">
+            {/* Header / Role Pill */}
+            <div className="flex items-center justify-between mb-6">
+              <div
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold font-mono tracking-wide"
+                style={{ background: theme.accentLight, color: theme.accent }}
+              >
+                <span className="w-2 h-2 rounded-full" style={{ background: theme.accent }} />
+                {theme.label} Portal
+              </div>
+              <span className="text-xs font-mono text-slate-400">Step 2 of 2</span>
+            </div>
+
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2 font-sans">
+              Sign in to {theme.label}
+            </h2>
+            <p className="text-sm text-slate-500 mb-8 font-normal leading-relaxed">
+              Enter your credentials to access your scoped workspace and live dashboard tools.
+            </p>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Email Input Field */}
+              <div className="space-y-2">
+                <label className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+                  Work Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder={account.email}
+                    className="w-full h-12 sm:h-13 pl-12 pr-4 text-sm font-medium text-slate-900 bg-slate-50/70 border border-slate-300 rounded-xl focus:outline-none focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 transition-all placeholder:text-slate-400"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Password Input Field */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+                    Account Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={onForgot}
+                    className="text-xs text-blue-600 font-semibold hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <div className="relative">
+                  <Lock className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className="w-full h-12 sm:h-13 pl-12 pr-12 text-sm font-medium text-slate-900 bg-slate-50/70 border border-slate-300 rounded-xl focus:outline-none focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 transition-all placeholder:text-slate-400"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Error Message Alert */}
+              {error && (
+                <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-start gap-2.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 flex-shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {/* Quick Fill Demo Action Bar */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                <span className="text-xs text-slate-500 font-medium">Demo login pre-fill:</span>
+                <button
+                  type="button"
+                  onClick={fillDemo}
+                  className="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                >
+                  Fill Demo Password →
+                </button>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-12 sm:h-13 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-blue-600/25 hover:shadow-blue-600/35 flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {loading ? 'Authenticating & Loading Workspace…' : `Sign In to ${theme.label} Console`}
+                {!loading && <ArrowRight className="w-4 h-4" />}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
   )
 }
+

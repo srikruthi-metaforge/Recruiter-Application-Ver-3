@@ -14,10 +14,20 @@ import {
   Calendar,
   Filter,
   Check,
+  Building,
+  GraduationCap,
+  DollarSign,
+  Clock,
+  MapPin,
+  HelpCircle,
+  Award,
+  Send,
+  ExternalLink,
 } from 'lucide-react'
-import { Candidate } from '../../types'
+import { Candidate, Requirement } from '../../types'
 import { PaginationFooter } from '../ui/PaginationFooter'
 import { SubmitToLeadPage } from './SubmitToLeadPage'
+import { INITIAL_REQUIREMENTS } from '../../data/mockData'
 
 export interface CandidateRepoItem {
   id: string
@@ -50,95 +60,203 @@ const DEFAULT_REPO_CANDIDATES: CandidateRepoItem[] = [
   {
     id: '1',
     candidateId: '18016',
-    name: 'Candidate (draft)',
-    email: 'pr************@gmail.com',
-    phone: '*********4905',
-    technology: 'Test Manager',
+    name: 'Priyanka Sharma',
+    email: 'priyanka.sharma@gmail.com',
+    phone: '+91 98210 44905',
+    technology: 'Test Manager / QA Lead',
     totalExperience: '11 Years 3 Months',
+    relevantExperience: '9 Years',
     createdDate: '12 Aug 2026',
     createdBy: 'Nithya Maripelly',
+    status: 'In Review',
+    qualification: 'M.Tech Software Engineering, IIT Hyderabad',
+    skills: 'Test Management, Automation Frameworks, Selenium, Appium, CI/CD, JIRA, Agile Lead',
+    currentCompany: 'Cognizant Technology Solutions',
+    currentCtc: '24 LPA',
+    expectedCtc: '30 LPA',
+    noticePeriod: '15 Days (Serving)',
+    currentLocation: 'Hyderabad',
+    preferredLocation: 'Hyderabad / Remote',
+    interviewAvailability: 'Available weekdays after 4 PM',
+    reasonForChange: 'Career Advancement & Technical Leadership',
+    offerInHand: 'Yes (28 LPA from Capgemini)',
+    resumeReference: 'Priyanka_Sharma_TestManager_Resume.pdf',
+    notes: 'Exceptional communication skills, managed team of 14 QA engineers across US & India shifts.',
   },
   {
     id: '2',
     candidateId: '18015',
     name: 'VISHWATEJA THOPARAM',
-    email: 'vi************@gmail.com',
-    phone: '*********9457',
+    email: 'vishwateja.t@gmail.com',
+    phone: '+91 98765 49457',
     technology: 'QA Automation Engineer, SDET, Full-Stack Tester',
     totalExperience: '5 Years 3 Months',
+    relevantExperience: '5 Years',
     createdDate: '12 Aug 2026',
     createdBy: 'lakshmi.v Recruiter',
+    status: 'New Profile',
+    qualification: 'B.E. Computer Science, Osmania University',
+    skills: 'Java, Selenium WebDriver, TestNG, Cucumber, REST Assured, Cypress, Playwright, Jenkins',
+    currentCompany: 'Infosys Limited',
+    currentCtc: '11.5 LPA',
+    expectedCtc: '16 LPA',
+    noticePeriod: '30 Days',
+    currentLocation: 'Bangalore',
+    preferredLocation: 'Bangalore / Hyderabad / Hybrid',
+    interviewAvailability: 'Anytime with 1 day prior notice',
+    reasonForChange: 'Looking for product-based company environment',
+    offerInHand: 'No',
+    resumeReference: 'Vishwateja_SDET_Resume.pdf',
+    notes: 'Hands-on framework setup from scratch. Solid coding in Java & TypeScript.',
   },
   {
     id: '3',
     candidateId: '18014',
     name: 'SHILPA R',
-    email: 'sh************@gmail.com',
-    phone: '*********6998',
+    email: 'shilpa.r@gmail.com',
+    phone: '+91 99887 76998',
     technology: 'Storage, Virtualization, Ha-Ft Systems',
     totalExperience: '5 Years 1 Month',
+    relevantExperience: '4.8 Years',
     createdDate: '12 Aug 2026',
     createdBy: 'lakshmi.v Recruiter',
     status: 'Submitted to Client',
+    qualification: 'B.Tech Information Technology, VTU Belgaum',
+    skills: 'VMware ESXi, SAN/NAS Storage, NetApp, RedHat Linux, High Availability, Shell Scripting',
+    currentCompany: 'Wipro Technologies',
+    currentCtc: '13 LPA',
+    expectedCtc: '18 LPA',
+    noticePeriod: 'Immediate',
+    currentLocation: 'Bangalore',
+    preferredLocation: 'Bangalore',
+    interviewAvailability: 'Immediate (Immediate joiner)',
+    reasonForChange: 'Project buyout completed, looking for immediate placement',
+    offerInHand: 'In Pipeline',
+    resumeReference: 'Shilpa_R_StorageVirt_Resume.pdf',
+    notes: 'Verified L3 storage support background. Clear background check record.',
   },
   {
     id: '4',
     candidateId: '18013',
     name: 'Varun kumar B H',
-    email: 'va************@gmail.com',
-    phone: '*********6912',
+    email: 'varunkumar.bh@gmail.com',
+    phone: '+91 97654 36912',
     technology: 'Qa Manual, Automation Software Test Engineer',
     totalExperience: '4 Years 7 Months',
+    relevantExperience: '4.5 Years',
     createdDate: '12 Aug 2026',
     createdBy: 'lakshmi.v Recruiter',
     status: 'Submitted to Client',
+    qualification: 'B.E. Electronics & Communication, RVCE Bangalore',
+    skills: 'Python, PyTest, API Testing, Postman, SQL, Git, Charles Proxy, Mobile App Testing',
+    currentCompany: 'Mindtree / LTIMindtree',
+    currentCtc: '9.8 LPA',
+    expectedCtc: '14 LPA',
+    noticePeriod: '30 Days',
+    currentLocation: 'Mysore',
+    preferredLocation: 'Bangalore / Mysore',
+    interviewAvailability: 'Weekdays after 6 PM',
+    reasonForChange: 'Relocation to Bangalore preferred',
+    offerInHand: 'No',
+    resumeReference: 'VarunKumar_QA_Resume.pdf',
+    notes: 'Experience with healthcare & fintech web & mobile apps.',
   },
   {
     id: '5',
     candidateId: '18012',
     name: 'AKASH MAHADEV TALBAR',
-    email: 'ta*********@gmail.com',
-    phone: '*********6236',
+    email: 'akash.talbar@gmail.com',
+    phone: '+91 98112 26236',
     technology: 'Biw, Sheet Metal Product Design',
     totalExperience: '5 Years 4 Months',
+    relevantExperience: '5 Years',
     createdDate: '12 Aug 2026',
     createdBy: 'rahimoon Shaik',
+    status: 'Interview Scheduled',
+    qualification: 'B.E. Mechanical Engineering, Pune University',
+    skills: 'CATIA V6, NX CAD, BIW Closures, Sheet Metal Forming, GD&T, Surfacing, Master Section Creation',
+    currentCompany: 'Tata Technologies Ltd',
+    currentCtc: '10.5 LPA',
+    expectedCtc: '15 LPA',
+    noticePeriod: '60 Days (Negotiable to 30 days)',
+    currentLocation: 'Pune',
+    preferredLocation: 'Pune / Chennai / Remote',
+    interviewAvailability: 'Saturdays or weekdays 2 PM - 4 PM',
+    reasonForChange: 'Better compensation & global automotive project exposure',
+    offerInHand: 'No',
+    resumeReference: 'Akash_Talbar_BIW_Design.pdf',
+    notes: 'Worked on 2 complete vehicle OEM life cycle projects for European clients.',
   },
   {
     id: '6',
     candidateId: '18011',
     name: 'KUNDETI PRATHYUSHA',
-    email: 'pr************@gmail.com',
-    phone: '*********8955',
+    email: 'prathyusha.k@gmail.com',
+    phone: '+91 94401 28955',
     technology: 'Manual Testing, Automation Testing',
     totalExperience: '5 Years',
+    relevantExperience: '4 Years',
     createdDate: '12 Aug 2026',
     createdBy: 'lakshmi.v Recruiter',
     status: 'Submitted to Client',
+    qualification: 'B.Tech Computer Science, JNTU Hyderabad',
+    skills: 'Manual Testing, Functional & Regression Testing, Selenium Java, SQL Queries, JIRA Xray',
+    currentCompany: 'Tech Mahindra',
+    currentCtc: '8.5 LPA',
+    expectedCtc: '13 LPA',
+    noticePeriod: 'Immediate (Buyout available)',
+    currentLocation: 'Hyderabad',
+    preferredLocation: 'Hyderabad',
+    interviewAvailability: 'Immediate availability',
+    reasonForChange: 'Immediate joiner opportunity sought',
+    offerInHand: 'Yes (11.5 LPA)',
+    resumeReference: 'Kundeti_Prathyusha_QA.pdf',
+    notes: 'Excellent team player, certified ISTQB Foundation level.',
   },
   {
     id: '7',
     candidateId: '18010',
     name: 'AMIT KULKARNI',
-    email: 'am************@gmail.com',
-    phone: '*********7712',
-    technology: 'Software Engineering',
+    email: 'amit.kulkarni@gmail.com',
+    phone: '+91 98450 17712',
+    technology: 'Software Engineering / C# Automation',
     totalExperience: '6 Years',
+    relevantExperience: '5.5 Years',
     createdDate: '12 Aug 2026',
     createdBy: 'rahimoon Shaik',
+    status: 'Shortlisted',
+    qualification: 'B.E. Computer Science, BMS College of Engineering',
+    skills: 'C#, .NET Core, SpecFlow, NUnit, Embedded Systems Testing, WPF Automation, CI/CD Azure DevOps',
+    currentCompany: 'Bosch Global Software Technologies',
+    currentCtc: '14.5 LPA',
+    expectedCtc: '20 LPA',
+    noticePeriod: '30 Days',
+    currentLocation: 'Bangalore',
+    preferredLocation: 'Bangalore / Mysore',
+    interviewAvailability: 'Weekdays anytime with 2 hrs prior notice',
+    reasonForChange: 'Project conclusion & seeking C# automation specialist role',
+    offerInHand: 'No',
+    resumeReference: 'Amit_Kulkarni_CSharp_Automation.pdf',
+    notes: 'Deep domain expertise in C# automation & embedded hardware-in-loop testing.',
   },
 ]
 
 interface CandidateRepositoryPageProps {
   candidates?: Candidate[]
+  requirements?: Requirement[]
+  selectedReqId?: string | null
   onOpenAddForm: () => void
   onSelectCandidate?: (candidate: Candidate) => void
+  onSelectRequirement?: (reqId: string | null) => void
 }
 
 export function CandidateRepositoryPage({
   candidates = [],
+  requirements = INITIAL_REQUIREMENTS,
+  selectedReqId = null,
   onOpenAddForm,
   onSelectCandidate,
+  onSelectRequirement,
 }: CandidateRepositoryPageProps) {
   const [repoList, setRepoList] = useState<CandidateRepoItem[]>(DEFAULT_REPO_CANDIDATES)
   const [viewMode, setViewMode] = useState<'list' | 'submit_to_lead'>('list')
@@ -146,11 +264,58 @@ export function CandidateRepositoryPage({
   const [submittedPeriod, setSubmittedPeriod] = useState('All time')
   const [totalExpFilter, setTotalExpFilter] = useState('All experience')
 
-  // Checkbox selection state
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set(['1']))
+  // Requirement Selection Context (carried over from My Work / Requirements page or selected directly)
+  const [activeReqId, setActiveReqId] = useState<string | null>(selectedReqId || null)
+  const [isChangeReqModalOpen, setIsChangeReqModalOpen] = useState(false)
+  const [pendingCandidateForSubmit, setPendingCandidateForSubmit] = useState<CandidateRepoItem | null>(null)
+  const [tempModalReqId, setTempModalReqId] = useState<string>('')
+
+  React.useEffect(() => {
+    if (selectedReqId !== undefined) {
+      setActiveReqId(selectedReqId)
+    }
+  }, [selectedReqId])
+
+  const activeRequirement = useMemo(() => {
+    if (!activeReqId) return null
+    return (
+      requirements.find(r => r.id === activeReqId) ||
+      ({
+        id: activeReqId,
+        title: 'Requirement ' + activeReqId,
+        client: 'Metaforge Client',
+        priority: 'High',
+        status: 'Active',
+      } as Requirement)
+    )
+  }, [requirements, activeReqId])
+
+  // Candidate Checkbox Selection state (active when requirement is selected)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  const toggleSelectCandidate = (id: string, e?: React.SyntheticEvent) => {
+    e?.stopPropagation()
+    const next = new Set(selectedIds)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    setSelectedIds(next)
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredList.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filteredList.map(item => item.id)))
+    }
+  }
+
+  const [selectedCandidatesForSubmit, setSelectedCandidatesForSubmit] = useState<CandidateRepoItem[]>([])
 
   // Mask toggling for phone/email in table view
   const [unmaskedIds, setUnmaskedIds] = useState<Set<string>>(new Set())
+
+  // Detail Modal view state (displays WHOLE information about candidate)
+  const [viewingCandidateDetail, setViewingCandidateDetail] = useState<CandidateRepoItem | null>(null)
 
   // Full-page edit state
   const [editingCandidate, setEditingCandidate] = useState<CandidateRepoItem | null>(null)
@@ -184,22 +349,8 @@ export function CandidateRepositoryPage({
     setTimeout(() => setToastMsg(null), 3500)
   }
 
-  const toggleSelectCandidate = (id: string) => {
-    const next = new Set(selectedIds)
-    if (next.has(id)) next.delete(id)
-    else next.add(id)
-    setSelectedIds(next)
-  }
-
-  const toggleSelectAll = () => {
-    if (selectedIds.size === filteredList.length) {
-      setSelectedIds(new Set())
-    } else {
-      setSelectedIds(new Set(filteredList.map(item => item.id)))
-    }
-  }
-
-  const toggleMask = (id: string) => {
+  const toggleMask = (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation()
     const next = new Set(unmaskedIds)
     if (next.has(id)) next.delete(id)
     else next.add(id)
@@ -215,7 +366,9 @@ export function CandidateRepositoryPage({
         const matchId = item.candidateId.toLowerCase().includes(q)
         const matchTech = item.technology.toLowerCase().includes(q)
         const matchCreator = item.createdBy.toLowerCase().includes(q)
-        if (!matchName && !matchId && !matchTech && !matchCreator) return false
+        const matchSkills = (item.skills || '').toLowerCase().includes(q)
+        const matchCompany = (item.currentCompany || '').toLowerCase().includes(q)
+        if (!matchName && !matchId && !matchTech && !matchCreator && !matchSkills && !matchCompany) return false
       }
       return true
     })
@@ -231,28 +384,57 @@ export function CandidateRepositoryPage({
   }, [filteredList, currentPage, pageSize])
 
   // Open Full-Page Edit Form
-  const handleOpenEdit = (item: CandidateRepoItem) => {
+  const handleOpenEdit = (item: CandidateRepoItem, e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    setViewingCandidateDetail(null)
     setEditingCandidate(item)
     setEditFullName(item.name)
-    setEditEmail(item.email.includes('*') ? `${item.name.toLowerCase().replace(/\s+/g, '')}111@gmail.com` : item.email)
-    setEditPhone(item.phone.includes('*') ? '+91 78282 12226' : item.phone)
-    setEditLinkedIn('https://...')
-    setEditCurrentCompany(item.currentCompany || '')
+    setEditEmail(item.email.includes('*') ? `${item.name.toLowerCase().replace(/\s+/g, '')}@gmail.com` : item.email)
+    setEditPhone(item.phone.includes('*') ? '+91 98765 43210' : item.phone)
+    setEditLinkedIn('https://www.linkedin.com/in/' + item.name.toLowerCase().replace(/\s+/g, ''))
+    setEditCurrentCompany(item.currentCompany || 'Software Solutions Ltd')
     setEditQualification(item.qualification || 'B.E. - Bachelor of Engineering')
     setEditSkills(item.skills || 'Testing, Automation, Manual Testing, Java, Python')
     setEditTechnology(item.technology)
     setEditTotalExp(item.totalExperience)
     setEditRelevantExp(item.relevantExperience || item.totalExperience)
-    setEditCurrentCtc(item.currentCtc || '')
-    setEditExpectedCtc(item.expectedCtc || '')
-    setEditNoticePeriod(item.noticePeriod || '')
+    setEditCurrentCtc(item.currentCtc || '12 LPA')
+    setEditExpectedCtc(item.expectedCtc || '16 LPA')
+    setEditNoticePeriod(item.noticePeriod || '30 Days')
     setEditCurrentLoc(item.currentLocation || 'Bangalore')
     setEditPreferredLoc(item.preferredLocation || 'Bangalore / Remote')
     setEditAvailability(item.interviewAvailability || 'Immediate')
     setEditReasonForChange(item.reasonForChange || 'Career Growth')
-    setEditOfferInHand(item.offerInHand || '—')
-    setEditResumeReference(item.resumeReference || 'resume_attachment.pdf')
+    setEditOfferInHand(item.offerInHand || 'No')
+    setEditResumeReference(item.resumeReference || `${item.name.replace(/\s+/g, '_')}_Resume.pdf`)
     setEditNotes(item.notes || 'Candidate profile in repository')
+  }
+
+  // Handle Submit to Lead for single candidate
+  const handleSubmitSingleToLead = (item: CandidateRepoItem, e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    setViewingCandidateDetail(null)
+    if (!activeReqId) {
+      setPendingCandidateForSubmit(item)
+      setTempModalReqId(requirements[0]?.id || '')
+      setIsChangeReqModalOpen(true)
+    } else {
+      setSelectedCandidatesForSubmit([item])
+      setViewMode('submit_to_lead')
+    }
+  }
+
+  const handleConfirmReqSelection = (reqIdToSet: string) => {
+    setActiveReqId(reqIdToSet)
+    onSelectRequirement?.(reqIdToSet)
+    setIsChangeReqModalOpen(false)
+    if (pendingCandidateForSubmit) {
+      setSelectedCandidatesForSubmit([pendingCandidateForSubmit])
+      setPendingCandidateForSubmit(null)
+      setViewMode('submit_to_lead')
+    } else {
+      showToast('Requirement selected successfully!')
+    }
   }
 
   // Handle Edit Submit
@@ -269,6 +451,7 @@ export function CandidateRepositoryPage({
             phone: editPhone,
             technology: editTechnology,
             totalExperience: editTotalExp,
+            relevantExperience: editRelevantExp,
             qualification: editQualification,
             skills: editSkills,
             currentCompany: editCurrentCompany,
@@ -294,15 +477,15 @@ export function CandidateRepositoryPage({
   // DEDICATED FULL-PAGE VIEW: SUBMIT TO LEAD & FORWARD PAGE
   // -------------------------------------------------------------
   if (viewMode === 'submit_to_lead') {
-    const selectedItems = repoList.filter(item => selectedIds.has(item.id))
     return (
       <SubmitToLeadPage
-        selectedCandidates={selectedItems}
+        selectedCandidates={selectedCandidatesForSubmit}
+        requirement={activeRequirement}
         onBack={() => setViewMode('list')}
         onSubmitSuccess={() => {
           setViewMode('list')
-          setSelectedIds(new Set())
-          showToast('Successfully submitted to lead & client loop!')
+          setSelectedCandidatesForSubmit([])
+          showToast('Successfully submitted candidate to lead & client loop!')
         }}
       />
     )
@@ -342,7 +525,7 @@ export function CandidateRepositoryPage({
                   type="text"
                   value={editFullName}
                   onChange={e => setEditFullName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900 font-semibold"
                 />
               </div>
 
@@ -378,6 +561,126 @@ export function CandidateRepositoryPage({
             </div>
           </div>
 
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-4">
+            <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">Professional & Experience Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Primary Technology / Role</label>
+                <input
+                  type="text"
+                  value={editTechnology}
+                  onChange={e => setEditTechnology(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900 font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Qualification & Education</label>
+                <input
+                  type="text"
+                  value={editQualification}
+                  onChange={e => setEditQualification(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Total Experience</label>
+                <input
+                  type="text"
+                  value={editTotalExp}
+                  onChange={e => setEditTotalExp(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Relevant Experience</label>
+                <input
+                  type="text"
+                  value={editRelevantExp}
+                  onChange={e => setEditRelevantExp(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Skills & Key Competencies</label>
+                <input
+                  type="text"
+                  value={editSkills}
+                  onChange={e => setEditSkills(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-4">
+            <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">Compensation & Preferences</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Current CTC</label>
+                <input
+                  type="text"
+                  value={editCurrentCtc}
+                  onChange={e => setEditCurrentCtc(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Expected CTC</label>
+                <input
+                  type="text"
+                  value={editExpectedCtc}
+                  onChange={e => setEditExpectedCtc(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Notice Period</label>
+                <input
+                  type="text"
+                  value={editNoticePeriod}
+                  onChange={e => setEditNoticePeriod(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Current Location</label>
+                <input
+                  type="text"
+                  value={editCurrentLoc}
+                  onChange={e => setEditCurrentLoc(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Preferred Location</label>
+                <input
+                  type="text"
+                  value={editPreferredLoc}
+                  onChange={e => setEditPreferredLoc(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Offer In Hand</label>
+                <input
+                  type="text"
+                  value={editOfferInHand}
+                  onChange={e => setEditOfferInHand(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-slate-900"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-end gap-3">
             <button
               type="button"
@@ -400,52 +703,72 @@ export function CandidateRepositoryPage({
   }
 
   // -------------------------------------------------------------
-  // RENDER CANDIDATE REPOSITORY TABLE VIEW (100% MATCHING SCREENSHOT)
+  // RENDER CANDIDATE REPOSITORY TABLE VIEW (WITH NO CHECKBOXES & WHOLE CANDIDATE INFO)
   // -------------------------------------------------------------
   return (
     <div className="space-y-6 w-full pb-24 font-sans text-slate-800">
-      {/* 1. BACK BUTTON & HEADER BAR (MATCHING SCREENSHOT) */}
+      {/* 1. BACK BUTTON & HEADER BAR */}
       <div className="space-y-4">
         <button
           onClick={onOpenAddForm}
           className="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-full text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition-all shadow-2xs cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 text-slate-600" />
-          <span>Back</span>
+          <span>Back to Add Candidate</span>
         </button>
 
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Candidate Repository</h1>
           <p className="text-xs text-slate-500 mt-1">
-            Select one or more candidates from your internal database to submit to this requirement
+            Comprehensive database of candidate profiles. Click any row to view complete details, edit, or submit to requirement.
           </p>
         </div>
       </div>
 
-      {/* 2. GREEN REQUIREMENT INFO BANNER (MATCHING SCREENSHOT) */}
-      <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-2xl p-3.5 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-        <div className="text-emerald-950 font-medium">
-          Selecting for:{' '}
-          <strong className="font-extrabold text-emerald-950">
-            REQ-2026-08-12-004 — TPC - Requirement - C# Automation - Bangalore /Mysore - Embedded
-          </strong>
+      {/* 2. REQUIREMENT INFO BANNER (shown only when a requirement is selected) */}
+      {activeRequirement && (
+        <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-2xl p-3.5 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+          <div className="text-emerald-950 font-medium flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+            <span>
+              Selecting for:{' '}
+              <strong className="font-extrabold text-emerald-950">
+                {activeRequirement.id} — {activeRequirement.title} ({activeRequirement.client})
+              </strong>
+            </span>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={() => {
+                setTempModalReqId(activeRequirement.id)
+                setIsChangeReqModalOpen(true)
+              }}
+              className="text-emerald-700 hover:text-emerald-900 font-bold underline cursor-pointer text-xs"
+            >
+              Change requirement
+            </button>
+            <button
+              onClick={() => {
+                setActiveReqId(null)
+                onSelectRequirement?.(null)
+                showToast('Cleared selected requirement')
+              }}
+              className="text-slate-400 hover:text-slate-600 font-bold text-xs cursor-pointer hover:underline"
+            >
+              Clear
+            </button>
+          </div>
         </div>
-        <button
-          onClick={() => showToast('Requirement selection updated')}
-          className="text-emerald-700 hover:text-emerald-900 font-bold underline cursor-pointer text-xs shrink-0"
-        >
-          Change requirement
-        </button>
-      </div>
+      )}
 
-      {/* 3. FILTER & SEARCH CONTROL CARD (MATCHING SCREENSHOT) */}
+      {/* 3. FILTER & SEARCH CONTROL CARD */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs flex flex-col md:flex-row md:items-end justify-between gap-4">
         {/* Search Input */}
         <div className="relative flex-1 max-w-xl">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search by name, email, phone, skills, technology, company,"
+            placeholder="Search by name, email, phone, skills, technology, company..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#6B3BF6] text-slate-800 placeholder:text-slate-400 shadow-2xs transition-all"
@@ -495,123 +818,164 @@ export function CandidateRepositoryPage({
         </div>
       </div>
 
-      {/* 4. CANDIDATE REPOSITORY TABLE CARD (MATCHING SCREENSHOT) */}
+      {/* 4. CANDIDATE REPOSITORY TABLE CARD */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/50">
-                <th className="w-10 px-4 py-3.5">
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.size === filteredList.length && filteredList.length > 0}
-                    onChange={toggleSelectAll}
-                    className="w-4 h-4 text-[#6B3BF6] rounded-md focus:ring-[#6B3BF6] cursor-pointer"
-                  />
+                {activeRequirement && (
+                  <th className="w-10 px-4 py-3.5">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.size === filteredList.length && filteredList.length > 0}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 text-[#6B3BF6] rounded-md focus:ring-[#6B3BF6] cursor-pointer"
+                    />
+                  </th>
+                )}
+                <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                  CANDIDATE NAME & ID
                 </th>
                 <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                  CANDIDATE
+                  CURRENT COMPANY
                 </th>
                 <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                  EMAIL
+                  CONTACT (EMAIL & PHONE)
                 </th>
                 <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                  PHONE
+                  TECHNOLOGY & SKILLS
                 </th>
                 <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                  TECHNOLOGY
-                </th>
-                <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                  TOTAL EXPERIENCE
+                  EXPERIENCE
                 </th>
                 <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                   CREATED BY
                 </th>
                 <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider text-right">
-                  EDIT
+                  ACTIONS
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
               {paginatedRepoList.map(item => {
-                const isSelected = selectedIds.has(item.id)
                 const isUnmasked = unmaskedIds.has(item.id)
+                const isSelected = selectedIds.has(item.id)
                 return (
                   <tr
                     key={item.id}
-                    className={`hover:bg-purple-50/30 transition-colors ${
-                      isSelected ? 'bg-purple-50/20' : ''
+                    onClick={() => setViewingCandidateDetail(item)}
+                    className={`hover:bg-purple-50/40 cursor-pointer transition-colors group ${
+                      isSelected ? 'bg-purple-50/30' : ''
                     }`}
                   >
-                    {/* Checkbox */}
-                    <td className="px-4 py-4">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleSelectCandidate(item.id)}
-                        className="w-4 h-4 text-[#6B3BF6] rounded-md focus:ring-[#6B3BF6] cursor-pointer"
-                      />
-                    </td>
+                    {/* Checkbox (shown only when requirement is selected) */}
+                    {activeRequirement && (
+                      <td className="px-4 py-4" onClick={e => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={e => toggleSelectCandidate(item.id, e)}
+                          className="w-4 h-4 text-[#6B3BF6] rounded-md focus:ring-[#6B3BF6] cursor-pointer"
+                        />
+                      </td>
+                    )}
 
                     {/* Candidate Name, ID & Status Badge */}
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-slate-900 text-xs">{item.name}</span>
+                        <span className="font-extrabold text-slate-900 text-xs group-hover:text-[#6B3BF6] transition-colors">
+                          {item.name}
+                        </span>
                         {item.status && (
-                          <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-indigo-100 text-indigo-800 border border-indigo-200 shrink-0">
                             {item.status}
                           </span>
                         )}
                       </div>
                       <div className="text-[10px] text-slate-400 font-mono mt-0.5">
-                        {item.candidateId}
+                        ID: {item.candidateId}
                       </div>
                     </td>
 
-                    {/* Email (Masked Format) */}
-                    <td className="px-4 py-4 font-mono text-slate-700 text-xs">
-                      {isUnmasked ? `${item.name.toLowerCase().replace(/\s+/g, '.')}@gmail.com` : item.email}
+                    {/* Current Company */}
+                    <td className="px-4 py-4 text-slate-800 font-semibold">
+                      {item.currentCompany || '—'}
                     </td>
 
-                    {/* Phone + Eye Icon Button (Masked Format) */}
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5 font-mono text-slate-700 text-xs">
-                        <span>{isUnmasked ? '+91 78282 12226' : item.phone}</span>
-                        <button
-                          type="button"
-                          onClick={() => toggleMask(item.id)}
-                          className="p-1 rounded-lg border border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
-                          title={isUnmasked ? 'Mask contact info' : 'View unmasked contact info'}
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
+                    {/* Contact (Email & Phone with Eye toggle) */}
+                    <td className="px-4 py-4">
+                      <div className="space-y-1">
+                        <div className="font-mono text-slate-700 text-xs truncate max-w-[180px]">
+                          {isUnmasked ? `${item.name.toLowerCase().replace(/\s+/g, '.')}@gmail.com` : item.email}
+                        </div>
+                        <div className="flex items-center gap-1.5 font-mono text-slate-500 text-[11px]">
+                          <span>{isUnmasked ? '+91 98765 43210' : item.phone}</span>
+                          <button
+                            type="button"
+                            onClick={e => toggleMask(item.id, e)}
+                            className="p-0.5 rounded-md border border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                            title={isUnmasked ? 'Mask contact info' : 'View unmasked contact info'}
+                          >
+                            <Eye className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     </td>
 
-                    {/* Technology */}
-                    <td className="px-4 py-4 text-slate-800 font-medium max-w-xs">
-                      {item.technology}
+                    {/* Technology & Skills */}
+                    <td className="px-4 py-4 max-w-xs">
+                      <div className="font-bold text-slate-800 text-xs truncate">{item.technology}</div>
+                      {item.skills && (
+                        <div className="text-[10px] text-slate-500 truncate mt-0.5">{item.skills}</div>
+                      )}
                     </td>
 
                     {/* Total Experience */}
-                    <td className="px-4 py-4 text-slate-800 font-semibold whitespace-nowrap">
-                      {item.totalExperience}
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="font-extrabold text-slate-900">{item.totalExperience}</div>
+                      {item.relevantExperience && (
+                        <div className="text-[10px] text-slate-400">Rel: {item.relevantExperience}</div>
+                      )}
                     </td>
 
                     {/* Created By */}
-                    <td className="px-4 py-4 text-slate-700 font-medium whitespace-nowrap">
-                      {item.createdBy}
+                    <td className="px-4 py-4 text-slate-600 font-medium whitespace-nowrap">
+                      <div>{item.createdBy}</div>
+                      <div className="text-[10px] text-slate-400">{item.createdDate}</div>
                     </td>
 
-                    {/* Edit Button */}
+                    {/* Action Buttons: View Profile, Edit, Submit */}
                     <td className="px-4 py-4 text-right whitespace-nowrap">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEdit(item)}
-                        className="px-3.5 py-1.5 bg-[#6B3BF6] hover:bg-[#5833E0] text-white text-xs font-extrabold rounded-xl shadow-2xs transition-all cursor-pointer active:scale-98"
-                      >
-                        Edit
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={e => {
+                            e.stopPropagation()
+                            setViewingCandidateDetail(item)
+                          }}
+                          className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-all cursor-pointer"
+                          title="View Whole Information"
+                        >
+                          View Info
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={e => handleOpenEdit(item, e)}
+                          className="px-2.5 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-lg transition-all cursor-pointer"
+                        >
+                          Edit
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={e => handleSubmitSingleToLead(item, e)}
+                          className="px-3 py-1.5 bg-[#6B3BF6] hover:bg-[#5833E0] text-white text-xs font-extrabold rounded-lg shadow-2xs transition-all cursor-pointer active:scale-98"
+                        >
+                          Submit
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )
@@ -632,11 +996,11 @@ export function CandidateRepositoryPage({
         />
       </div>
 
-      {/* 5. FLOATING SELECTION DOCK (MATCHING SCREENSHOT - NAVIGATES TO DEDICATED SUBMIT TO LEAD PAGE) */}
-      {selectedIds.size > 0 && (
+      {/* FLOATING SELECTION DOCK (shown when requirement is selected and candidates are checked) */}
+      {activeRequirement && selectedIds.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#EFF6FF] border border-[#C7D2FE] shadow-2xl rounded-2xl p-2.5 px-6 flex items-center gap-6 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-200">
           <span className="text-xs font-extrabold text-[#1E3A8A]">
-            {selectedIds.size} candidate(s) selected
+            {selectedIds.size} candidate(s) selected for {activeRequirement.id}
           </span>
 
           <div className="flex items-center gap-2">
@@ -644,14 +1008,327 @@ export function CandidateRepositoryPage({
               onClick={() => setSelectedIds(new Set())}
               className="px-4 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer transition-all shadow-2xs"
             >
-              Clear
+              Clear Selection
             </button>
             <button
-              onClick={() => setViewMode('submit_to_lead')}
+              onClick={() => {
+                const items = repoList.filter(i => selectedIds.has(i.id))
+                setSelectedCandidatesForSubmit(items)
+                setViewMode('submit_to_lead')
+              }}
               className="px-5 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-extrabold rounded-xl shadow-md transition-all cursor-pointer active:scale-98 flex items-center gap-1.5"
             >
-              <span>Submit to Lead</span>
+              <span>Submit Selected ({selectedIds.size})</span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 5. CANDIDATE WHOLE INFORMATION DETAIL MODAL (MODAL SHOWING ALL CANDIDATE DETAILS) */}
+      {viewingCandidateDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden border border-slate-100 font-sans flex flex-col">
+            {/* Modal Header */}
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#6B3BF6]/10 text-[#6B3BF6] flex items-center justify-center font-extrabold text-lg border border-[#6B3BF6]/20">
+                  {viewingCandidateDetail.name.charAt(0)}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+                      {viewingCandidateDetail.name}
+                    </h2>
+                    {viewingCandidateDetail.status && (
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                        {viewingCandidateDetail.status}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Candidate ID: <strong className="font-mono text-slate-700">{viewingCandidateDetail.candidateId}</strong> • Created by {viewingCandidateDetail.createdBy} on {viewingCandidateDetail.createdDate}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setViewingCandidateDetail(null)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body - Scrollable Whole Information */}
+            <div className="p-6 overflow-y-auto space-y-6 flex-1 custom-scrollbar">
+              {/* Section 1: Basic & Contact Details */}
+              <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 space-y-3">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-[#6B3BF6]" />
+                  Contact & Identification
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium">Full Name</span>
+                    <span className="font-bold text-slate-900">{viewingCandidateDetail.name}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium">Email Address</span>
+                    <span className="font-mono font-semibold text-slate-800">
+                      {unmaskedIds.has(viewingCandidateDetail.id)
+                        ? `${viewingCandidateDetail.name.toLowerCase().replace(/\s+/g, '.')}@gmail.com`
+                        : viewingCandidateDetail.email}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium">Phone Number</span>
+                    <span className="font-mono font-semibold text-slate-800">
+                      {unmaskedIds.has(viewingCandidateDetail.id)
+                        ? '+91 98765 43210'
+                        : viewingCandidateDetail.phone}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Professional Profile & Education */}
+              <div className="border border-slate-200/80 rounded-2xl p-4 space-y-3 bg-white">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5 text-[#6B3BF6]" />
+                  Professional Profile & Education
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium">Primary Technology / Role</span>
+                    <span className="font-extrabold text-slate-900 text-sm">{viewingCandidateDetail.technology}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium">Current Company</span>
+                    <span className="font-bold text-slate-800">{viewingCandidateDetail.currentCompany || 'Not specified'}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium">Total Experience</span>
+                    <span className="font-bold text-slate-900">{viewingCandidateDetail.totalExperience}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium">Relevant Experience</span>
+                    <span className="font-bold text-slate-900">{viewingCandidateDetail.relevantExperience || viewingCandidateDetail.totalExperience}</span>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <span className="text-slate-400 block text-[11px] font-medium">Qualification & Education</span>
+                    <span className="font-semibold text-slate-800">{viewingCandidateDetail.qualification || 'B.E. Computer Science'}</span>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <span className="text-slate-400 block text-[11px] font-medium mb-1">Key Skills & Competencies</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(viewingCandidateDetail.skills || 'Testing, Automation, Java, Python, SQL').split(',').map((skill, idx) => (
+                        <span key={idx} className="px-2.5 py-1 bg-purple-50 text-[#6B3BF6] border border-purple-200/60 rounded-lg text-[11px] font-bold">
+                          {skill.trim()}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 3: Compensation & Notice Period */}
+              <div className="border border-slate-200/80 rounded-2xl p-4 space-y-3 bg-white">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <DollarSign className="w-3.5 h-3.5 text-[#6B3BF6]" />
+                  Compensation & Notice Period
+                </h3>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium">Current CTC</span>
+                    <span className="font-extrabold text-slate-900">{viewingCandidateDetail.currentCtc || '12 LPA'}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium">Expected CTC</span>
+                    <span className="font-extrabold text-emerald-700">{viewingCandidateDetail.expectedCtc || '16 LPA'}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium">Notice Period</span>
+                    <span className="font-extrabold text-amber-700">{viewingCandidateDetail.noticePeriod || '30 Days'}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium">Offer In Hand</span>
+                    <span className="font-bold text-slate-800">{viewingCandidateDetail.offerInHand || 'No'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 4: Location & Availability */}
+              <div className="border border-slate-200/80 rounded-2xl p-4 space-y-3 bg-white">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-[#6B3BF6]" />
+                  Location & Availability
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium">Current Location</span>
+                    <span className="font-bold text-slate-900">{viewingCandidateDetail.currentLocation || 'Bangalore'}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium">Preferred Work Location</span>
+                    <span className="font-bold text-slate-900">{viewingCandidateDetail.preferredLocation || 'Bangalore / Remote'}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium">Interview Availability</span>
+                    <span className="font-semibold text-slate-800">{viewingCandidateDetail.interviewAvailability || 'Immediate'}</span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium">Reason for Job Change</span>
+                    <span className="font-semibold text-slate-800">{viewingCandidateDetail.reasonForChange || 'Career Growth & Better Opportunity'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 5: Documents & Recruiter Notes */}
+              <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 space-y-3">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-[#6B3BF6]" />
+                  Resume & Recruiter Notes
+                </h3>
+
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium mb-1">Attached Resume</span>
+                    <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl p-2.5 w-fit">
+                      <FileText className="w-4 h-4 text-red-500" />
+                      <span className="font-bold text-slate-800 text-xs">
+                        {viewingCandidateDetail.resumeReference || `${viewingCandidateDetail.name.replace(/\s+/g, '_')}_Resume.pdf`}
+                      </span>
+                      <button
+                        onClick={() => showToast('Downloading resume PDF...')}
+                        className="ml-2 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-colors cursor-pointer"
+                      >
+                        Download
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-400 block text-[11px] font-medium">Recruiter Internal Notes</span>
+                    <p className="text-slate-700 bg-white border border-slate-200 rounded-xl p-3 mt-1 leading-relaxed text-xs">
+                      {viewingCandidateDetail.notes || 'Verified profile in candidate repository. Profile matches active client demands.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setViewingCandidateDetail(null)}
+                className="px-5 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleOpenEdit(viewingCandidateDetail)}
+                  className="px-5 py-2.5 border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                >
+                  Edit Profile
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSubmitSingleToLead(viewingCandidateDetail)}
+                  className="px-6 py-2.5 bg-[#6B3BF6] hover:bg-[#5833E0] text-white text-xs font-extrabold rounded-xl transition-all shadow-sm cursor-pointer active:scale-98"
+                >
+                  Submit to Lead
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* REQUIREMENT SELECTION MODAL */}
+      {isChangeReqModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[520px] overflow-hidden border border-slate-100 font-sans">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 tracking-tight">Select Requirement</h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {pendingCandidateForSubmit
+                    ? `Please select a requirement to submit candidate "${pendingCandidateForSubmit.name}"`
+                    : 'Choose an active requirement to link with candidate repository'}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsChangeReqModalOpen(false)
+                  setPendingCandidateForSubmit(null)
+                }}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+                  ACTIVE REQUIREMENTS ({requirements.length})
+                </label>
+                <select
+                  value={tempModalReqId}
+                  onChange={e => setTempModalReqId(e.target.value)}
+                  className="w-full h-11 px-3.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#6B3BF6] text-slate-800 shadow-2xs cursor-pointer"
+                >
+                  <option value="" disabled>-- Select a requirement --</option>
+                  {requirements.map(req => (
+                    <option key={req.id} value={req.id}>
+                      {req.id} — {req.title} ({req.client})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsChangeReqModalOpen(false)
+                  setPendingCandidateForSubmit(null)
+                }}
+                className="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!tempModalReqId}
+                onClick={() => handleConfirmReqSelection(tempModalReqId)}
+                className="px-5 py-2 bg-[#6B3BF6] hover:bg-[#5833E0] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-extrabold rounded-xl transition-all shadow-xs cursor-pointer"
+              >
+                Confirm Requirement
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -41,6 +41,22 @@ const DEFAULT_ACTIVE_REQS: ActiveReqRow[] = [
     status: 'Assigned',
     timestamp: 'Jun 19, 2026, 07:29 PM',
   },
+  {
+    type: 'Requirement',
+    id: 'REQ-2026-06-19-002',
+    name: 'Fullstack React Developer',
+    client: 'Metaforge IT',
+    status: 'Submitted',
+    timestamp: 'Jun 20, 2026, 10:15 AM',
+  },
+  {
+    type: 'Requirement',
+    id: 'REQ-2026-06-19-003',
+    name: 'DevOps Cloud Specialist',
+    client: 'Continental Automotive',
+    status: 'Selected for interview',
+    timestamp: 'Jun 21, 2026, 02:45 PM',
+  },
 ]
 
 export function RecruiterDashboard({
@@ -260,7 +276,17 @@ export function RecruiterDashboard({
   const filteredReqs = activeReqRows.filter(req => {
     const q = searchQuery.trim().toLowerCase()
     const matchesQuery = !q || req.client.toLowerCase().includes(q) || req.id.toLowerCase().includes(q) || req.name.toLowerCase().includes(q)
-    const matchesStatus = statusFilter === 'All' || statusFilter === 'All Status' || req.status.toLowerCase() === statusFilter.toLowerCase()
+    
+    const filterLower = statusFilter.toLowerCase().trim()
+    let matchesStatus = true
+    if (filterLower === 'assigned') {
+      matchesStatus = req.status.toLowerCase().includes('assign') || req.status.toLowerCase() === 'active' || req.status.toLowerCase() === 'open'
+    } else if (filterLower === 'submitted') {
+      matchesStatus = req.status.toLowerCase().includes('submit')
+    } else if (filterLower === 'selected for interview') {
+      matchesStatus = req.status.toLowerCase().includes('interview') || req.status.toLowerCase().includes('select')
+    }
+
     return matchesQuery && matchesStatus
   })
 
@@ -326,7 +352,7 @@ export function RecruiterDashboard({
             <div>
               <p className="text-xs sm:text-sm font-semibold text-slate-700">Assigned Requirements</p>
               <p className="text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">
-                {filteredReqs.length > 0 ? filteredReqs.length : 1}
+                {filteredReqs.length > 0 ? filteredReqs.length : 8}
               </p>
             </div>
             <div className="w-10 h-10 rounded-full bg-[#2F80ED] text-white flex items-center justify-center shadow-sm shrink-0">
@@ -364,13 +390,11 @@ export function RecruiterDashboard({
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="w-full md:w-auto px-4 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer"
+              className="w-full md:w-auto px-4 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer font-bold text-slate-800"
             >
               <option value="Assigned">Assigned</option>
-              <option value="Unassigned">Unassigned</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Closed">Closed</option>
-              <option value="All Status">All Status</option>
+              <option value="Submitted">Submitted</option>
+              <option value="Selected for interview">Selected for interview</option>
             </select>
           </div>
         </div>
@@ -514,7 +538,13 @@ export function RecruiterDashboard({
                       <td className="px-4 py-3.5 text-slate-600">{sub.req}</td>
                       <td className="px-4 py-3.5 text-slate-600">{sub.client}</td>
                       <td className="px-4 py-3.5">
-                        <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+                        <span
+                          className={`px-3 py-1 rounded-full text-[11px] font-semibold border ${
+                            sub.stage.toLowerCase().includes('reject')
+                              ? 'bg-red-50 text-red-600 border-red-200/80'
+                              : 'bg-blue-50 text-blue-700 border-blue-200/60'
+                          }`}
+                        >
                           {sub.stage}
                         </span>
                       </td>

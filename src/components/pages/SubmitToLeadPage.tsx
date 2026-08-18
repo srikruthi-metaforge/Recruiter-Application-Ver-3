@@ -20,25 +20,33 @@ import {
   Sliders,
 } from 'lucide-react'
 
+import { Requirement } from '../../types'
+
 interface SubmitToLeadPageProps {
   selectedCandidates?: any[]
+  requirement?: Requirement | null
   onBack: () => void
   onSubmitSuccess?: () => void
 }
 
 export function SubmitToLeadPage({
   selectedCandidates = [],
+  requirement = null,
   onBack,
   onSubmitSuccess,
 }: SubmitToLeadPageProps) {
   // Destination Checkboxes
   const [submitToLeadChecked, setSubmitToLeadChecked] = useState(true)
   const [forwardLoopChecked, setForwardLoopChecked] = useState(true)
-  const [clientName, setClientName] = useState('LTTS / L&T')
+  const [clientName, setClientName] = useState(
+    requirement?.client || 'Metaforge Client'
+  )
 
   // Thread Subject
   const [threadSubject, setThreadSubject] = useState(
-    'TPC - Requirement - C# Automation - Bangalore /Mysore - Embedded'
+    requirement
+      ? `${requirement.id} — ${requirement.title} (${requirement.client})`
+      : 'Candidate Profile Submission'
   )
 
   // From Recruiter

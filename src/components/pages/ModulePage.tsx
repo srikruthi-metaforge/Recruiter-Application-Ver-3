@@ -15,6 +15,10 @@ import { ReportsPage } from './ReportsPage'
 import { RolesPermissionsPage } from './RolesPermissionsPage'
 import { ClientsPage } from './ClientsPage'
 import { UserManagementPage } from './UserManagementPage'
+import { ActivityLogsPage } from './ActivityLogsPage'
+import { TeamsPage } from './TeamsPage'
+import { MyTeamPage } from './MyTeamPage'
+import { RecruitersPage } from './RecruitersPage'
 import { INITIAL_CANDIDATES } from '../../data/mockData'
 
 interface ModulePageProps {
@@ -24,10 +28,12 @@ interface ModulePageProps {
   submissions?: Submission[]
   interviews?: Interview[]
   recruiters?: Recruiter[]
+  selectedReqId?: string | null
   onOpenSubmit?: (reqId?: string) => void
   onOpenFeedback?: (iv: Interview) => void
   onOpenCandidate?: (sub: Submission) => void
   onUpdateRequirements?: (requirements: Requirement[]) => void
+  onSelectRequirement?: (reqId: string | null) => void
 }
 
 export function ModulePage({
@@ -37,10 +43,12 @@ export function ModulePage({
   submissions = [],
   interviews = [],
   recruiters = [],
+  selectedReqId = null,
   onOpenSubmit,
   onOpenFeedback,
   onOpenCandidate,
   onUpdateRequirements,
+  onSelectRequirement,
 }: ModulePageProps) {
   const [candidatesList, setCandidatesList] = useState<Candidate[]>(INITIAL_CANDIDATES)
   const [candidateViewMode, setCandidateViewMode] = useState<'add' | 'repository'>('add')
@@ -54,15 +62,31 @@ export function ModulePage({
   }
 
   if (pageKey === 'Roles' || pageKey === 'Roles & Permissions') {
-    return <RolesPermissionsPage />
+    return <RolesPermissionsPage role={role} />
   }
 
   if (pageKey === 'Clients' || pageKey === 'Client Management') {
     return <ClientsPage role={role} />
   }
 
-  if (pageKey === 'Users' || pageKey === 'User Management' || pageKey === 'Recruiters') {
+  if (pageKey === 'Users' || pageKey === 'User Management') {
     return <UserManagementPage role={role} />
+  }
+
+  if (pageKey === 'Recruiters') {
+    return <RecruitersPage role={role} />
+  }
+
+  if (pageKey === 'Activity Logs' || pageKey === 'Audit Logs') {
+    return <ActivityLogsPage role={role} />
+  }
+
+  if (pageKey === 'Teams') {
+    return <TeamsPage role={role} />
+  }
+
+  if (pageKey === 'My Team') {
+    return <MyTeamPage />
   }
 
   const meta = PAGE_META[pageKey]
@@ -86,13 +110,18 @@ export function ModulePage({
       return (
         <CandidateRepositoryPage
           candidates={candidatesList}
+          requirements={requirements}
+          selectedReqId={selectedReqId}
           onOpenAddForm={() => setCandidateViewMode('add')}
+          onSelectRequirement={onSelectRequirement}
         />
       )
     }
 
     return (
       <AddCandidatePage
+        requirements={requirements}
+        selectedReqId={selectedReqId}
         onOpenRepository={() => setCandidateViewMode('repository')}
         onAddCandidate={newCandidate => {
           setCandidatesList([newCandidate, ...candidatesList])
@@ -106,7 +135,9 @@ export function ModulePage({
       <SubmissionsPage
         role={role}
         submissions={submissions}
-        onOpenSubmitCandidate={onOpenSubmit ? () => onOpenSubmit() : undefined}
+        requirements={requirements}
+        onOpenSubmitCandidate={onOpenSubmit ? (reqId?: string) => onOpenSubmit(reqId) : undefined}
+        onUpdateRequirements={onUpdateRequirements}
       />
     )
   }

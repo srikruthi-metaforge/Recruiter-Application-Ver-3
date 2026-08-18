@@ -24,7 +24,7 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Overview',
       items: [
         { key: 'Requirements', label: 'Requirements' },
-        { key: 'Candidates', label: 'Add Candidates / Repository' },
+        { key: 'Candidates', label: 'Add Candidates' },
         { key: 'Submissions', label: 'All Submissions' },
       ],
     },
@@ -39,13 +39,16 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Operations',
       items: [
         { key: 'Clients', label: 'Clients' },
-        { key: 'Interviews', label: 'Interviews' },
+        { key: 'Recruiters', label: 'Recruiters' },
+        { key: 'Teams', label: 'Teams' },
+        { key: 'Interviews', label: 'Interview Scheduler' },
       ],
     },
     {
       title: 'Intelligence',
       items: [
         { key: 'Reports', label: 'Reports' },
+        { key: 'Activity Logs', label: 'Activity Logs' },
       ],
     },
     {
@@ -61,7 +64,7 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Overview',
       items: [
         { key: 'Requirements', label: 'Requirements' },
-        { key: 'Candidates', label: 'Add Candidates / Repository' },
+        { key: 'Candidates', label: 'Add Candidates' },
         { key: 'Submissions', label: 'All Submissions' },
       ],
     },
@@ -78,8 +81,6 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Tools',
       items: [
         { key: 'Reports', label: 'Reports' },
-        { key: 'Calendar', label: 'Calendar' },
-        { key: 'Email Center', label: 'Email Center' },
         { key: 'Activity Logs', label: 'Activity Logs' },
       ],
     },
@@ -88,26 +89,13 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
     {
       title: 'Overview',
       items: [
-        { key: 'Dashboard', label: 'Dashboard' },
+        { key: 'Dashboard', label: 'My Work' },
         { key: 'Requirements', label: 'Assigned Requirements' },
-        { key: 'Candidates', label: 'Add Candidates / Repository' },
+        { key: 'Candidates', label: 'Add Candidates' },
         { key: 'Submissions', label: 'All Submissions' },
-      ],
-    },
-    {
-      title: 'Team',
-      items: [
         { key: 'My Team', label: 'My Team' },
         { key: 'Interviews', label: 'Interview Tracker' },
-      ],
-    },
-    {
-      title: 'Performance',
-      items: [
-        { key: 'Performance', label: 'Recruiter Performance' },
-        { key: 'Targets', label: 'Target Tracking' },
         { key: 'Reports', label: 'Daily Reports' },
-        { key: 'Calendar', label: 'Team Calendar' },
       ],
     },
   ],
@@ -116,32 +104,50 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Main',
       items: [
         { key: 'Dashboard', label: 'My Work' },
-        { key: 'Candidates', label: 'Add Candidate' },
+        { key: 'Candidates', label: 'Add Candidates' },
         { key: 'Submissions', label: 'Submissions' },
         { key: 'Interviews', label: 'Interview Tracking' },
         { key: 'Reports', label: 'Reports' },
       ],
     },
   ],
-  client: [
+  devteam: [
     {
       title: 'Overview',
-      items: [{ key: 'Dashboard', label: 'Dashboard' }],
-    },
-    {
-      title: 'Hiring',
       items: [
-        { key: 'Requirements', label: 'My Requirements' },
-        { key: 'Submissions', label: 'Candidate Submissions' },
-        { key: 'Interviews', label: 'Interview Feedback' },
+        { key: 'Requirements', label: 'Requirements' },
+        { key: 'Candidates', label: 'Add Candidates' },
+        { key: 'Submissions', label: 'All Submissions' },
       ],
     },
     {
-      title: 'Business',
+      title: 'Organization',
       items: [
-        { key: 'Analytics', label: 'Hiring Progress' },
-        { key: 'Invoices', label: 'Invoices' },
-        { key: 'Contacts', label: 'Company Contacts' },
+        { key: 'Users', label: 'User Management' },
+        { key: 'Roles', label: 'Roles & Permissions' },
+      ],
+    },
+    {
+      title: 'Operations',
+      items: [
+        { key: 'Clients', label: 'Clients' },
+        { key: 'Recruiters', label: 'Recruiters' },
+        { key: 'Teams', label: 'Teams' },
+        { key: 'Interviews', label: 'Interview Scheduler' },
+      ],
+    },
+    {
+      title: 'Intelligence',
+      items: [
+        { key: 'Reports', label: 'Reports' },
+        { key: 'Activity Logs', label: 'Activity Logs' },
+      ],
+    },
+    {
+      title: 'System',
+      items: [
+        { key: 'Settings', label: 'Settings' },
+        { key: 'Audit Logs', label: 'Audit Logs' },
       ],
     },
   ],
@@ -177,6 +183,16 @@ export const PAGE_META: Record<string, PageMeta> = {
       ['TalentFlow HQ', 'Head Office', 'New York', '120', 'Active'],
       ['India Delivery Center', 'Branch', 'Hyderabad', '85', 'Active'],
       ['Tech Recruiting Dept', 'Department', 'Remote', '42', 'Active'],
+    ],
+  },
+  'My Team': {
+    title: 'My Team',
+    description: 'Overview of team members and working client account assignments.',
+    actions: ['View Performance', 'Assign Requirements'],
+    columns: ['Recruiter Name', 'Role', 'Working Client Accounts', 'Active Reqs', 'Submissions', 'Actions'],
+    sampleRows: [
+      ['Marcus Chen', 'Senior Recruiter', 'Accenture, Goldman Sachs', '7', '62', 'View Analytics'],
+      ['Priya Sharma', 'IT Recruiter', 'Accenture, Infosys', '5', '46', 'View Analytics'],
     ],
   },
   Users: {

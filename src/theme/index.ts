@@ -31,6 +31,22 @@ export const appTheme = {
   navActiveGradient: 'linear-gradient(135deg, #6B3BF6 0%, #5833E0 100%)',
 } as const
 
+/** Unified Auth Page Design Tokens for consistent, high-end login experience */
+export const authTheme = {
+  panelGradient: 'linear-gradient(145deg, #0B1021 0%, #0F172A 50%, #131D38 100%)',
+  panelBorder: '#1E293B',
+  bgPage: '#F8FAFC',
+  cardBg: '#FFFFFF',
+  cardBorder: '#E2E8F0',
+  cardShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(226, 232, 240, 0.8)',
+  primaryButton: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+  primaryButtonHover: 'linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%)',
+  inputBg: '#F8FAFC',
+  inputBorder: '#CBD5E1',
+  inputFocusRing: '0 0 0 4px rgba(37, 99, 235, 0.12)',
+  inputFocusBorder: '#2563EB',
+} as const
+
 export const kpiVariantKeys = ['purple', 'mint', 'rose', 'blue', 'amber', 'indigo'] as const
 
 export interface CardThemeColor {
@@ -127,14 +143,14 @@ export const roleTheme: Record<
     accentDark: '#065F46',
     gradient: 'linear-gradient(135deg, #047857 0%, #059669 100%)',
   },
-  client: {
-    label: 'Client Portal',
-    portalTitle: 'Client Hiring Portal',
-    portalDesc: 'Review submissions, interview feedback, offers, and hiring progress.',
-    accent: '#B45309',
-    accentLight: '#FFFBEB',
-    accentDark: '#92400E',
-    gradient: 'linear-gradient(135deg, #B45309 0%, #D97706 100%)',
+  devteam: {
+    label: 'Dev Team',
+    portalTitle: 'Developer & Engineering Console',
+    portalDesc: 'Full administrative control, platform architecture, system logs, and operational tools.',
+    accent: '#7C3AED',
+    accentLight: '#F5F3FF',
+    accentDark: '#5B21B6',
+    gradient: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)',
   },
 }
 
