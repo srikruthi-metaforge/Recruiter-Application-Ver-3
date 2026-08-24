@@ -23,6 +23,10 @@ import { ModulePage } from './components/pages/ModulePage'
 import { RoleSelectPage } from './components/auth/RoleSelectPage'
 import { RoleLoginPage } from './components/auth/RoleLoginPage'
 import { ForgotPasswordPage } from './components/auth/ForgotPasswordPage'
+import { LandingPage } from './components/landing/LandingPage'
+import { SignInPage } from './components/auth/SignInPage'
+import { SignUpPage } from './components/auth/SignUpRequestPage'
+import { PasswordRecoveryFlow } from './components/auth/PasswordRecoveryFlow'
 
 import { NewRequirementModal } from './components/modals/NewRequirementModal'
 import { SubmitCandidateModal } from './components/modals/SubmitCandidateModal'
@@ -42,13 +46,14 @@ export default function App() {
   const [screen, setScreen] = useState<AuthScreen>(() => {
     try {
       const savedSession = localStorage.getItem('metaforge_session_active')
-      return savedSession === 'true' ? 'app' : 'role-select'
+      return savedSession === 'true' ? 'app' : 'landing'
     } catch {
-      return 'role-select'
+      return 'landing'
     }
   })
 
   const [loginRole, setLoginRole] = useState<Role>(role)
+  const [recoveryEmail, setRecoveryEmail] = useState('')
   const [activeNav, setActiveNav] = useState<string>(() => {
     try {
       const savedNav = localStorage.getItem('metaforge_active_nav')
@@ -94,8 +99,23 @@ export default function App() {
     } catch (e) {
       // ignore
     }
-    setScreen('role-select')
+    setScreen('landing')
     setActiveNav('Requirements')
+  }
+
+  /** Shared post-authentication handoff used by every sign-in surface. */
+  const handleAuthenticated = (r: Role) => {
+    setRole(r)
+    const defaultNav = (r === 'superadmin' || r === 'devteam' || r === 'admin' || r === 'lead') ? 'Requirements' : 'Dashboard'
+    try {
+      localStorage.setItem('metaforge_session_active', 'true')
+      localStorage.setItem('metaforge_user_role', r)
+      localStorage.setItem('metaforge_active_nav', defaultNav)
+    } catch (e) {
+      // ignore
+    }
+    setActiveNav(defaultNav)
+    setScreen('app')
   }
 
   const handleNavSelect = (nav: string) => {
@@ -152,6 +172,38 @@ export default function App() {
     setIsCandidateDetailOpen(true)
   }
 
+  if (screen === 'landing') {
+    return (
+      <LandingPage
+        onSignIn={() => setScreen('signin')}
+        onRequestAccess={() => setScreen('signup')}
+      />
+    )
+  }
+
+  if (screen === 'signin') {
+    return (
+      <SignInPage
+        onLogin={handleAuthenticated}
+        onForgot={email => {
+          setRecoveryEmail(email || '')
+          setScreen('password-recovery')
+        }}
+        onSignup={() => setScreen('signup')}
+        onBack={() => setScreen('landing')}
+        onRolePortals={() => setScreen('role-select')}
+      />
+    )
+  }
+
+  if (screen === 'signup') {
+    return <SignUpPage onBack={() => setScreen('signin')} onSubmitted={() => setScreen('signin')} />
+  }
+
+  if (screen === 'password-recovery') {
+    return <PasswordRecoveryFlow initialEmail={recoveryEmail} onExit={() => setScreen('signin')} />
+  }
+
   if (screen === 'role-select') {
     return (
       <RoleSelectPage
@@ -159,6 +211,7 @@ export default function App() {
           setLoginRole(r)
           setScreen('role-login')
         }}
+        onBack={() => setScreen('signin')}
       />
     )
   }
@@ -167,19 +220,7 @@ export default function App() {
     return (
       <RoleLoginPage
         role={loginRole}
-        onLogin={r => {
-          setRole(r)
-          const defaultNav = (r === 'superadmin' || r === 'devteam' || r === 'admin' || r === 'lead') ? 'Requirements' : 'Dashboard'
-          try {
-            localStorage.setItem('metaforge_session_active', 'true')
-            localStorage.setItem('metaforge_user_role', r)
-            localStorage.setItem('metaforge_active_nav', defaultNav)
-          } catch (e) {
-            // ignore
-          }
-          setActiveNav(defaultNav)
-          setScreen('app')
-        }}
+        onLogin={handleAuthenticated}
         onBack={() => setScreen('role-select')}
         onForgot={() => setScreen('forgot')}
       />

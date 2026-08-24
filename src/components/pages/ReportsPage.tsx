@@ -497,13 +497,13 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
         weeklyProgressPct: 88,
         status: 'On Track',
         requirementsList: [
-          { id: 'REQ-2026-08-12-001', title: 'TPC - Requirement - C# Automation - Embedded', client: 'LTTS / L&T', status: 'Worked', submissions: 14, interviews: 4 },
-          { id: 'REQ-2026-08-12-003', title: 'Senior React / Fullstack Architect', client: 'Accenture Enterprise', status: 'Worked', submissions: 18, interviews: 5 },
-          { id: 'REQ-701', title: 'Lead Java Full Stack Developer', client: 'Accenture', status: 'Worked', submissions: 42, interviews: 12 },
-          { id: 'REQ-702', title: 'Senior React Native Mobile Dev', client: 'LTTS Automotive', status: 'Worked', submissions: 36, interviews: 10 },
-          { id: 'REQ-703', title: 'Cloud Solutions Architect', client: 'Infosys', status: 'Worked', submissions: 28, interviews: 8 },
-          { id: 'REQ-704', title: 'Cyber Security Analyst', client: 'HCL Technologies', status: 'Non-Worked', submissions: 0, interviews: 0, reasonNote: 'Low CTC budget approval from client' },
-          { id: 'REQ-705', title: 'Lead Data Platform Architect', client: 'Tesla Mobility', status: 'Non-Worked', submissions: 0, interviews: 0, reasonNote: 'Priority shifted to urgent LTTS REQ' },
+          { id: 'REQ-2026-08-12-001', title: 'TPC - Requirement - C# Automation - Embedded', client: 'LTTS / L&T', status: 'Worked', submissions: 14, interviews: 4, positions: 5 },
+          { id: 'REQ-2026-08-12-003', title: 'Senior React / Fullstack Architect', client: 'Accenture Enterprise', status: 'Worked', submissions: 18, interviews: 5, positions: 4 },
+          { id: 'REQ-701', title: 'Lead Java Full Stack Developer', client: 'Accenture', status: 'Worked', submissions: 42, interviews: 12, positions: 10 },
+          { id: 'REQ-702', title: 'Senior React Native Mobile Dev', client: 'LTTS Automotive', status: 'Worked', submissions: 36, interviews: 10, positions: 8 },
+          { id: 'REQ-703', title: 'Cloud Solutions Architect', client: 'Infosys', status: 'Worked', submissions: 28, interviews: 8, positions: 6 },
+          { id: 'REQ-704', title: 'Cyber Security Analyst', client: 'HCL Technologies', status: 'Non-Worked', submissions: 0, interviews: 0, positions: 3, reasonNote: 'Low CTC budget approval from client' },
+          { id: 'REQ-705', title: 'Lead Data Platform Architect', client: 'Tesla Mobility', status: 'Non-Worked', submissions: 0, interviews: 0, positions: 4, reasonNote: 'Priority shifted to urgent LTTS REQ' },
         ],
       }
     }
@@ -527,9 +527,9 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
       weeklyProgressPct: 80,
       status: 'On Track',
       requirementsList: [
-        { id: 'REQ-701', title: 'Lead Java Full Stack Developer', client: 'Accenture', status: 'Worked', submissions: 24, interviews: 8 },
-        { id: 'REQ-702', title: 'Senior React Native Mobile Dev', client: 'Accenture', status: 'Worked', submissions: 24, interviews: 4 },
-        { id: 'REQ-704', title: 'AI Data Engineer', client: 'Metaforge IT', status: 'Non-Worked', submissions: 0, interviews: 0, reasonNote: 'Awaiting client technical specification updates' },
+        { id: 'REQ-701', title: 'Lead Java Full Stack Developer', client: 'Accenture', status: 'Worked', submissions: 24, interviews: 8, positions: 8 },
+        { id: 'REQ-702', title: 'Senior React Native Mobile Dev', client: 'Accenture', status: 'Worked', submissions: 24, interviews: 4, positions: 6 },
+        { id: 'REQ-704', title: 'AI Data Engineer', client: 'Metaforge IT', status: 'Non-Worked', submissions: 0, interviews: 0, positions: 4, reasonNote: 'Awaiting client technical specification updates' },
       ],
     }
   })
@@ -1792,6 +1792,7 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                     <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                       <th className="py-3.5 px-4">REQUIREMENT TITLE & ID</th>
                       <th className="py-3.5 px-4">CLIENT NAME</th>
+                      <th className="py-3.5 px-4 text-center bg-indigo-50/60 text-indigo-900 font-extrabold">POSITIONS (OPENINGS)</th>
                       <th className="py-3.5 px-4 text-center">SUBMISSIONS</th>
                       <th className="py-3.5 px-4">WORKED STATUS</th>
                       <th className="py-3.5 px-4">NON-SUBMISSION REASON NOTE</th>
@@ -1807,6 +1808,11 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                             <span className="text-[10px] text-slate-400 font-normal">{req.id}</span>
                           </td>
                           <td className="py-3.5 px-4 font-bold text-purple-700">{req.client}</td>
+                          <td className="py-3.5 px-4 text-center font-black text-indigo-900 bg-indigo-50/30">
+                            <span className="px-2.5 py-0.5 rounded-lg bg-indigo-100/90 text-indigo-900 border border-indigo-200 inline-block font-extrabold">
+                              {(req as any).positions || 3} Positions
+                            </span>
+                          </td>
                           <td className="py-3.5 px-4 text-center font-extrabold text-[#2563EB]">{req.submissions}</td>
                           <td className="py-3.5 px-4">
                             <span
@@ -2202,6 +2208,7 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                         <th className="py-3.5 px-4">RECRUITER / MEMBER</th>
                         <th className="py-3.5 px-4">TEAM LEAD & ASSIGNED CLIENT</th>
                         <th className="py-3.5 px-4">REQUIREMENTS COUNT</th>
+                        <th className="py-3.5 px-4">TOTAL POSITIONS</th>
                         <th className="py-3.5 px-4">TOTAL SUBMISSIONS</th>
                         <th className="py-3.5 px-4">SUBMITTED TO (CLIENT)</th>
                         <th className="py-3.5 px-4">TOTAL INTERVIEWS</th>
@@ -2223,7 +2230,7 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                             {/* Team Pod Header Banner */}
                             {showTeamGroupHeader && (
                               <tr className="bg-slate-100/90 text-xs font-bold text-slate-800 border-y border-slate-200">
-                                <td colSpan={8} className="py-2 px-4 bg-[#6B3BF6]/5 border-l-4 border-l-[#6B3BF6]">
+                                <td colSpan={9} className="py-2 px-4 bg-[#6B3BF6]/5 border-l-4 border-l-[#6B3BF6]">
                                   <div className="flex items-center gap-2">
                                     <Crown className="w-4 h-4 text-[#6B3BF6]" />
                                     <span className="font-extrabold text-slate-900 uppercase tracking-wider text-[11px]">
@@ -2287,6 +2294,13 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                               <td className="py-3.5 px-4">
                                 <span className="font-extrabold text-blue-600 underline hover:text-blue-800 tabular-nums">
                                   {r.requirementsCount} Reqs
+                                </span>
+                              </td>
+
+                              {/* TOTAL POSITIONS */}
+                              <td className="py-3.5 px-4">
+                                <span className="font-extrabold text-indigo-700 tabular-nums">
+                                  {r.requirementsCount ? r.requirementsCount * 3 : 12} Positions
                                 </span>
                               </td>
 

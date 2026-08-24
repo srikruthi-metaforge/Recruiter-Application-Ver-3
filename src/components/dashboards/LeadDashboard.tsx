@@ -156,6 +156,7 @@ export function LeadDashboard({ recruiters, requirements, interviews, onOpenSubm
           <CandidateRepositoryPage
             candidates={candidatesList}
             requirements={requirements}
+            role="lead"
             onOpenAddForm={() => setCandViewMode('add')}
             onBackToDashboard={() => setCandViewMode('add')}
           />

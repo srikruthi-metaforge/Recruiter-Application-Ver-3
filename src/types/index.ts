@@ -1,6 +1,14 @@
 export type Role = 'superadmin' | 'admin' | 'lead' | 'recruiter' | 'devteam' | 'client'
 
-export type AuthScreen = 'role-select' | 'role-login' | 'forgot' | 'app'
+export type AuthScreen =
+  | 'landing'
+  | 'signin'
+  | 'signup'
+  | 'password-recovery'
+  | 'role-select'
+  | 'role-login'
+  | 'forgot'
+  | 'app'
 
 export type Priority = 'High' | 'Medium' | 'Low'
 export type ReqStatus = 'Active' | 'On Hold' | 'Closed'

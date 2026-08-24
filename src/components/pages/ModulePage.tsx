@@ -141,6 +141,7 @@ export function ModulePage({
           candidates={candidatesList}
           requirements={requirements}
           selectedReqId={selectedReqId}
+          role={role}
           onOpenAddForm={() => handleCandidateViewModeChange('add')}
           onSelectRequirement={onSelectRequirement}
           onBackToDashboard={() => handleCandidateViewModeChange('add')}

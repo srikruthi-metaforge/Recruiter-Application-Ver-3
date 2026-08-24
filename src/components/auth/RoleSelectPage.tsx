@@ -1,11 +1,13 @@
 import React from 'react'
-import { Shield, UserCheck, Users, User, ArrowRight, Building2, Terminal, Sparkles, CheckCircle2, ShieldCheck } from 'lucide-react'
+import { Shield, UserCheck, Users, User, ArrowLeft, ArrowRight, Building2, Terminal, Sparkles, CheckCircle2, ShieldCheck } from 'lucide-react'
 import { Role } from '../../types'
 import { brand, roleTheme } from '../../theme'
 import { MetaforgeLogo } from '../common/MetaforgeLogo'
 
 interface RoleSelectPageProps {
   onSelectRole: (role: Role) => void
+  /** Optional — renders a "back to sign in" affordance when provided */
+  onBack?: () => void
 }
 
 const ROLES: { role: Role; icon: React.ElementType; tag: string }[] = [
@@ -16,7 +18,7 @@ const ROLES: { role: Role; icon: React.ElementType; tag: string }[] = [
   { role: 'devteam', icon: Terminal, tag: 'Engineering' },
 ]
 
-export function RoleSelectPage({ onSelectRole }: RoleSelectPageProps) {
+export function RoleSelectPage({ onSelectRole, onBack }: RoleSelectPageProps) {
   return (
     <div className="min-h-screen flex bg-slate-50 overflow-x-hidden font-sans">
       {/* Left panel - Unified Deep Navy Showcase */}
@@ -35,6 +37,15 @@ export function RoleSelectPage({ onSelectRole }: RoleSelectPageProps) {
         <div className="absolute bottom-[-10%] right-[-10%] w-[420px] h-[420px] bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col h-full px-10 xl:px-14 py-12">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 hover:text-white text-xs font-mono transition-all mb-10 border border-white/10 w-max cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to sign in
+            </button>
+          )}
+
           {/* Logo */}
           <div className="flex items-center gap-3 mb-12">
             <MetaforgeLogo variant="light" size="lg" />
@@ -89,6 +100,15 @@ export function RoleSelectPage({ onSelectRole }: RoleSelectPageProps) {
       {/* Right Content - Spacious Role Selector */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-14 bg-slate-50 relative overflow-y-auto">
         <div className="w-full max-w-xl xl:max-w-2xl my-auto">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="lg:hidden inline-flex items-center gap-2 text-xs font-mono text-slate-600 hover:text-slate-900 mb-5 transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to sign in
+            </button>
+          )}
+
           {/* Mobile Header */}
           <div className="flex items-center gap-3 mb-8 lg:hidden">
             <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold font-mono text-sm shadow-md">

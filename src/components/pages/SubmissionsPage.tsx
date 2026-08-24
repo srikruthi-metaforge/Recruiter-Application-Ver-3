@@ -462,19 +462,7 @@ export function SubmissionsPage({
           </p>
         </div>
 
-        <div>
-          <button
-            type="button"
-            onClick={() => {
-              setTargetSubForInterview(null)
-              setIsScheduleModalOpen(true)
-            }}
-            className="px-4 py-2.5 bg-[#6B3BF6] hover:bg-[#5B51D8] text-white rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 shadow-md active:scale-95"
-          >
-            <Calendar className="w-4 h-4 text-white" />
-            <span>Schedule New Interview</span>
-          </button>
-        </div>
+
       </div>
 
       {/* 2. Unified Minimal KPI Cards */}
@@ -672,13 +660,12 @@ export function SubmissionsPage({
                 <th className="py-3.5 px-4">SUBMITTED TO (CLIENT)</th>
                 <th className="py-3.5 px-4">STATUS</th>
                 <th className="py-3.5 px-4">REASON FOR REJECTION</th>
-                <th className="py-3.5 px-4 text-right">ACTION</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
               {paginatedSubmissions.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
                     <p className="font-bold text-sm">No candidate submissions found</p>
                     <p className="text-xs mt-1">Try adjusting your search query or date range filter above</p>
                   </td>
@@ -777,21 +764,6 @@ export function SubmissionsPage({
                       ) : (
                         <span className="text-slate-400 font-normal text-xs">—</span>
                       )}
-                    </td>
-
-                    {/* 8. ACTION */}
-                    <td className="py-4 px-4 text-right whitespace-nowrap">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setTargetSubForInterview(sub)
-                          setIsScheduleModalOpen(true)
-                        }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#EEF2FF] hover:bg-[#6B3BF6] text-[#5B51D8] hover:text-white border border-[#C7D2FE] hover:border-[#6B3BF6] rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-95"
-                      >
-                        <Calendar className="w-3.5 h-3.5" />
-                        <span>Schedule Interview</span>
-                      </button>
                     </td>
                   </tr>
                 ))
