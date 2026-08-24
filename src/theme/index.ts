@@ -152,6 +152,15 @@ export const roleTheme: Record<
     accentDark: '#5B21B6',
     gradient: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)',
   },
+  client: {
+    label: 'Client',
+    portalTitle: 'Client Portal',
+    portalDesc: 'Review active requirements, candidate submissions, and interview feedback.',
+    accent: '#D97706',
+    accentLight: '#FEF3C7',
+    accentDark: '#B45309',
+    gradient: 'linear-gradient(135deg, #D97706 0%, #F59E0B 100%)',
+  },
 }
 
 // Legacy helper — prefer ROLE_NAV from config/navigation.ts

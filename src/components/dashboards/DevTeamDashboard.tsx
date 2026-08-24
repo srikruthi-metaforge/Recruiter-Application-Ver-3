@@ -366,6 +366,7 @@ export function DevTeamDashboard({
               candidates={candidatesList}
               requirements={requirements}
               onOpenAddForm={() => setCandViewMode('add')}
+              onBackToDashboard={() => setCandViewMode('add')}
             />
           ) : (
             <AddCandidatePage

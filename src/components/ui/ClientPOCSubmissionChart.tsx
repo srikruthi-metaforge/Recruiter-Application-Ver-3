@@ -40,8 +40,17 @@ const LEAD_CLIENT_POC_DATA: ClientPOCMetric[] = [
   { pocName: 'LTTS Automotive Desk', submissions: 46, totalRequirements: 14 },
 ]
 
+// Recruiter personal client POC data (Marcus Chen / Logged-in Recruiter)
+const RECRUITER_PERSONAL_CLIENT_POC_DATA: ClientPOCMetric[] = [
+  { pocName: 'Accenture Enterprise (Marcus)', submissions: 24, totalRequirements: 6 },
+  { pocName: 'Goldman Sachs Tech (Marcus)', submissions: 16, totalRequirements: 4 },
+  { pocName: 'Tesla Mobility (Marcus)', submissions: 9, totalRequirements: 2 },
+  { pocName: 'LTTS / L&T (Marcus)', submissions: 5, totalRequirements: 2 },
+]
+
 interface ClientPOCSubmissionChartProps {
   role?: Role
+  recruiterName?: string
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -69,24 +78,61 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null
 }
 
-export function ClientPOCSubmissionChart({ role }: ClientPOCSubmissionChartProps) {
-  const data = role === 'lead' ? LEAD_CLIENT_POC_DATA : CLIENT_POC_DATA
+export function ClientPOCSubmissionChart({ role = 'recruiter', recruiterName = 'Marcus Chen' }: ClientPOCSubmissionChartProps) {
+  const [leadChartView, setLeadChartView] = useState<'individual' | 'team'>('individual')
+  const data = leadChartView === 'individual'
+    ? LEAD_CLIENT_POC_DATA 
+    : CLIENT_POC_DATA
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-5 font-sans">
       {/* 1. TITLE HEADER */}
-      <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#2563EB]">
             <UserCheck className="w-4 h-4" />
           </div>
-          <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
-            Client POC: Submissions vs Total Requirements
-          </h2>
+          <div>
+            <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
+              {role === 'lead'
+                ? leadChartView === 'individual'
+                  ? 'Lead Individual Client POC: Submissions vs Total Requirements'
+                  : 'Team Members Comparison: Client POC Analytics'
+                : 'Client POC: Submissions vs Total Requirements'}
+            </h2>
+            <p className="text-xs text-slate-500">
+              {role === 'lead'
+                ? leadChartView === 'individual'
+                  ? 'Client POC submission breakdown for Harish Gadipally'
+                  : 'Client POC submission comparison across team members'
+                : 'Client POC submission breakdown'}
+            </p>
+          </div>
         </div>
-        <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold border border-slate-200">
-          Client POC Breakdown (10 POCs)
-        </span>
+
+        {/* Lead View Mode Toggle (Lead Only) */}
+        {role === 'lead' && (
+          <div className="flex items-center gap-1 p-1 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setLeadChartView('individual')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                leadChartView === 'individual' ? 'bg-[#6B3BF6] text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-slate-200/60'
+              }`}
+            >
+              Lead Individual Performance
+            </button>
+            <button
+              type="button"
+              onClick={() => setLeadChartView('team')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                leadChartView === 'team' ? 'bg-blue-600 text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-slate-200/60'
+              }`}
+            >
+              Team Members Comparison
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 2. GRID LAYOUT: EXCEL TABLE + HORIZONTAL BAR GRAPH */}

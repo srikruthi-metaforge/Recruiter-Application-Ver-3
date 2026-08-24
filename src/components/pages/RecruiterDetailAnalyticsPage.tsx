@@ -76,11 +76,13 @@ export interface RecruiterDetailData {
 interface RecruiterDetailAnalyticsPageProps {
   recruiter: RecruiterDetailData
   onBack: () => void
+  userRole?: string
 }
 
 export function RecruiterDetailAnalyticsPage({
   recruiter: initialRecruiter,
   onBack,
+  userRole = 'recruiter',
 }: RecruiterDetailAnalyticsPageProps) {
   const [recruiter, setRecruiter] = useState<RecruiterDetailData>(initialRecruiter)
   const [activeTab, setActiveTab] = useState<'requirements' | 'submissions'>('requirements')
@@ -163,15 +165,17 @@ export function RecruiterDetailAnalyticsPage({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => showToast(`Exporting ${recruiter.name} Detailed Performance Report...`)}
-            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-2xs transition-all flex items-center gap-2 cursor-pointer active:scale-98"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export Recruiter CSV</span>
-          </button>
-        </div>
+        {userRole !== 'recruiter' && userRole !== 'lead' && userRole !== 'admin' && (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => showToast(`Exporting ${recruiter.name} Detailed Performance Report...`)}
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-2xs transition-all flex items-center gap-2 cursor-pointer active:scale-98"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export Recruiter CSV</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 2. TOP SUMMARY KPI CARDS */}
@@ -509,6 +513,17 @@ export function RecruiterDetailAnalyticsPage({
                     onChange={e => setEndDate(e.target.value)}
                     className="bg-white border border-slate-200 rounded-lg px-2 py-0.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#6B3BF6]"
                   />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStartDate('')
+                      setEndDate('')
+                      setDateFilter('this_month')
+                    }}
+                    className="px-2 py-0.5 text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors cursor-pointer shrink-0 ml-1"
+                  >
+                    Clear filter
+                  </button>
                 </div>
               )}
             </div>

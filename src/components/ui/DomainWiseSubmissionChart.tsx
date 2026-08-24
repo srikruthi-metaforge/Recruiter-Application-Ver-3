@@ -62,24 +62,65 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null
 }
 
-export function DomainWiseSubmissionChart() {
+import { Role } from '../../types'
+
+export interface DomainWiseSubmissionChartProps {
+  role?: Role
+}
+
+export function DomainWiseSubmissionChart({ role = 'lead' }: DomainWiseSubmissionChartProps) {
+  const [leadChartView, setLeadChartView] = useState<'individual' | 'team'>('individual')
   const [data] = useState<DomainMetric[]>(DOMAIN_WISE_DATA)
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-5 font-sans">
       {/* 1. TITLE HEADER */}
-      <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-[#6B3BF6]">
             <Layers className="w-4 h-4" />
           </div>
-          <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
-            Domain / Department — Submission Analysis
-          </h2>
+          <div>
+            <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
+              {role === 'lead'
+                ? leadChartView === 'individual'
+                  ? 'Lead Individual Domain Breakdown: Submissions & Reqs'
+                  : 'Team Members Comparison: Domain / Department Submission Analysis'
+                : 'Domain / Department — Submission Analysis'}
+            </h2>
+            <p className="text-xs text-slate-500">
+              {role === 'lead'
+                ? leadChartView === 'individual'
+                  ? 'Department breakdown for Harish Gadipally (Team Lead Individual)'
+                  : 'Department submission analysis across team recruiters'
+                : 'Department submission analysis'}
+            </p>
+          </div>
         </div>
-        <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold border border-slate-200">
-          Domain Breakdown (16 Domains)
-        </span>
+
+        {/* Lead View Mode Toggle (Lead Only) */}
+        {role === 'lead' && (
+          <div className="flex items-center gap-1 p-1 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setLeadChartView('individual')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                leadChartView === 'individual' ? 'bg-[#6B3BF6] text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-slate-200/60'
+              }`}
+            >
+              Lead Individual Performance
+            </button>
+            <button
+              type="button"
+              onClick={() => setLeadChartView('team')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                leadChartView === 'team' ? 'bg-blue-600 text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-slate-200/60'
+              }`}
+            >
+              Team Members Comparison
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 2. GRID LAYOUT: EXCEL TABLE + HORIZONTAL BAR GRAPH */}

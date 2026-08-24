@@ -34,27 +34,69 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null
 }
 
-export function RequirementCoverageChart() {
-  const withSubmission = 164
-  const noSubmission = 122
+import { useState } from 'react'
+import { Role } from '../../types'
+
+export interface RequirementCoverageChartProps {
+  role?: Role
+}
+
+export function RequirementCoverageChart({ role = 'lead' }: RequirementCoverageChartProps) {
+  const [leadChartView, setLeadChartView] = useState<'individual' | 'team'>('individual')
+  const withSubmission = leadChartView === 'individual' ? 24 : 164
+  const noSubmission = leadChartView === 'individual' ? 6 : 122
   const total = withSubmission + noSubmission
   const withPct = ((withSubmission / total) * 100).toFixed(1)
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-5 font-sans">
       {/* Title Header */}
-      <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#2563EB]">
             <PieIcon className="w-4 h-4" />
           </div>
-          <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
-            Requirement Coverage: With vs Without Submission
-          </h2>
+          <div>
+            <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
+              {role === 'lead'
+                ? leadChartView === 'individual'
+                  ? 'Lead Individual Coverage: Worked vs Non-Worked Requirements'
+                  : 'Team Members Comparison: Requirement Coverage Breakdown'
+                : 'Requirement Coverage: With vs Without Submission'}
+            </h2>
+            <p className="text-xs text-slate-500">
+              {role === 'lead'
+                ? leadChartView === 'individual'
+                  ? 'Assigned requirement coverage for Harish Gadipally (Team Lead Individual)'
+                  : 'Requirement coverage metrics across team recruiters'
+                : 'Requirement coverage breakdown'}
+            </p>
+          </div>
         </div>
-        <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold border border-slate-200">
-          Total Requirements: {total}
-        </span>
+
+        {/* Lead View Mode Toggle (Lead Only) */}
+        {role === 'lead' && (
+          <div className="flex items-center gap-1 p-1 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setLeadChartView('individual')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                leadChartView === 'individual' ? 'bg-[#6B3BF6] text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-slate-200/60'
+              }`}
+            >
+              Lead Individual Performance
+            </button>
+            <button
+              type="button"
+              onClick={() => setLeadChartView('team')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                leadChartView === 'team' ? 'bg-blue-600 text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-slate-200/60'
+              }`}
+            >
+              Team Members Comparison
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Grid: Excel Table (Left) + Recharts Donut/Pie Chart (Right) */}

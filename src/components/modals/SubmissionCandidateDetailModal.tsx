@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { ArrowLeft, X, Lock, ExternalLink } from 'lucide-react'
+import { Role } from '../../types'
 
 export interface SubmissionCandidateDetailModalProps {
   submission: any | null
+  role?: Role
   onClose: () => void
   onViewFullProfile?: (sub: any) => void
   onBackToRequirement?: () => void
@@ -12,6 +14,7 @@ export interface SubmissionCandidateDetailModalProps {
 
 export function SubmissionCandidateDetailModal({
   submission,
+  role = 'recruiter',
   onClose,
   onViewFullProfile,
   onBackToRequirement,
@@ -110,16 +113,18 @@ export function SubmissionCandidateDetailModal({
           >
             Feedback
           </button>
-          <button
-            onClick={() => setActiveTab('activity')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              activeTab === 'activity'
-                ? 'bg-[#0F172A] text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
-            }`}
-          >
-            Activity
-          </button>
+          {role !== 'recruiter' && (
+            <button
+              onClick={() => setActiveTab('activity')}
+              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === 'activity'
+                  ? 'bg-[#0F172A] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+              }`}
+            >
+              Activity
+            </button>
+          )}
           <button
             onClick={() => setActiveTab('communication')}
             className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${

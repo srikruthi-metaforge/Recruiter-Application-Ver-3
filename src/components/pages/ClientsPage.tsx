@@ -35,9 +35,11 @@ import {
   Printer,
   Share2,
   ChevronDown,
+  Sparkles,
 } from 'lucide-react'
 import { Role } from '../../types'
 import { PaginationFooter } from '../ui/PaginationFooter'
+import { ClientDeliveryGapAnalysisPage } from './ClientDeliveryGapAnalysisPage'
 
 export interface ClientRecord {
   id: string
@@ -219,6 +221,7 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
   const [clients, setClients] = useState<ClientRecord[]>(INITIAL_CLIENTS)
   const [viewMode, setViewMode] = useState<'list' | 'add' | 'view_agreement'>('list')
   const [selectedClientForAgreement, setSelectedClientForAgreement] = useState<ClientRecord | null>(null)
+  const [selectedClientForGapAnalysis, setSelectedClientForGapAnalysis] = useState<ClientRecord | null>(null)
   const [activeDropdownClientId, setActiveDropdownClientId] = useState<string | null>(null)
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -295,7 +298,11 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
       pocEmail: newPocEmail.trim() || 'poc@client.com',
       pocPhone: newPocPhone.trim() || '+91 98765 00000',
       location: newLocation.trim(),
+      teamLead: 'Harish Gadipally',
+      teamMemberCount: 2,
+      teamMembers: ['Marcus Chen', 'Priya Sharma'],
       activeReqs: 0,
+      totalSubmissions: 0,
       totalPlacements: 0,
       commercialFee: newCommercialFee,
       paymentTerms: newPaymentTerms,
@@ -317,6 +324,22 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
     setNewPocName('')
     setNewPocEmail('')
     setNewPocPhone('')
+  }
+
+  // Render Client Delivery Gap Analysis Page when client is clicked
+  if (selectedClientForGapAnalysis) {
+    return (
+      <ClientDeliveryGapAnalysisPage
+        clientName={selectedClientForGapAnalysis.name}
+        clientDomain={selectedClientForGapAnalysis.domain}
+        pocName={selectedClientForGapAnalysis.pocName}
+        pocEmail={selectedClientForGapAnalysis.pocEmail}
+        pocPhone={selectedClientForGapAnalysis.pocPhone}
+        teamLead={selectedClientForGapAnalysis.teamLead}
+        role={role}
+        onBack={() => setSelectedClientForGapAnalysis(null)}
+      />
+    )
   }
 
   // -------------------------------------------------------------
@@ -930,16 +953,27 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
               {paginatedClients.map(client => (
-                <tr key={client.id} className="hover:bg-purple-50/30 transition-colors">
+                <tr
+                  key={client.id}
+                  onClick={() => setSelectedClientForGapAnalysis(client)}
+                  className="hover:bg-purple-50/40 transition-colors cursor-pointer group"
+                >
                   {/* Column 1: Client Organization */}
                   <td className="py-4 px-4 font-bold text-slate-900">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#6B3BF6] to-[#5833E0] text-white font-extrabold flex items-center justify-center text-sm shrink-0 shadow-2xs">
+                      <div
+                        onClick={() => setSelectedClientForGapAnalysis(client)}
+                        className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#6B3BF6] to-[#5833E0] text-white font-extrabold flex items-center justify-center text-sm shrink-0 shadow-2xs cursor-pointer hover:scale-105 transition-transform"
+                        title="View Client Delivery Gap Analysis"
+                      >
                         {client.name.charAt(0)}
                       </div>
                       <div>
-                        <div className="text-slate-900 font-extrabold text-xs flex items-center gap-1.5">
-                          <span>{client.name}</span>
+                        <div
+                          onClick={() => setSelectedClientForGapAnalysis(client)}
+                          className="text-slate-900 font-extrabold text-xs flex items-center gap-1.5 cursor-pointer hover:text-[#6B3BF6] transition-colors group"
+                        >
+                          <span className="group-hover:underline">{client.name}</span>
                           <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-blue-50 text-blue-800 border border-blue-200">
                             {client.id}
                           </span>
@@ -964,7 +998,10 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
                     <div className="relative">
                       <button
                         type="button"
-                        onClick={() => setActiveDropdownClientId(activeDropdownClientId === client.id ? null : client.id)}
+                        onClick={e => {
+                          e.stopPropagation()
+                          setActiveDropdownClientId(activeDropdownClientId === client.id ? null : client.id)
+                        }}
                         className={`px-3 py-1.5 rounded-xl border text-xs font-extrabold cursor-pointer transition-all flex items-center justify-between gap-2 shadow-2xs ${
                           activeDropdownClientId === client.id
                             ? 'bg-[#6B3BF6] text-white border-[#5833E0] ring-2 ring-[#6B3BF6]/20'
@@ -985,10 +1022,16 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
                           {/* Backdrop overlay to close */}
                           <div
                             className="fixed inset-0 z-40"
-                            onClick={() => setActiveDropdownClientId(null)}
+                            onClick={e => {
+                              e.stopPropagation()
+                              setActiveDropdownClientId(null)
+                            }}
                           />
 
-                          <div className="absolute left-0 top-full mt-1.5 w-64 bg-white rounded-2xl border border-slate-200 shadow-xl z-50 p-3 space-y-2 font-sans animate-in fade-in zoom-in-95 duration-150">
+                          <div
+                            className="absolute left-0 top-full mt-1.5 w-64 bg-white rounded-2xl border border-slate-200 shadow-xl z-50 p-3 space-y-2 font-sans animate-in fade-in zoom-in-95 duration-150"
+                            onClick={e => e.stopPropagation()}
+                          >
                             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                               <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1">
                                 <Users className="w-3 h-3 text-[#6B3BF6]" />
@@ -1051,14 +1094,17 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
                   </td>
 
                   {/* Column 7: Actions */}
-                  <td className="py-4 px-4 text-right whitespace-nowrap space-x-2">
-                    {/* FULL-PAGE VIEW AGREEMENT BUTTON */}
+                  <td className="py-4 px-4 text-right whitespace-nowrap">
+                    {/* CLIENT DELIVERY GAP ANALYSIS BUTTON */}
                     <button
-                      onClick={() => openAgreementPage(client)}
-                      className="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#6B3BF6] font-extrabold cursor-pointer inline-flex items-center gap-1.5 text-xs border border-purple-200 shadow-2xs transition-all active:scale-98"
+                      onClick={e => {
+                        e.stopPropagation()
+                        setSelectedClientForGapAnalysis(client)
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl bg-[#6B3BF6] hover:bg-[#5833E0] text-white font-extrabold cursor-pointer inline-flex items-center gap-1.5 text-xs shadow-2xs transition-all active:scale-98"
                     >
-                      <FileText className="w-3.5 h-3.5 text-[#6B3BF6]" />
-                      <span>View MSA Agreement</span>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Gap Analysis</span>
                     </button>
                   </td>
                 </tr>

@@ -170,6 +170,105 @@ const DEFAULT_SCHEDULE_ROWS: ScheduleRowItem[] = [
     status: 'Completed',
     requirementId: 'REQ-2026-08-07-006',
   },
+  {
+    id: '8',
+    candidateName: 'Pritish Malik',
+    position: 'C# Automation - Bangalore/Mysore',
+    company: 'LTTS / L&T',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Harish Gadipally',
+    round: 'Final Round (Cleared - Offer Released)',
+    dateTime: 'Today, 02:30 PM',
+    mode: 'Online',
+    status: 'In Progress',
+    requirementId: 'REQ-003',
+  },
+  {
+    id: '9',
+    candidateName: 'Ananya Deshmukh',
+    position: 'Senior Data Scientist',
+    company: 'Microsoft',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Harish Gadipally',
+    round: 'Final HR Round',
+    dateTime: 'Aug 21, 11:00 AM',
+    mode: 'Online',
+    status: 'In Progress',
+    requirementId: 'REQ-004',
+  },
+  {
+    id: '10',
+    candidateName: 'Rahul Verma',
+    position: 'Salesforce Admin',
+    company: 'Deloitte',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Harish Gadipally',
+    round: 'L2 Technical Evaluation',
+    dateTime: 'Aug 21, 03:00 PM',
+    mode: 'Online',
+    status: 'In Progress',
+    requirementId: 'REQ-005',
+  },
+]
+
+export interface OfferLetterRowItem {
+  id: string
+  candidateName: string
+  position: string
+  client: string
+  requirementId: string
+  offerDate: string
+  offeredCTC: string
+  joiningDate?: string
+  status: 'Offer Released' | 'Accepted' | 'Declined' | 'Joined'
+  declineReason?: string
+}
+
+const DEFAULT_OFFER_LETTERS: OfferLetterRowItem[] = [
+  {
+    id: 'off-1',
+    candidateName: 'Pritish Malik',
+    position: 'C# Automation - Bangalore/Mysore',
+    client: 'LTTS / L&T',
+    requirementId: 'REQ-003',
+    offerDate: 'Aug 19, 2026',
+    offeredCTC: '₹22,00,000 PA',
+    joiningDate: 'Sep 01, 2026',
+    status: 'Offer Released',
+  },
+  {
+    id: 'off-2',
+    candidateName: 'Vidyasagar Gade',
+    position: 'Cloud Solutions Architect',
+    client: 'Accenture',
+    requirementId: 'REQ-2026-08-12-003',
+    offerDate: 'Aug 18, 2026',
+    offeredCTC: '₹34,00,000 PA',
+    joiningDate: 'Sep 15, 2026',
+    status: 'Accepted',
+  },
+  {
+    id: 'off-3',
+    candidateName: 'Arpit Srivastav',
+    position: 'Senior React Native Dev',
+    client: 'Accenture',
+    requirementId: 'REQ-2026-08-12-002',
+    offerDate: 'Aug 15, 2026',
+    offeredCTC: '₹26,00,000 PA',
+    joiningDate: 'Aug 25, 2026',
+    status: 'Joined',
+  },
+  {
+    id: 'off-4',
+    candidateName: 'Kanchan Meshram',
+    position: 'AI Solutions Specialist',
+    client: 'Continental Automotive',
+    requirementId: 'REQ-2026-08-12-006',
+    offerDate: 'Aug 12, 2026',
+    offeredCTC: '₹28,00,000 PA',
+    declineReason: 'Competing offer with higher compensation',
+    status: 'Declined',
+  },
 ]
 
 const DEFAULT_FINAL_DECISIONS: FinalDecisionRowItem[] = [
@@ -232,6 +331,7 @@ export function InterviewTrackingPage({
   // Tables State
   const [scheduleList, setScheduleList] = useState<ScheduleRowItem[]>(DEFAULT_SCHEDULE_ROWS)
   const [finalDecisions, setFinalDecisions] = useState<FinalDecisionRowItem[]>(DEFAULT_FINAL_DECISIONS)
+  const [offerLetters, setOfferLetters] = useState<OfferLetterRowItem[]>(DEFAULT_OFFER_LETTERS)
 
   // Modals & Requirement Overview State
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
@@ -310,9 +410,92 @@ export function InterviewTrackingPage({
     return [...scheduleList, ...extras]
   }, [scheduleList, mappedPropInterviews])
 
-  // Filter Schedule Rows
+  // Scope interviews data by role (single recruiter vs organization-wide)
+  const scopeScheduleList = useMemo(() => {
+    if (role === 'recruiter') {
+      return combinedScheduleList.filter(s =>
+        s.submittedBy ? s.submittedBy.toLowerCase().includes('marcus') || s.submittedBy.toLowerCase().includes('recruiter') : true
+      )
+    }
+    return combinedScheduleList
+  }, [combinedScheduleList, role])
+
+  // Scope offer letters by role
+  const scopeOfferLetters = useMemo(() => {
+    if (role === 'recruiter') {
+      return offerLetters.filter(o =>
+        (o as any).submittedBy ? (o as any).submittedBy.toLowerCase().includes('marcus') || (o as any).submittedBy.toLowerCase().includes('recruiter') : true
+      )
+    }
+    return offerLetters
+  }, [offerLetters, role])
+
+  // Scope final decisions by role
+  const scopeFinalDecisions = useMemo(() => {
+    if (role === 'recruiter') {
+      return finalDecisions.filter(d =>
+        d.submittedBy ? d.submittedBy.toLowerCase().includes('marcus') || d.submittedBy.toLowerCase().includes('recruiter') : true
+      )
+    }
+    return finalDecisions
+  }, [finalDecisions, role])
+
+  // Evaluated Schedule List:
+  // 1. Scheduled in future -> Upcoming
+  // 2. Scheduled time arrives / exceeds (e.g. 12:00 PM -> 12:01 PM) -> Auto-transitions to In Progress
+  // 3. Selected / Rejected / Marked Completed -> Completed
+  const evaluatedScheduleList = useMemo(() => {
+    const now = new Date()
+
+    return scopeScheduleList.map(row => {
+      // 1. Explicitly Completed / Selected / Rejected
+      if (
+        row.status === 'Completed' ||
+        (row.status as string) === 'Selected' ||
+        (row.status as string) === 'Rejected'
+      ) {
+        return { ...row, status: 'Completed' as const }
+      }
+
+      // 2. Explicitly In Progress
+      if (row.status === 'In Progress') {
+        return { ...row, status: 'In Progress' as const }
+      }
+
+      // 3. Check if scheduled time has arrived or passed (e.g. scheduled at 12:00 PM & current time >= 12:00 PM)
+      const timeStr = row.dateTime || ''
+
+      if (timeStr.toLowerCase().includes('today')) {
+        const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i)
+        if (match) {
+          let hour = parseInt(match[1], 10)
+          const min = parseInt(match[2], 10)
+          const ampm = match[3].toUpperCase()
+          if (ampm === 'PM' && hour < 12) hour += 12
+          if (ampm === 'AM' && hour === 12) hour = 0
+
+          const schedTime = new Date()
+          schedTime.setHours(hour, min, 0, 0)
+
+          if (now >= schedTime) {
+            return { ...row, status: 'In Progress' as const }
+          }
+        }
+      }
+
+      // Past date check
+      const parsedDate = new Date(timeStr.replace(/-/g, '/'))
+      if (!isNaN(parsedDate.getTime()) && now >= parsedDate) {
+        return { ...row, status: 'In Progress' as const }
+      }
+
+      return { ...row, status: 'Upcoming' as const }
+    })
+  }, [scopeScheduleList])
+
+  // Filter Schedule Rows according to selected statusToggle
   const filteredScheduleList = useMemo(() => {
-    return combinedScheduleList.filter(row => {
+    return evaluatedScheduleList.filter(row => {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim()
         const matchName = row.candidateName.toLowerCase().includes(q)
@@ -323,7 +506,7 @@ export function InterviewTrackingPage({
       }
 
       if (statusToggle === 'upcoming') {
-        return row.status === 'Upcoming' || row.status === 'Scheduled'
+        return (row.status as string) === 'Upcoming' || (row.status as string) === 'Scheduled'
       }
       if (statusToggle === 'in_progress') {
         return row.status === 'In Progress'
@@ -331,10 +514,9 @@ export function InterviewTrackingPage({
       if (statusToggle === 'completed') {
         return row.status === 'Completed'
       }
-      // 'all' shows ALL interviews across all rounds (L1, L2, Technical, HR, Final, etc.) and statuses!
       return true
     })
-  }, [combinedScheduleList, searchQuery, statusToggle])
+  }, [evaluatedScheduleList, searchQuery, statusToggle])
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
@@ -442,6 +624,7 @@ export function InterviewTrackingPage({
     return (
       <RequirementDetailOverview
         requirement={selectedReqDetail}
+        role={role}
         onBack={() => setSelectedReqDetail(null)}
       />
     )
@@ -489,7 +672,7 @@ export function InterviewTrackingPage({
                 statusToggle === 'upcoming' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-900'
               }`}
             >
-              {combinedScheduleList.filter(s => s.status === 'Upcoming' || s.status === 'Scheduled').length}
+              {evaluatedScheduleList.filter(s => (s.status as string) === 'Upcoming' || (s.status as string) === 'Scheduled').length}
             </span>
           </button>
 
@@ -508,7 +691,7 @@ export function InterviewTrackingPage({
                 statusToggle === 'in_progress' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-900'
               }`}
             >
-              {combinedScheduleList.filter(s => s.status === 'In Progress').length}
+              {evaluatedScheduleList.filter(s => s.status === 'In Progress').length}
             </span>
           </button>
 
@@ -527,7 +710,7 @@ export function InterviewTrackingPage({
                 statusToggle === 'completed' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-900'
               }`}
             >
-              {combinedScheduleList.filter(s => s.status === 'Completed').length}
+              {evaluatedScheduleList.filter(s => s.status === 'Completed').length}
             </span>
           </button>
 
@@ -540,7 +723,7 @@ export function InterviewTrackingPage({
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>All ({combinedScheduleList.length})</span>
+            <span>All ({evaluatedScheduleList.length})</span>
           </button>
         </div>
 
@@ -741,7 +924,7 @@ export function InterviewTrackingPage({
                         <td className="px-4 py-4 whitespace-nowrap">
                           <span
                             className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${
-                              row.status === 'Upcoming' || row.status === 'Scheduled'
+                              (row.status as string) === 'Upcoming' || (row.status as string) === 'Scheduled'
                                 ? 'bg-purple-100 text-purple-800 border-purple-200'
                                 : row.status === 'In Progress'
                                 ? 'bg-amber-100 text-amber-800 border-amber-200'
@@ -913,16 +1096,113 @@ export function InterviewTrackingPage({
             <div>
               <h2 className="text-base font-extrabold text-slate-900 tracking-tight">Released offer letter</h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                For offers already <strong className="text-slate-800">released</strong> from the submission page, record if the candidate <strong className="text-slate-800">accepted</strong> (with agreed <strong className="text-slate-800">joining date</strong> for internal records) or <strong className="text-slate-800">declined</strong> (with a reason).
+                For offers released after final round evaluation, track candidate response status, CTC, joining date, or decline reasons for recruiter reference.
               </p>
             </div>
-            <span className="text-xs text-slate-400 font-medium">0 candidate(s)</span>
+            <span className="text-xs font-extrabold text-[#6B3BF6] bg-purple-50 px-3 py-1 rounded-xl border border-purple-200">
+              {scopeOfferLetters.length} candidate(s)
+            </span>
           </div>
 
-          <div className="py-10 text-center text-slate-400 space-y-1">
-            <p className="text-xs font-semibold text-slate-500">
-              No released offer letters yet. When you release an offer on a submission, it will appear here for response tracking.
-            </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-slate-200/80 bg-slate-50/70 text-slate-500 font-bold text-[11px] uppercase tracking-wider">
+                  <th className="px-4 py-3">CANDIDATE NAME</th>
+                  <th className="px-4 py-3">REQUIREMENT & ROLE</th>
+                  <th className="px-4 py-3">CLIENT</th>
+                  <th className="px-4 py-3">OFFER DATE & CTC</th>
+                  <th className="px-4 py-3">JOINING DATE</th>
+                  <th className="px-4 py-3">STATUS</th>
+                  <th className="px-4 py-3 text-right">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                {scopeOfferLetters.map(item => (
+                  <tr key={item.id} className="hover:bg-slate-50/60 transition-colors align-middle">
+                    <td className="px-4 py-3.5 font-extrabold text-slate-900">
+                      {item.candidateName}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span className="text-[10px] font-mono text-blue-600 font-bold block">{item.requirementId}</span>
+                      <span className="text-xs text-slate-800 font-semibold">{item.position}</span>
+                    </td>
+                    <td className="px-4 py-3.5 font-bold text-slate-800">{item.client}</td>
+                    <td className="px-4 py-3.5">
+                      <span className="text-xs text-slate-900 font-bold block">{item.offeredCTC}</span>
+                      <span className="text-[10px] text-slate-400">Released: {item.offerDate}</span>
+                    </td>
+                    <td className="px-4 py-3.5 font-semibold text-slate-700">
+                      {item.joiningDate ? (
+                        <span className="text-emerald-700 font-bold">{item.joiningDate}</span>
+                      ) : (
+                        <span className="text-slate-400 text-[11px] italic">Not set</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      {item.status === 'Offer Released' && (
+                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 inline-block">
+                          Offer Released
+                        </span>
+                      )}
+                      {item.status === 'Accepted' && (
+                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-block">
+                          Accepted
+                        </span>
+                      )}
+                      {item.status === 'Joined' && (
+                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200 inline-block">
+                          Joined
+                        </span>
+                      )}
+                      {item.status === 'Declined' && (
+                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200 inline-block" title={item.declineReason}>
+                          Declined
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3.5 text-right space-x-1.5 whitespace-nowrap">
+                      {item.status === 'Offer Released' && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setOfferLetters(prev => prev.map(o => o.id === item.id ? { ...o, status: 'Accepted', joiningDate: o.joiningDate || 'Sep 10, 2026' } : o))
+                              showToast(`Offer marked as Accepted for ${item.candidateName}`)
+                            }}
+                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg cursor-pointer transition-all"
+                          >
+                            Mark Accepted
+                          </button>
+                          <button
+                            onClick={() => {
+                              setOfferLetters(prev => prev.map(o => o.id === item.id ? { ...o, status: 'Declined', declineReason: 'Candidate declined offer' } : o))
+                              showToast(`Offer marked as Declined for ${item.candidateName}`)
+                            }}
+                            className="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-600 text-[11px] font-bold rounded-lg cursor-pointer transition-all border border-slate-200"
+                          >
+                            Declined
+                          </button>
+                        </>
+                      )}
+                      {item.status === 'Accepted' && (
+                        <button
+                          onClick={() => {
+                            setOfferLetters(prev => prev.map(o => o.id === item.id ? { ...o, status: 'Joined' } : o))
+                            showToast(`${item.candidateName} marked as Joined!`)
+                          }}
+                          className="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-bold rounded-lg cursor-pointer transition-all"
+                        >
+                          Mark Joined
+                        </button>
+                      )}
+                      {(item.status === 'Joined' || item.status === 'Declined') && (
+                        <span className="text-[10px] font-bold text-slate-400">Record Finalized</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

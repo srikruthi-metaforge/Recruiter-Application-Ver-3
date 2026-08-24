@@ -31,6 +31,7 @@ interface RequirementCardsGridProps {
   onCreateNewJobDemand?: () => void
   title?: string
   badgeLabel?: string
+  hideCards?: boolean
 }
 
 export function RequirementCardsGrid({
@@ -42,6 +43,7 @@ export function RequirementCardsGrid({
   onCreateNewJobDemand,
   title = 'Requirements Dashboard',
   badgeLabel,
+  hideCards = false,
 }: RequirementCardsGridProps) {
   // Compute dynamic 8 stats
   const totalReqs = requirements.length
@@ -180,71 +182,62 @@ export function RequirementCardsGrid({
         )}
       </div>
 
-      {activeCardFilter !== 'ALL' && onSelectFilter && (
-        <div className="flex justify-end">
-          <button
-            onClick={() => onSelectFilter('ALL')}
-            className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-md transition-colors"
-          >
-            <RefreshCw className="w-3 h-3" /> Reset Filter
-          </button>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {cards.map(card => {
-          const Icon = card.icon
-          const isActive = activeCardFilter === card.key
-          return (
-            <div
-              key={card.key}
-              onClick={() => {
-                if (onSelectFilter) {
-                  onSelectFilter(isActive ? 'ALL' : card.key)
-                }
-              }}
-              className={`relative group rounded-2xl border p-4 sm:p-5 transition-all duration-200 shadow-sm ${
-                onSelectFilter ? 'cursor-pointer' : ''
-              } ${
-                isActive
-                  ? 'ring-2 ring-blue-500 shadow-md transform -translate-y-0.5'
-                  : 'hover:shadow-md hover:-translate-y-0.5'
-              }`}
-              style={{
-                background: card.bg,
-                borderColor: card.borderColor,
-              }}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <span
-                    className="text-xs sm:text-sm font-semibold text-slate-700 block truncate"
-                    title={card.label}
-                  >
-                    {card.label}
-                  </span>
-                  <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">
-                    {card.value}
-                  </div>
-                </div>
+      {!hideCards && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {cards.map(card => {
+              const Icon = card.icon
+              const isActive = activeCardFilter === card.key
+              return (
                 <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm shrink-0 transition-transform group-hover:scale-105"
-                  style={{ background: card.iconBg }}
+                  key={card.key}
+                  onClick={() => {
+                    if (onSelectFilter) {
+                      onSelectFilter(isActive ? 'ALL' : card.key)
+                    }
+                  }}
+                  className={`relative group rounded-2xl border p-4 sm:p-5 transition-all duration-200 shadow-sm ${
+                    onSelectFilter ? 'cursor-pointer' : ''
+                  } ${
+                    isActive
+                      ? 'ring-2 ring-blue-500 shadow-md transform -translate-y-0.5'
+                      : 'hover:shadow-md hover:-translate-y-0.5'
+                  }`}
+                  style={{
+                    background: card.bg,
+                    borderColor: card.borderColor,
+                  }}
                 >
-                  <Icon className="w-5 h-5 text-white" />
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <span
+                        className="text-xs sm:text-sm font-semibold text-slate-700 block truncate"
+                        title={card.label}
+                      >
+                        {card.label}
+                      </span>
+                      <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">
+                        {card.value}
+                      </div>
+                    </div>
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm shrink-0 transition-transform group-hover:scale-105"
+                      style={{ background: card.iconBg }}
+                    >
+                      <Icon className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                  {onSelectFilter && (
+                    <div className="mt-1 flex justify-end">
+                      <span className="text-[10px] text-slate-500 font-medium">
+                        {isActive ? 'Active Filter' : 'Click to filter'}
+                      </span>
+                    </div>
+                  )}
                 </div>
-              </div>
-              {onSelectFilter && (
-                <div className="mt-1 flex justify-end">
-                  <span className="text-[10px] text-slate-500 font-medium">
-                    {isActive ? 'Active Filter' : 'Click to filter'}
-                  </span>
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
+              )
+            })}
+          </div>
+      )}
     </div>
   )
 }

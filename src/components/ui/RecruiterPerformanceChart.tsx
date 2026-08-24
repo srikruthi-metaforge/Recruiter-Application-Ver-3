@@ -12,7 +12,6 @@ import {
 } from 'recharts'
 import { BarChart3, TrendingUp, Sparkles } from 'lucide-react'
 import { Role } from '../../types'
-import { PlotlyRecruiterPerformanceChart } from './PlotlyRecruiterPerformanceChart'
 
 export interface RecruiterChartMetric {
   name: string
@@ -36,12 +35,28 @@ const ALL_RECRUITERS_DATA: RecruiterChartMetric[] = [
   { name: 'Nithya M.', fullName: 'Nithya Maripelly', totalSubmissions: 1, totalRequirements: 1, firstSubmissions: 1, avgTATDays: 4.0 },
 ]
 
-// Personal monthly performance trend data for logged-in recruiter
+// Personal monthly performance trend data for logged-in recruiter (Marcus Chen)
 const RECRUITER_PERSONAL_TREND_DATA: RecruiterChartMetric[] = [
   { name: 'May 2026', fullName: 'May 2026 Performance', totalSubmissions: 28, totalRequirements: 10, firstSubmissions: 8, avgTATDays: 3.2 },
   { name: 'Jun 2026', fullName: 'June 2026 Performance', totalSubmissions: 36, totalRequirements: 12, firstSubmissions: 10, avgTATDays: 2.8 },
   { name: 'Jul 2026', fullName: 'July 2026 Performance', totalSubmissions: 42, totalRequirements: 14, firstSubmissions: 12, avgTATDays: 2.1 },
   { name: 'Aug 2026', fullName: 'August 2026 (MTD)', totalSubmissions: 36, totalRequirements: 9, firstSubmissions: 8, avgTATDays: 1.9 },
+]
+
+// Personal monthly performance trend data for Team Lead (Harish Gadipally)
+const LEAD_PERSONAL_TREND_DATA: RecruiterChartMetric[] = [
+  { name: 'May 2026', fullName: 'May 2026 Performance', totalSubmissions: 34, totalRequirements: 11, firstSubmissions: 12, avgTATDays: 2.4 },
+  { name: 'Jun 2026', fullName: 'June 2026 Performance', totalSubmissions: 40, totalRequirements: 12, firstSubmissions: 14, avgTATDays: 1.8 },
+  { name: 'Jul 2026', fullName: 'July 2026 Performance', totalSubmissions: 42, totalRequirements: 13, firstSubmissions: 15, avgTATDays: 1.4 },
+  { name: 'Aug 2026', fullName: 'August 2026 (MTD)', totalSubmissions: 26, totalRequirements: 9, firstSubmissions: 7, avgTATDays: 1.2 },
+]
+
+// Team Lead's team performance comparison data (Harish Gadipally & team members)
+const LEAD_TEAM_CHART_DATA: RecruiterChartMetric[] = [
+  { name: 'Harish G. (Lead)', fullName: 'Harish Gadipally (Team Lead)', totalSubmissions: 142, totalRequirements: 45, firstSubmissions: 48, avgTATDays: 1.2 },
+  { name: 'Marcus C.', fullName: 'Marcus Chen (Senior Recruiter)', totalSubmissions: 48, totalRequirements: 14, firstSubmissions: 18, avgTATDays: 1.5 },
+  { name: 'Priya S.', fullName: 'Priya Sharma (IT Recruiter)', totalSubmissions: 36, totalRequirements: 12, firstSubmissions: 14, avgTATDays: 1.8 },
+  { name: 'Suresh K.', fullName: 'Suresh kulkarni (Recruiter)', totalSubmissions: 46, totalRequirements: 27, firstSubmissions: 16, avgTATDays: 2.1 },
 ]
 
 interface RecruiterPerformanceChartProps {
@@ -82,80 +97,79 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null
 }
 
-// Team Lead's own team performance data (Harish Gadipally & team members)
-const LEAD_TEAM_CHART_DATA: RecruiterChartMetric[] = [
-  { name: 'Harish G. (Lead)', fullName: 'Harish Gadipally (Team Lead)', totalSubmissions: 142, totalRequirements: 45, firstSubmissions: 48, avgTATDays: 1.2 },
-  { name: 'Marcus C.', fullName: 'Marcus Chen (Senior Recruiter)', totalSubmissions: 48, totalRequirements: 14, firstSubmissions: 18, avgTATDays: 1.5 },
-  { name: 'Priya S.', fullName: 'Priya Sharma (IT Recruiter)', totalSubmissions: 36, totalRequirements: 12, firstSubmissions: 14, avgTATDays: 1.8 },
-  { name: 'Suresh K.', fullName: 'Suresh kulkarni (Recruiter)', totalSubmissions: 46, totalRequirements: 27, firstSubmissions: 16, avgTATDays: 2.1 },
-]
-
 export function RecruiterPerformanceChart({
   role = 'recruiter',
-  recruiterName = 'Harish Gadipally',
+  recruiterName = 'Marcus Chen',
 }: RecruiterPerformanceChartProps) {
-  const [chartEngine, setChartEngine] = useState<'recharts' | 'plotly'>('recharts')
+  const [leadChartView, setLeadChartView] = useState<'individual' | 'team'>('individual')
 
   const chartData = useMemo(() => {
     if (role === 'lead') {
-      return LEAD_TEAM_CHART_DATA
+      return leadChartView === 'individual' ? LEAD_PERSONAL_TREND_DATA : LEAD_TEAM_CHART_DATA
     }
     if (role === 'recruiter') {
       return RECRUITER_PERSONAL_TREND_DATA
     }
     return ALL_RECRUITERS_DATA
-  }, [role])
+  }, [role, leadChartView])
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-5 font-sans">
-      {/* 1. CHART HEADER & ENGINE SWITCHER */}
+      {/* 1. CHART HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
         <div>
           <div className="flex items-center gap-2">
-            {role === 'recruiter' ? (
+            {role === 'recruiter' || (role === 'lead' && leadChartView === 'individual') ? (
               <TrendingUp className="w-5 h-5 text-[#6B3BF6]" />
             ) : (
               <BarChart3 className="w-5 h-5 text-[#2563EB]" />
             )}
             <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-              {role === 'recruiter'
+              {role === 'lead'
+                ? leadChartView === 'individual'
+                  ? `Team Lead Individual Performance Timeline & TAT Trend (${recruiterName || 'Harish Gadipally'})`
+                  : `Team Members Sourcing & Turnaround Comparison`
+                : role === 'recruiter'
                 ? `My Performance Timeline & Turnaround Time Trend (${recruiterName})`
                 : 'Recruiter: Submissions, Requirements & First-Submission TAT Trend'}
             </h2>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            {role === 'recruiter' ? 'Personal performance timeline' : 'Organization-wide recruiter comparison'}
+            {role === 'lead'
+              ? leadChartView === 'individual'
+                ? `Individual monthly performance trend, requirement submissions, and turnaround SLA for ${recruiterName || 'Harish Gadipally'}`
+                : `Sourcing and turnaround comparison across team recruiters.`
+              : role === 'recruiter'
+              ? `Personal performance timeline for ${recruiterName}`
+              : 'Organization-wide recruiter comparison'}
           </p>
         </div>
 
-        {/* Engine Switcher (Recharts vs Plotly) */}
-        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
-          <button
-            onClick={() => setChartEngine('recharts')}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-              chartEngine === 'recharts' ? 'bg-white text-purple-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-            <span>Recharts (SVG)</span>
-          </button>
-          <button
-            onClick={() => setChartEngine('plotly')}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-              chartEngine === 'plotly' ? 'bg-white text-blue-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <BarChart3 className="w-3.5 h-3.5 text-blue-600" />
-            <span>Plotly (Interactive)</span>
-          </button>
-        </div>
+        {/* Lead View Mode Toggle */}
+        {role === 'lead' && (
+          <div className="flex items-center gap-1 p-1 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold">
+            <button
+              onClick={() => setLeadChartView('individual')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                leadChartView === 'individual' ? 'bg-[#6B3BF6] text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-slate-200/60'
+              }`}
+            >
+              Lead Individual Performance
+            </button>
+            <button
+              onClick={() => setLeadChartView('team')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                leadChartView === 'team' ? 'bg-blue-600 text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-slate-200/60'
+              }`}
+            >
+              Team Members Comparison
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* 2. CHART CANVAS ENGINE */}
-      {chartEngine === 'plotly' ? (
-        <PlotlyRecruiterPerformanceChart />
-      ) : (
-        <div className="h-[330px] w-full pt-2">
+      {/* 2. RECHARTS CANVAS */}
+      <div className="h-[330px] w-full pt-2">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
               <defs>
@@ -215,7 +229,6 @@ export function RecruiterPerformanceChart({
             </ComposedChart>
           </ResponsiveContainer>
         </div>
-      )}
     </div>
   )
 }

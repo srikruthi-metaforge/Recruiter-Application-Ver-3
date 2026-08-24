@@ -23,25 +23,10 @@ import {
   Lock,
   Zap,
 } from 'lucide-react'
-import { Role } from '../../types'
+import { Role, ActivityLogItem } from '../../types'
 import { PaginationFooter } from '../ui/PaginationFooter'
 
-export interface ActivityLogItem {
-  id: string
-  timestamp: string
-  userName: string
-  userEmail: string
-  userRole: 'superadmin' | 'admin' | 'lead' | 'recruiter' | 'devteam'
-  userAvatar: string
-  action: string
-  category: 'Submissions' | 'Requirements' | 'User Management' | 'Client Management' | 'Interviews' | 'System & Access'
-  targetEntity: string
-  targetId?: string
-  clientName?: string
-  ipAddress: string
-  status: 'Success' | 'Warning' | 'Security Alert'
-  details?: string
-}
+export type { ActivityLogItem }
 
 const INITIAL_LOGS: ActivityLogItem[] = [
   // 1. TEAM LEAD ACTIONS
@@ -283,10 +268,11 @@ const INITIAL_LOGS: ActivityLogItem[] = [
 
 interface ActivityLogsPageProps {
   role?: Role
+  logs?: ActivityLogItem[]
 }
 
-export function ActivityLogsPage({ role = 'superadmin' }: ActivityLogsPageProps) {
-  const [logsList] = useState<ActivityLogItem[]>(INITIAL_LOGS)
+export function ActivityLogsPage({ role = 'superadmin', logs }: ActivityLogsPageProps) {
+  const logsList = logs && logs.length > 0 ? logs : INITIAL_LOGS
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>('All Roles')
   const [categoryFilter, setCategoryFilter] = useState<string>('All Categories')

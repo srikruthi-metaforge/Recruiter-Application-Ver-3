@@ -91,6 +91,7 @@ const ICONS: Record<string, React.ElementType> = {
   Requirements: ClipboardList,
   Candidates: UserPlus,
   Submissions: Send,
+  'Submission to Client': Send,
   Interviews: Calendar,
   Organization: Building2,
   Users: Users,
@@ -117,10 +118,11 @@ const ICONS: Record<string, React.ElementType> = {
 }
 
 const NAV_LABELS: Record<string, string> = {
-  Dashboard: 'My Work',
+  Dashboard: 'My Workspace',
   Requirements: 'Requirements',
   Candidates: 'Add Candidate',
-  Submissions: 'Submissions',
+  Submissions: 'Total Submissions',
+  'Submission to Client': 'Total Submissions',
   Interviews: 'Interview Tracking',
   Reports: 'Reports',
 }

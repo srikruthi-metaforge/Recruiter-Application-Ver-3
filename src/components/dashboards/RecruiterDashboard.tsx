@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Interview, Requirement, Submission } from '../../types'
 import { RequirementDetailOverview } from '../pages/RequirementDetailOverview'
+import { CandidateRepositoryPage } from '../pages/CandidateRepositoryPage'
 import {
   Send,
   MessageSquare,
@@ -10,6 +11,11 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  UserPlus,
+  ExternalLink,
+  Plus,
+  Briefcase,
+  ArrowUp,
 } from 'lucide-react'
 import { PaginationFooter } from '../ui/PaginationFooter'
 import { PageHeader } from '../layout/PageHeader'
@@ -19,6 +25,7 @@ interface Props {
   interviews: Interview[]
   requirements: Requirement[]
   onOpenSubmitCandidate?: (reqId?: string) => void
+  onOpenCandidateRepo?: (reqId?: string) => void
   onOpenFeedbackModal?: (interview: Interview) => void
   onOpenCandidateDetail?: (sub: Submission) => void
 }
@@ -64,6 +71,7 @@ export function RecruiterDashboard({
   interviews,
   requirements,
   onOpenSubmitCandidate,
+  onOpenCandidateRepo,
   onOpenFeedbackModal,
   onOpenCandidateDetail,
 }: Props) {
@@ -75,11 +83,31 @@ export function RecruiterDashboard({
 
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('Assigned')
+  const [selectedReqIds, setSelectedReqIds] = useState<Set<string>>(new Set())
   const [recentSubmissionsFilter, setRecentSubmissionsFilter] = useState('All Status')
 
   // Pagination state for active requirements table
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+
+  // Inline Candidate Repository & Submission workflow state (kept strictly inside My Work page)
+  const [inlineReqId, setInlineReqId] = useState<string | null>(null)
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg)
+    setTimeout(() => setToastMsg(null), 3500)
+  }
+
+  const handleOpenInlineCandidateRepo = (reqId: string) => {
+    setInlineReqId(reqId)
+    setTimeout(() => {
+      const el = document.getElementById('inline-candidate-repo-section')
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }, 100)
+  }
 
   const recruiterList = [
     { id: '1', name: 'Adirala sathvika', email: 'No email' },
@@ -136,6 +164,7 @@ export function RecruiterDashboard({
       <>
         <RequirementDetailOverview
           requirement={selectedReqForDetail}
+          role="recruiter"
           onBack={() => setSelectedReqForDetail(null)}
           onAddCandidate={() => onOpenSubmitCandidate?.(selectedReqForDetail.id)}
           onOpenAssignModal={() => setIsAssignModalOpen(true)}
@@ -260,9 +289,14 @@ export function RecruiterDashboard({
     )
   }
 
-  // Map requirements prop to table rows or fallback to demo data matching screenshot
-  const activeReqRows: ActiveReqRow[] = requirements.length > 0
-    ? requirements.map(r => ({
+  // Exclude unassigned requirements from My Work page. Requirements appear in My Work ONLY after assignment by Super Admin, Admin, or Lead.
+  const assignedRequirements = requirements.filter(
+    r => r.owner && r.owner !== 'Unassigned' && r.assignmentStatus !== 'Unassigned'
+  )
+
+  // Map assigned requirements to table rows or fallback to active assigned demo data
+  const activeReqRows: ActiveReqRow[] = assignedRequirements.length > 0
+    ? assignedRequirements.map(r => ({
         type: 'Requirement',
         id: r.id,
         name: r.title,
@@ -270,10 +304,13 @@ export function RecruiterDashboard({
         status: r.assignmentStatus || 'Assigned',
         timestamp: r.dueDate ? `${r.dueDate}, 07:29 PM` : 'Jun 19, 2026, 07:29 PM',
       }))
-    : DEFAULT_ACTIVE_REQS
+    : DEFAULT_ACTIVE_REQS.filter(r => r.status !== 'Unassigned')
 
   // Filter requirements by merged searchQuery and statusFilter
   const filteredReqs = activeReqRows.filter(req => {
+    // Explicitly reject any Unassigned requirements
+    if (req.status.toLowerCase() === 'unassigned') return false
+
     const q = searchQuery.trim().toLowerCase()
     const matchesQuery = !q || req.client.toLowerCase().includes(q) || req.id.toLowerCase().includes(q) || req.name.toLowerCase().includes(q)
     
@@ -302,7 +339,7 @@ export function RecruiterDashboard({
     <div className="space-y-8 w-full pb-12 font-sans">
       {/* Header */}
       <PageHeader
-        title="My Work"
+        title="My Workspace"
         subtitle="Your personal assignments, submissions, and daily activity"
       />
 
@@ -364,13 +401,16 @@ export function RecruiterDashboard({
 
       {/* Active Requirements + Submitted Candidates Section */}
       <section className="space-y-4">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900">
-            Active Requirements + Submitted Candidates
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Your open workload across currently active job demands.
-          </p>
+        {/* Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">
+              Active Requirements + Submitted Candidates
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5 font-medium">
+              Your open workload across currently active job demands.
+            </p>
+          </div>
         </div>
 
         {/* Filter Controls */}
@@ -382,7 +422,7 @@ export function RecruiterDashboard({
               placeholder="Search by client or requirement ID..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
+              className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200/90 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] transition-all placeholder:text-slate-400 shadow-2xs"
             />
           </div>
 
@@ -390,43 +430,55 @@ export function RecruiterDashboard({
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="w-full md:w-auto px-4 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer font-bold text-slate-800"
+              className="w-full md:w-auto px-4 py-2.5 rounded-xl border border-slate-200/90 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] cursor-pointer shadow-2xs"
             >
-              <option value="Assigned">Assigned</option>
-              <option value="Submitted">Submitted</option>
-              <option value="Selected for interview">Selected for interview</option>
+              <option value="Assigned">Status: Assigned</option>
+              <option value="Submitted">Status: Submitted</option>
+              <option value="Selected for interview">Status: Selected for interview</option>
             </select>
           </div>
         </div>
 
         {/* Requirements Table */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200/80 bg-slate-50/50">
-                  <th className="px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-semibold text-[11px] uppercase tracking-wider">
+                  <th className="px-4 py-3">
                     REQUIREMENT ID
                   </th>
-                  <th className="px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="px-4 py-3">
                     REQUIREMENT NAME
                   </th>
-                  <th className="px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="px-4 py-3">
                     CLIENT
                   </th>
-                  <th className="px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="px-4 py-3">
                     STATUS
                   </th>
-                  <th className="px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="px-4 py-3">
                     TIMESTAMP (ASSIGNED ON)
+                  </th>
+                  <th className="px-4 py-3 text-right">
+                    ACTIONS
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
+              <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-normal bg-white">
                 {paginatedReqs.length > 0 ? (
                   paginatedReqs.map((req, idx) => (
-                    <tr key={req.id || idx} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="px-4 py-3.5 font-mono text-slate-900 font-semibold">
+                    <tr key={req.id || idx} className="hover:bg-slate-50/60 transition-colors align-middle">
+                      <td className="px-4 py-3 font-mono text-slate-900 align-middle">
+                        <button
+                          onClick={() => handleOpenInlineCandidateRepo(req.id)}
+                          className="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                          title="Open Candidate Repo for this requirement"
+                        >
+                          {req.id}
+                        </button>
+                      </td>
+                      <td className="px-4 py-3 font-semibold text-slate-900 align-middle">
                         <button
                           onClick={() => {
                             const found = requirements.find(r => r.id === req.id) || {
@@ -451,24 +503,34 @@ export function RecruiterDashboard({
                             }
                             setSelectedReqForDetail(found)
                           }}
-                          className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                          className="text-xs font-semibold text-slate-900 hover:text-blue-600 hover:underline cursor-pointer text-left"
                         >
-                          {req.id}
+                          {req.name}
                         </button>
                       </td>
-                      <td className="px-4 py-3.5 font-semibold text-slate-900">{req.name}</td>
-                      <td className="px-4 py-3.5 text-slate-800">{req.client}</td>
-                      <td className="px-4 py-3.5">
-                        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          {req.status}
+                      <td className="px-4 py-3 text-slate-700 font-medium align-middle">{req.client}</td>
+                      <td className="px-4 py-3 align-middle">
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80 inline-flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                          <span>{req.status}</span>
                         </span>
                       </td>
-                      <td className="px-4 py-3.5 text-slate-500">{req.timestamp}</td>
+                      <td className="px-4 py-3 text-slate-500 align-middle">{req.timestamp}</td>
+                      <td className="px-4 py-3 text-right align-middle">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenInlineCandidateRepo(req.id)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#EEF2FF] hover:bg-[#6B3BF6] text-[#5B51D8] hover:text-white border border-[#C7D2FE] hover:border-[#6B3BF6] rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-98 whitespace-nowrap group shadow-2xs"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 text-[#5B51D8] group-hover:text-white transition-colors" />
+                          <span>Candidate Repo</span>
+                        </button>
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-slate-400 text-xs font-medium">
+                    <td colSpan={6} className="py-10 text-center text-slate-400 text-xs font-medium">
                       No active requirements found matching your search.
                     </td>
                   </tr>
@@ -488,10 +550,78 @@ export function RecruiterDashboard({
             itemLabel="requirements"
           />
         </div>
+
+        {/* ======================================================================== */}
+        {/* INLINE CANDIDATE REPOSITORY & SUBMISSION WORKFLOW (DIRECTLY ON MY WORK)   */}
+        {/* ======================================================================== */}
+        {inlineReqId && (
+          <div
+            id="inline-candidate-repo-section"
+            className="pt-6 border-t-2 border-dashed border-purple-300/80 space-y-5 animate-in fade-in slide-in-from-top-4 duration-300 mt-6"
+          >
+            {/* Section Banner Header */}
+            <div className="bg-gradient-to-r from-purple-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-5 px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl border border-purple-700/30">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-300 font-extrabold shrink-0 shadow-2xs">
+                  <Briefcase className="w-5 h-5 text-amber-300" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-sm font-extrabold text-white tracking-tight">INLINE WORKFLOW: CANDIDATE REPOSITORY & SUBMISSION</h3>
+                    <span className="px-3 py-0.5 rounded-full text-xs font-black bg-amber-400 text-slate-950 font-mono shadow-2xs">
+                      {inlineReqId}
+                    </span>
+                  </div>
+                  <p className="text-xs text-purple-200 mt-0.5">
+                    Select candidates for requirement <strong className="text-white font-mono">{inlineReqId}</strong> and complete submission to client directly inside My Work without page navigation.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInlineReqId(null)
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                  }}
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-2xs"
+                >
+                  <X className="w-4 h-4 text-white" />
+                  <span>Collapse Workflow</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                  className="p-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl transition-all cursor-pointer shadow-2xs"
+                  title="Scroll back to top of My Work"
+                >
+                  <ArrowUp className="w-4 h-4 text-white" />
+                </button>
+              </div>
+            </div>
+
+            {/* Candidate Repository Component rendered inline inside My Work */}
+            <div className="bg-slate-50/60 rounded-3xl border border-slate-200/90 p-4 sm:p-6 shadow-xs">
+              <CandidateRepositoryPage
+                selectedReqId={inlineReqId}
+                role="recruiter"
+                requirements={requirements}
+                onBackToDashboard={() => {
+                  setInlineReqId(null)
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
+                onOpenAddForm={() => {
+                  showToast('Use candidate upload form to add new candidate profiles.')
+                }}
+              />
+            </div>
+          </div>
+        )}
       </section>
 
-      {/* My Recent Submissions Section */}
-      <section className="space-y-4">
+      {/* My Recent Submissions Section (Kept at bottom of My Work page) */}
+      <section className="space-y-4 pt-4 border-t border-slate-200/60">
         <div>
           <h2 className="text-lg font-bold text-slate-900">My Recent Submissions</h2>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -564,7 +694,7 @@ export function RecruiterDashboard({
         </div>
       </section>
 
-      {/* Recent Activity Section */}
+      {/* Recent Activity Section (Kept at bottom of My Work page) */}
       <section className="space-y-3">
         <div>
           <h2 className="text-lg font-bold text-slate-900">Recent Activity</h2>
@@ -577,6 +707,13 @@ export function RecruiterDashboard({
           <p className="text-xs text-slate-400 font-medium">No recent activity yet.</p>
         </div>
       </section>
+
+      {/* Toast Notification Container */}
+      {toastMsg && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-700 text-xs font-bold animate-in fade-in duration-200">
+          {toastMsg}
+        </div>
+      )}
     </div>
   )
 }

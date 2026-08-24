@@ -136,7 +136,14 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null
 }
 
-export function MonthlyTimelinePerformanceChart() {
+import { Role } from '../../types'
+
+export interface MonthlyTimelineProps {
+  role?: Role
+}
+
+export function MonthlyTimelinePerformanceChart({ role = 'lead' }: MonthlyTimelineProps) {
+  const [leadChartView, setLeadChartView] = useState<'individual' | 'team'>('individual')
   const [data] = useState<MonthlyMetric[]>(MONTHLY_TIMELINE_DATA)
   const [logs] = useState<DetailLogItem[]>(FIRST_SUBMISSION_LOGS)
   const [showLogTable, setShowLogTable] = useState(true)
@@ -151,13 +158,45 @@ export function MonthlyTimelinePerformanceChart() {
               <Calendar className="w-4 h-4" />
             </div>
             <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-              Monthly: Requirements vs Total Submissions with TAT Trend (Apr-Jul 2026)
+              {role === 'lead'
+                ? leadChartView === 'individual'
+                  ? 'Lead Individual Performance: Monthly Requirements vs Total Submissions & TAT Trend'
+                  : 'Team Members Comparison: Monthly Requirements vs Submissions Trend'
+                : 'Monthly: Requirements vs Total Submissions with TAT Trend'}
             </h2>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Recharts high-precision monthly timeline tracking Requirements Received, Total Submissions, and Average TAT (Days)
+            {role === 'lead'
+              ? leadChartView === 'individual'
+                ? 'Monthly timeline tracking for Harish Gadipally (Team Lead Individual Performance)'
+                : 'Monthly timeline comparison for Team Members under Harish Gadipally'
+              : 'Monthly timeline tracking Requirements Received, Total Submissions, and Average TAT'}
           </p>
         </div>
+
+        {/* Lead View Mode Toggle (Lead Only) */}
+        {role === 'lead' && (
+          <div className="flex items-center gap-1 p-1 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setLeadChartView('individual')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                leadChartView === 'individual' ? 'bg-[#6B3BF6] text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-slate-200/60'
+              }`}
+            >
+              Lead Individual Performance
+            </button>
+            <button
+              type="button"
+              onClick={() => setLeadChartView('team')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                leadChartView === 'team' ? 'bg-blue-600 text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-slate-200/60'
+              }`}
+            >
+              Team Members Comparison
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 2. DUAL Y-AXIS COMBINATION GRAPH & MONTHLY TABLE */}

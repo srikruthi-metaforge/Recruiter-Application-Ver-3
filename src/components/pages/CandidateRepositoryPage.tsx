@@ -23,8 +23,9 @@ import {
   Award,
   Send,
   ExternalLink,
+  UserPlus,
 } from 'lucide-react'
-import { Candidate, Requirement } from '../../types'
+import { Candidate, Requirement, Role } from '../../types'
 import { PaginationFooter } from '../ui/PaginationFooter'
 import { SubmitToLeadPage } from './SubmitToLeadPage'
 import { INITIAL_REQUIREMENTS } from '../../data/mockData'
@@ -245,24 +246,37 @@ interface CandidateRepositoryPageProps {
   candidates?: Candidate[]
   requirements?: Requirement[]
   selectedReqId?: string | null
+  role?: Role
   onOpenAddForm: () => void
   onSelectCandidate?: (candidate: Candidate) => void
   onSelectRequirement?: (reqId: string | null) => void
+  onBackToDashboard?: () => void
 }
 
 export function CandidateRepositoryPage({
   candidates = [],
   requirements = INITIAL_REQUIREMENTS,
   selectedReqId = null,
+  role = 'recruiter',
   onOpenAddForm,
   onSelectCandidate,
   onSelectRequirement,
+  onBackToDashboard,
 }: CandidateRepositoryPageProps) {
   const [repoList, setRepoList] = useState<CandidateRepoItem[]>(DEFAULT_REPO_CANDIDATES)
-  const [viewMode, setViewMode] = useState<'list' | 'submit_to_lead'>('list')
+  const [viewMode, setViewMode] = useState<string>('list')
   const [searchQuery, setSearchQuery] = useState('')
   const [submittedPeriod, setSubmittedPeriod] = useState('All time')
   const [totalExpFilter, setTotalExpFilter] = useState('All experience')
+
+  const scrollToNextPageSection = () => {
+    setTimeout(() => {
+      const el = document.getElementById('candidate-repo-next-page-section')
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }, 100)
+  }
 
   // Requirement Selection Context (carried over from My Work / Requirements page or selected directly)
   const [activeReqId, setActiveReqId] = useState<string | null>(selectedReqId || null)
@@ -473,23 +487,7 @@ export function CandidateRepositoryPage({
     showToast('Candidate profile updated successfully!')
   }
 
-  // -------------------------------------------------------------
-  // DEDICATED FULL-PAGE VIEW: SUBMIT TO LEAD & FORWARD PAGE
-  // -------------------------------------------------------------
-  if (viewMode === 'submit_to_lead') {
-    return (
-      <SubmitToLeadPage
-        selectedCandidates={selectedCandidatesForSubmit}
-        requirement={activeRequirement}
-        onBack={() => setViewMode('list')}
-        onSubmitSuccess={() => {
-          setViewMode('list')
-          setSelectedCandidatesForSubmit([])
-          showToast('Successfully submitted candidate to lead & client loop!')
-        }}
-      />
-    )
-  }
+
 
   // -------------------------------------------------------------
   // DEDICATED FULL-PAGE EDIT VIEW
@@ -706,22 +704,41 @@ export function CandidateRepositoryPage({
   // RENDER CANDIDATE REPOSITORY TABLE VIEW (WITH NO CHECKBOXES & WHOLE CANDIDATE INFO)
   // -------------------------------------------------------------
   return (
-    <div className="space-y-6 w-full pb-24 font-sans text-slate-800">
-      {/* 1. BACK BUTTON & HEADER BAR */}
-      <div className="space-y-4">
-        <button
-          onClick={onOpenAddForm}
-          className="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-full text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition-all shadow-2xs cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4 text-slate-600" />
-          <span>Back to Add Candidate</span>
-        </button>
+    <div id="candidate-repo-top" className="space-y-6 w-full pb-24 font-sans text-slate-800">
+      {/* 1. BACK BUTTON & HEADER BAR WITH + ADD ACTIVE CANDIDATE */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-2">
+          <button
+            onClick={() => {
+              if (onBackToDashboard) {
+                onBackToDashboard()
+              } else {
+                onOpenAddForm()
+              }
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-full text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition-all shadow-2xs cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4 text-slate-600" />
+            <span>Go Back</span>
+          </button>
+
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Candidate Repository</h1>
+            <p className="text-xs text-slate-500 mt-1">
+              Comprehensive database of candidate profiles. Click any row to view complete details, edit, or submit to requirement.
+            </p>
+          </div>
+        </div>
 
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Candidate Repository</h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Comprehensive database of candidate profiles. Click any row to view complete details, edit, or submit to requirement.
-          </p>
+          <button
+            type="button"
+            onClick={onOpenAddForm}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#6B3BF6] hover:bg-[#5833E0] text-white text-xs font-bold rounded-xl transition-all shadow-md cursor-pointer active:scale-98"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>+ Add Active Candidate</span>
+          </button>
         </div>
       </div>
 
@@ -945,35 +962,15 @@ export function CandidateRepositoryPage({
                       <div className="text-[10px] text-slate-400">{item.createdDate}</div>
                     </td>
 
-                    {/* Action Buttons: View Profile, Edit, Submit */}
+                    {/* Action Buttons: Edit */}
                     <td className="px-4 py-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           type="button"
-                          onClick={e => {
-                            e.stopPropagation()
-                            setViewingCandidateDetail(item)
-                          }}
-                          className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-all cursor-pointer"
-                          title="View Whole Information"
-                        >
-                          View Info
-                        </button>
-
-                        <button
-                          type="button"
                           onClick={e => handleOpenEdit(item, e)}
-                          className="px-2.5 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-lg transition-all cursor-pointer"
+                          className="px-3 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-lg transition-all cursor-pointer shadow-2xs"
                         >
                           Edit
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={e => handleSubmitSingleToLead(item, e)}
-                          className="px-3 py-1.5 bg-[#6B3BF6] hover:bg-[#5833E0] text-white text-xs font-extrabold rounded-lg shadow-2xs transition-all cursor-pointer active:scale-98"
-                        >
-                          Submit
                         </button>
                       </div>
                     </td>
@@ -996,8 +993,8 @@ export function CandidateRepositoryPage({
         />
       </div>
 
-      {/* FLOATING SELECTION DOCK (shown when requirement is selected and candidates are checked) */}
-      {activeRequirement && selectedIds.size > 0 && (
+      {/* FLOATING SELECTION DOCK (shown when requirement is selected, candidates are checked, and submission form is not open) */}
+      {activeRequirement && selectedIds.size > 0 && viewMode !== 'submit_to_lead' && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#EFF6FF] border border-[#C7D2FE] shadow-2xl rounded-2xl p-2.5 px-6 flex items-center gap-6 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-200">
           <span className="text-xs font-extrabold text-[#1E3A8A]">
             {selectedIds.size} candidate(s) selected for {activeRequirement.id}
@@ -1015,11 +1012,84 @@ export function CandidateRepositoryPage({
                 const items = repoList.filter(i => selectedIds.has(i.id))
                 setSelectedCandidatesForSubmit(items)
                 setViewMode('submit_to_lead')
+                scrollToNextPageSection()
               }}
               className="px-5 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-extrabold rounded-xl shadow-md transition-all cursor-pointer active:scale-98 flex items-center gap-1.5"
             >
               <span>Submit Selected ({selectedIds.size})</span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 5. NEXT PAGE: SUBMIT TO LEAD & CLIENT LOOP (RENDERED DIRECTLY UNDER CANDIDATE REPOSITORY) */}
+      {viewMode === 'submit_to_lead' && (
+        <div
+          id="candidate-repo-next-page-section"
+          className="pt-8 border-t-4 border-dashed border-[#6B3BF6]/40 space-y-6 animate-in fade-in slide-in-from-top-4 duration-300 mt-10"
+        >
+          {/* Header Banner for Inline Next Page */}
+          <div className="bg-gradient-to-r from-purple-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-5 px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl border border-purple-700/30">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-300 font-extrabold shrink-0 shadow-2xs">
+                <Send className="w-5 h-5 text-amber-300" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-sm font-extrabold text-white tracking-tight uppercase">
+                    NEXT PAGE: CANDIDATE SUBMISSION TO LEAD & CLIENT LOOP
+                  </h3>
+                  {activeRequirement && (
+                    <span className="px-3 py-0.5 rounded-full text-xs font-black bg-amber-400 text-slate-950 font-mono shadow-2xs">
+                      {activeRequirement.id}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-purple-200 mt-0.5">
+                  Candidate Repository remains visible on screen above. Complete submission details below for <strong className="text-white font-mono">{activeRequirement?.id || 'Selected Requirement'}</strong>.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('list')
+                  const el = document.getElementById('candidate-repo-top')
+                  if (el) el.scrollIntoView({ behavior: 'smooth' })
+                }}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-2xs"
+              >
+                <X className="w-4 h-4 text-white" />
+                <span>Hide Next Page</span>
+              </button>
+            </div>
+          </div>
+
+          {/* SubmitToLeadPage Component rendered inline directly under Candidate Repository */}
+          <div className="bg-slate-50/60 rounded-3xl border border-slate-200/90 p-4 sm:p-6 shadow-xs">
+            <SubmitToLeadPage
+              selectedCandidates={selectedCandidatesForSubmit}
+              requirement={activeRequirement}
+              role={role}
+              onBack={() => {
+                setViewMode('list')
+                const el = document.getElementById('candidate-repo-top')
+                if (el) el.scrollIntoView({ behavior: 'smooth' })
+              }}
+              onSubmitSuccess={() => {
+                setViewMode('list')
+                setSelectedCandidatesForSubmit([])
+                showToast('Successfully submitted candidate to lead & client loop!')
+                if (onBackToDashboard) {
+                  onBackToDashboard()
+                } else {
+                  setActiveReqId(null)
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }
+              }}
+            />
           </div>
         </div>
       )}
@@ -1252,13 +1322,15 @@ export function CandidateRepositoryPage({
                 >
                   Edit Profile
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleSubmitSingleToLead(viewingCandidateDetail)}
-                  className="px-6 py-2.5 bg-[#6B3BF6] hover:bg-[#5833E0] text-white text-xs font-extrabold rounded-xl transition-all shadow-sm cursor-pointer active:scale-98"
-                >
-                  Submit to Lead
-                </button>
+                {activeRequirement && (
+                  <button
+                    type="button"
+                    onClick={() => handleSubmitSingleToLead(viewingCandidateDetail)}
+                    className="px-6 py-2.5 bg-[#6B3BF6] hover:bg-[#5833E0] text-white text-xs font-extrabold rounded-xl transition-all shadow-sm cursor-pointer active:scale-98"
+                  >
+                    Submit to Lead
+                  </button>
+                )}
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
   ArrowLeft,
   FileText,
@@ -14,24 +14,38 @@ import {
   ChevronRight,
   ChevronDown,
   Search,
+  RotateCcw,
 } from 'lucide-react'
 import { Requirement } from '../../types'
+import { ScheduleInterviewModal } from '../modals/ScheduleInterviewModal'
+import { SubmitCandidateModal } from '../modals/SubmitCandidateModal'
 
 interface RequirementDetailOverviewProps {
   requirement: Requirement
+  role?: string
   onBack: () => void
   onOpenAssignModal?: () => void
   onEditRequirement?: () => void
   onAddCandidate?: () => void
+  onRevokeRequirement?: () => void
 }
 
 export function RequirementDetailOverview({
   requirement,
+  role = 'superadmin',
   onBack,
   onOpenAssignModal,
   onEditRequirement,
   onAddCandidate,
+  onRevokeRequirement,
 }: RequirementDetailOverviewProps) {
+  const normalizedRole = (role || '').toLowerCase()
+  const isRecruiter = normalizedRole === 'recruiter'
+  const isSuperAdminOrAdmin = normalizedRole === 'superadmin' || normalizedRole === 'admin' || normalizedRole === 'devteam'
+  const availableTabs = isSuperAdminOrAdmin
+    ? (['Overview', 'Pipeline', 'Interviews', 'Offers', 'Activity'] as const)
+    : (['Overview', 'Pipeline', 'Interviews', 'Offers'] as const)
+
   const [activeTab, setActiveTab] = useState<'Overview' | 'Pipeline' | 'Interviews' | 'Offers' | 'Activity'>('Overview')
   const [historyTabFilter, setHistoryTabFilter] = useState<'all' | 'submitted_lead' | 'submitted_client' | 'interview' | 'selected' | 'rejected'>('all')
   const [historySearchQuery, setHistorySearchQuery] = useState('')
@@ -39,6 +53,105 @@ export function RequirementDetailOverview({
   const [assignTabFilter, setAssignTabFilter] = useState<'all' | 'active' | 'revoked'>('all')
   const [assignSearchQuery, setAssignSearchQuery] = useState('')
   const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
+  const [schedulingCandidateRow, setSchedulingCandidateRow] = useState<any>(null)
+  const [isAddCandidateModalOpen, setIsAddCandidateModalOpen] = useState(false)
+
+  const currentUserName = useMemo(() => {
+    if (isSuperAdminOrAdmin) return 'Harish Gadipally'
+    if (normalizedRole === 'lead') return 'Sarah Kim'
+    if (isRecruiter) return 'Marcus Chen'
+    return 'Marcus Chen'
+  }, [normalizedRole, isRecruiter, isSuperAdminOrAdmin])
+
+  const rawHistorySubmissions = useMemo(
+    () => [
+      {
+        subId: 'SUB-197',
+        avatar: 'MS',
+        name: 'MUNTAZAR SAYED',
+        email: 'sayedmuntazar1996@gmail.com',
+        submittedBy: 'Marcus Chen',
+        submitterEmail: 'm.chen@talentflow.io',
+        submittedOn: '06/19/2026, 07:29 PM',
+        status: 'Submitted to Client',
+        canSchedule: true,
+      },
+      {
+        subId: 'SUB-196',
+        avatar: 'NJ',
+        name: 'Nikhil Joshte',
+        email: 'nikhiljoshte@gmail.com',
+        submittedBy: 'Marcus Chen',
+        submitterEmail: 'm.chen@talentflow.io',
+        submittedOn: '06/19/2026, 07:29 PM',
+        status: 'Submitted to Client',
+        canSchedule: true,
+      },
+      {
+        subId: 'SUB-195',
+        avatar: 'PK',
+        name: 'Pratibha Kale',
+        email: 'pratibhakale13@yahoo.com',
+        submittedBy: 'Harish Gadipally',
+        submitterEmail: 'harish.g@metaforgeit.com',
+        submittedOn: '06/19/2026, 06:45 PM',
+        status: 'Submitted to Client',
+        canSchedule: true,
+      },
+      {
+        subId: 'SUB-194',
+        avatar: 'SY',
+        name: 'SANDEEP YADAV',
+        email: 'sandeep886441@gmail.com',
+        submittedBy: 'Saiteja Puttapaka',
+        submitterEmail: 'saiteja.p@metaforgeit.com',
+        submittedOn: '06/19/2026, 06:38 PM',
+        status: 'Submitted to Client',
+        canSchedule: false,
+      },
+      {
+        subId: 'SUB-193',
+        avatar: 'AS',
+        name: 'Akshay Soni',
+        email: 'akkisoni12123@gmail.com',
+        submittedBy: 'Harish Gadipally',
+        submitterEmail: 'harish.g@metaforgeit.com',
+        submittedOn: '06/19/2026, 06:33 PM',
+        status: 'Submitted to Client',
+        canSchedule: true,
+      },
+    ],
+    []
+  )
+
+  const filteredHistoryRows = useMemo(() => {
+    return rawHistorySubmissions.filter(row => {
+      // For recruiter module, ONLY show their own submissions!
+      if (isRecruiter) {
+        const isOwnSubmission =
+          row.submittedBy === 'Marcus Chen' ||
+          row.submitterEmail === 'm.chen@talentflow.io' ||
+          row.submittedBy === currentUserName
+        if (!isOwnSubmission) return false
+      }
+
+      if (historyTabFilter !== 'all') {
+        if (historyTabFilter === 'submitted_client' && row.status !== 'Submitted to Client') return false
+        if (historyTabFilter === 'submitted_lead' && row.status !== 'Submitted to Lead') return false
+      }
+
+      if (historySearchQuery.trim()) {
+        const q = historySearchQuery.toLowerCase()
+        const matchName = row.name.toLowerCase().includes(q)
+        const matchSubId = row.subId.toLowerCase().includes(q)
+        const matchSubmitter = row.submittedBy.toLowerCase().includes(q)
+        if (!matchName && !matchSubId && !matchSubmitter) return false
+      }
+
+      return true
+    })
+  }, [role, currentUserName, historyTabFilter, historySearchQuery, rawHistorySubmissions])
 
   const isUnassigned = !requirement.owner || requirement.owner === 'Unassigned'
 
@@ -87,14 +200,39 @@ export function RequirementDetailOverview({
           <span>Back</span>
         </button>
 
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={onAddCandidate || (() => showToast('Opening Add Candidate modal...'))}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 border border-gray-200/90 rounded-xl text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 transition-all shadow-2xs cursor-pointer"
-          >
-            <UserPlus className="w-3.5 h-3.5 text-gray-500" />
-            <span>Add Candidate</span>
-          </button>
+        <div className="flex flex-wrap items-center gap-2.5">
+          {onOpenAssignModal && !isUnassigned && (
+            <button
+              onClick={onOpenAssignModal}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 border border-blue-200 rounded-xl text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 transition-all shadow-2xs cursor-pointer"
+            >
+              <UserPlus className="w-3.5 h-3.5 text-blue-600" />
+              <span>Reassign</span>
+            </button>
+          )}
+
+          {onRevokeRequirement && !isUnassigned && (
+            <button
+              onClick={onRevokeRequirement}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 border border-rose-200 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 transition-all shadow-2xs cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-rose-600" />
+              <span>Revoke Requirement</span>
+            </button>
+          )}
+
+          {!isUnassigned && (
+            <button
+              onClick={() => {
+                if (onAddCandidate) onAddCandidate()
+                setIsAddCandidateModalOpen(true)
+              }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 border border-[#6B3BF6]/30 rounded-xl text-xs font-bold text-[#6B3BF6] bg-purple-50 hover:bg-purple-100 transition-all shadow-2xs cursor-pointer"
+            >
+              <UserPlus className="w-3.5 h-3.5 text-[#6B3BF6]" />
+              <span>Add Candidate</span>
+            </button>
+          )}
 
           <button
             onClick={onEditRequirement || (() => showToast('Editing requirement details...'))}
@@ -306,19 +444,43 @@ export function RequirementDetailOverview({
 
               {/* Step 4: Submitted to Client */}
               <div className="flex flex-col items-center gap-1.5">
-                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-xs font-bold text-xs">
-                  ●
+                <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                  <CheckCircle className="w-4 h-4" />
                 </div>
-                <span className="text-[11px] font-bold text-blue-600">Submitted to Client</span>
+                <span className="text-[11px] font-bold text-emerald-700">Submitted to Client</span>
+              </div>
+
+              <div className="w-10 sm:w-12 h-0.5 bg-amber-400"></div>
+
+              {/* Step 5: Interview Scheduled */}
+              <div className="flex flex-col items-center gap-1.5">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-xs ${
+                  (requirement as any).status?.toLowerCase().includes('interview') || requirement.interviews > 0
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-slate-200 text-slate-500 font-bold text-xs'
+                }`}>
+                  {(requirement as any).status?.toLowerCase().includes('interview') || requirement.interviews > 0 ? (
+                    <CheckCircle className="w-4 h-4" />
+                  ) : (
+                    '5'
+                  )}
+                </div>
+                <span className={`text-[11px] font-bold ${
+                  (requirement as any).status?.toLowerCase().includes('interview') || requirement.interviews > 0
+                    ? 'text-amber-700'
+                    : 'text-slate-500'
+                }`}>
+                  Interview Scheduled
+                </span>
               </div>
             </>
           )}
         </div>
       </div>
 
-      {/* 6. TAB NAVIGATION BAR */}
+      {/* 6. TAB NAVIGATION BAR (Activity tab visible strictly to Super Admin & Admin) */}
       <div className="bg-slate-50/80 border border-gray-200/80 rounded-xl p-1.5 flex items-center gap-1">
-        {(['Overview', 'Pipeline', 'Interviews', 'Offers', 'Activity'] as const).map(tab => (
+        {availableTabs.map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -492,174 +654,176 @@ export function RequirementDetailOverview({
             </div>
           </div>
 
-          {/* ASSIGNMENT HISTORY CARD (MATCHING USER SCREENSHOT) */}
-          <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <div>
-                <h3 className="text-base font-extrabold text-gray-900 tracking-tight">Assignment history</h3>
-                <p className="text-xs text-gray-500 font-normal mt-0.5">
-                  Track who was assigned to this requirement and when. Updates when you Reassign or Revoke.
-                </p>
-              </div>
-              <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-extrabold rounded-full border border-emerald-200 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span>4 active</span>
-              </span>
-            </div>
-
-            {/* Filter Pills & Search Input Row */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
-              <div className="flex items-center gap-2 text-xs font-semibold">
-                <button
-                  onClick={() => setAssignTabFilter('all')}
-                  className={`px-3 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
-                    assignTabFilter === 'all'
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200 font-bold shadow-2xs'
-                      : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
-                  }`}
-                >
-                  <span>All</span>
-                  <span className="px-1.5 py-0.2 bg-blue-200/60 text-blue-800 rounded-full text-[10px] font-extrabold">4</span>
-                </button>
-
-                <button
-                  onClick={() => setAssignTabFilter('active')}
-                  className={`px-3 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
-                    assignTabFilter === 'active'
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200 font-bold shadow-2xs'
-                      : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
-                  }`}
-                >
-                  <span>Active</span>
-                  <span className="px-1.5 py-0.2 bg-blue-200/60 text-blue-800 rounded-full text-[10px] font-extrabold">4</span>
-                </button>
-
-                <button
-                  onClick={() => setAssignTabFilter('revoked')}
-                  className={`px-3 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
-                    assignTabFilter === 'revoked'
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200 font-bold shadow-2xs'
-                      : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
-                  }`}
-                >
-                  <span>Revoked</span>
-                  <span className="px-1.5 py-0.2 bg-slate-200 text-slate-700 rounded-full text-[10px] font-extrabold">0</span>
-                </button>
+          {/* ASSIGNMENT HISTORY CARD (ONLY VISIBLE TO LEADS, ADMIN, SUPERADMIN - HIDDEN FOR RECRUITER) */}
+          {!isRecruiter && (
+            <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                <div>
+                  <h3 className="text-base font-extrabold text-gray-900 tracking-tight">Assignment history</h3>
+                  <p className="text-xs text-gray-500 font-normal mt-0.5">
+                    Track who was assigned to this requirement and when. Updates when you Reassign or Revoke.
+                  </p>
+                </div>
+                <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-extrabold rounded-full border border-emerald-200 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span>4 active</span>
+                </span>
               </div>
 
-              {/* Search Box */}
-              <div className="relative w-full sm:w-64">
-                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search recruiter or assigner..."
-                  value={assignSearchQuery}
-                  onChange={e => setAssignSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6B3BF6] text-slate-800"
-                />
-              </div>
-            </div>
+              {/* Filter Pills & Search Input Row */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+                <div className="flex items-center gap-2 text-xs font-semibold">
+                  <button
+                    onClick={() => setAssignTabFilter('all')}
+                    className={`px-3 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
+                      assignTabFilter === 'all'
+                        ? 'bg-blue-50 text-blue-700 border border-blue-200 font-bold shadow-2xs'
+                        : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span>All</span>
+                    <span className="px-1.5 py-0.2 bg-blue-200/60 text-blue-800 rounded-full text-[10px] font-extrabold">4</span>
+                  </button>
 
-            {/* Assignment Groups / List */}
-            <div className="space-y-3 pt-2">
-              {/* Group 1: 2 recruiters grouped */}
-              <div className="border border-slate-200/80 rounded-2xl p-4 bg-white space-y-3 shadow-2xs">
-                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => setAssignTabFilter('active')}
+                    className={`px-3 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
+                      assignTabFilter === 'active'
+                        ? 'bg-blue-50 text-blue-700 border border-blue-200 font-bold shadow-2xs'
+                        : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span>Active</span>
+                    <span className="px-1.5 py-0.2 bg-blue-200/60 text-blue-800 rounded-full text-[10px] font-extrabold">4</span>
+                  </button>
+
+                  <button
+                    onClick={() => setAssignTabFilter('revoked')}
+                    className={`px-3 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
+                      assignTabFilter === 'revoked'
+                        ? 'bg-blue-50 text-blue-700 border border-blue-200 font-bold shadow-2xs'
+                        : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span>Revoked</span>
+                    <span className="px-1.5 py-0.2 bg-slate-200 text-slate-700 rounded-full text-[10px] font-extrabold">0</span>
+                  </button>
+                </div>
+
+                {/* Search Box */}
+                <div className="relative w-full sm:w-64">
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search recruiter or assigner..."
+                    value={assignSearchQuery}
+                    onChange={e => setAssignSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6B3BF6] text-slate-800"
+                  />
+                </div>
+              </div>
+
+              {/* Assignment Groups / List */}
+              <div className="space-y-3 pt-2">
+                {/* Group 1: 2 recruiters grouped */}
+                <div className="border border-slate-200/80 rounded-2xl p-4 bg-white space-y-3 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <Users className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-extrabold text-gray-900 text-sm">2 recruiters</span>
+                          <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-md text-[10px] font-extrabold uppercase">
+                            ACTIVE
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-gray-400 font-normal mt-0.5">
+                          Assigned on 06/19/2026, 06:42 PM &nbsp; By <strong className="text-gray-600 font-semibold">Harish Gadipally</strong>
+                        </div>
+                      </div>
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  </div>
+
+                  {/* Sub-cards inside (2 columns) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                    <div className="bg-slate-50/70 border border-slate-200/70 rounded-xl p-3.5 flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-extrabold text-xs flex items-center justify-center shrink-0">
+                        CD
+                      </div>
+                      <div>
+                        <div className="font-extrabold text-gray-900 text-xs">Charlie Darwin</div>
+                        <div className="text-[11px] text-gray-400 font-normal">charlie@metaforgeit.com</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50/70 border border-slate-200/70 rounded-xl p-3.5 flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-extrabold text-xs flex items-center justify-center shrink-0">
+                        RK
+                      </div>
+                      <div>
+                        <div className="font-extrabold text-gray-900 text-xs">Raghu Karnam</div>
+                        <div className="text-[11px] text-gray-400 font-normal">rkarnam@metaforgeit.com</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Item 2: Saiteja Puttapaka */}
+                <div className="border border-slate-200/80 rounded-2xl p-4 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                      <Users className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-gray-900 text-sm">2 recruiters</span>
-                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-md text-[10px] font-extrabold uppercase">
-                          ACTIVE
-                        </span>
-                      </div>
-                      <div className="text-[11px] text-gray-400 font-normal mt-0.5">
-                        Assigned on 06/19/2026, 06:42 PM &nbsp; By <strong className="text-gray-600 font-semibold">Harish Gadipally</strong>
-                      </div>
-                    </div>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-gray-400" />
-                </div>
-
-                {/* Sub-cards inside (2 columns) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                  <div className="bg-slate-50/70 border border-slate-200/70 rounded-xl p-3.5 flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-extrabold text-xs flex items-center justify-center shrink-0">
-                      CD
+                      SP
                     </div>
                     <div>
-                      <div className="font-extrabold text-gray-900 text-xs">Charlie Darwin</div>
-                      <div className="text-[11px] text-gray-400 font-normal">charlie@metaforgeit.com</div>
+                      <div className="font-extrabold text-gray-900 text-xs">Saiteja Puttapaka</div>
+                      <div className="text-[11px] text-gray-400 font-normal">saiteja.p@metaforgeit.com</div>
                     </div>
                   </div>
 
-                  <div className="bg-slate-50/70 border border-slate-200/70 rounded-xl p-3.5 flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-extrabold text-xs flex items-center justify-center shrink-0">
-                      RK
+                  <div className="flex items-center gap-4 text-xs">
+                    <div className="text-gray-400 font-normal text-[11px]">
+                      Assigned on 06/19/2026, 06:35 PM &nbsp; By <strong className="text-gray-600 font-semibold">Harish Gadipally</strong>
+                    </div>
+                    <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-md text-[10px] font-extrabold uppercase">
+                      ACTIVE
+                    </span>
+                  </div>
+                </div>
+
+                {/* Item 3: Harish Gadipally */}
+                <div className="border border-slate-200/80 rounded-2xl p-4 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-purple-100 text-purple-700 font-extrabold text-xs flex items-center justify-center shrink-0">
+                      HG
                     </div>
                     <div>
-                      <div className="font-extrabold text-gray-900 text-xs">Raghu Karnam</div>
-                      <div className="text-[11px] text-gray-400 font-normal">rkarnam@metaforgeit.com</div>
+                      <div className="font-extrabold text-gray-900 text-xs">Harish Gadipally</div>
+                      <div className="text-[11px] text-gray-400 font-normal">harish.g@metaforgeit.com</div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Item 2: Saiteja Puttapaka */}
-              <div className="border border-slate-200/80 rounded-2xl p-4 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-extrabold text-xs flex items-center justify-center shrink-0">
-                    SP
+                  <div className="flex items-center gap-4 text-xs">
+                    <div className="text-gray-400 font-normal text-[11px]">
+                      Assigned on 06/19/2026, 05:48 PM &nbsp; By <strong className="text-gray-600 font-semibold">Harish Gadipally</strong>
+                    </div>
+                    <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-md text-[10px] font-extrabold uppercase">
+                      ACTIVE
+                    </span>
                   </div>
-                  <div>
-                    <div className="font-extrabold text-gray-900 text-xs">Saiteja Puttapaka</div>
-                    <div className="text-[11px] text-gray-400 font-normal">saiteja.p@metaforgeit.com</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 text-xs">
-                  <div className="text-gray-400 font-normal text-[11px]">
-                    Assigned on 06/19/2026, 06:35 PM &nbsp; By <strong className="text-gray-600 font-semibold">Harish Gadipally</strong>
-                  </div>
-                  <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-md text-[10px] font-extrabold uppercase">
-                    ACTIVE
-                  </span>
-                </div>
-              </div>
-
-              {/* Item 3: Harish Gadipally */}
-              <div className="border border-slate-200/80 rounded-2xl p-4 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-purple-100 text-purple-700 font-extrabold text-xs flex items-center justify-center shrink-0">
-                    HG
-                  </div>
-                  <div>
-                    <div className="font-extrabold text-gray-900 text-xs">Harish Gadipally</div>
-                    <div className="text-[11px] text-gray-400 font-normal">harish.g@metaforgeit.com</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 text-xs">
-                  <div className="text-gray-400 font-normal text-[11px]">
-                    Assigned on 06/19/2026, 05:48 PM &nbsp; By <strong className="text-gray-600 font-semibold">Harish Gadipally</strong>
-                  </div>
-                  <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-md text-[10px] font-extrabold uppercase">
-                    ACTIVE
-                  </span>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* REQUIREMENT HISTORY CARD (MATCHING USER SCREENSHOT) */}
           <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs space-y-5">
             <div>
               <h3 className="text-base font-extrabold text-gray-900 tracking-tight">Requirement History</h3>
               <p className="text-xs text-gray-500 mt-0.5">
-                All recruiter submissions for this requirement, newest first.
+                {isRecruiter ? 'Your candidate submissions for this requirement, newest first.' : 'All recruiter submissions for this requirement, newest first.'}
               </p>
             </div>
 
@@ -667,12 +831,12 @@ export function RequirementDetailOverview({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
               <div className="bg-slate-50/80 border border-gray-200/80 rounded-xl p-4 space-y-1">
                 <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">RECRUITERS WORKING</div>
-                <div className="text-2xl font-extrabold text-gray-900">4</div>
+                <div className="text-2xl font-extrabold text-gray-900">{isRecruiter ? 1 : 4}</div>
               </div>
 
               <div className="bg-slate-50/80 border border-gray-200/80 rounded-xl p-4 space-y-1">
                 <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">RESUMES SUBMITTED</div>
-                <div className="text-2xl font-extrabold text-gray-900">7</div>
+                <div className="text-2xl font-extrabold text-gray-900">{filteredHistoryRows.length}</div>
               </div>
 
               <div className="bg-slate-50/80 border border-gray-200/80 rounded-xl p-4 space-y-1">
@@ -680,7 +844,7 @@ export function RequirementDetailOverview({
                 <div className="text-xs font-bold text-gray-800 flex flex-wrap gap-x-2 gap-y-1 pt-1">
                   <span>Lead review: <strong className="text-slate-900">0</strong></span>
                   <span className="text-gray-300">|</span>
-                  <span>Client: <strong className="text-slate-900">7</strong></span>
+                  <span>Client: <strong className="text-slate-900">{filteredHistoryRows.filter(r => r.status === 'Submitted to Client').length}</strong></span>
                   <span className="text-gray-300">|</span>
                   <span>Interview: <strong className="text-slate-900">0</strong></span>
                   <span className="text-gray-300">|</span>
@@ -703,7 +867,7 @@ export function RequirementDetailOverview({
                   }`}
                 >
                   <span>All</span>
-                  <span className="px-1.5 py-0.2 bg-blue-200/60 text-blue-800 rounded-full text-[10px] font-extrabold">7</span>
+                  <span className="px-1.5 py-0.2 bg-blue-200/60 text-blue-800 rounded-full text-[10px] font-extrabold">{filteredHistoryRows.length}</span>
                 </button>
 
                 <button
@@ -727,7 +891,7 @@ export function RequirementDetailOverview({
                   }`}
                 >
                   <span>Submitted to Client</span>
-                  <span className="px-1.5 py-0.2 bg-blue-200/60 text-blue-800 rounded-full text-[10px] font-extrabold">7</span>
+                  <span className="px-1.5 py-0.2 bg-blue-200/60 text-blue-800 rounded-full text-[10px] font-extrabold">{filteredHistoryRows.filter(r => r.status === 'Submitted to Client').length}</span>
                 </button>
 
                 <button
@@ -782,8 +946,8 @@ export function RequirementDetailOverview({
 
             {/* Table Info Bar */}
             <div className="flex items-center justify-between text-xs text-gray-500 font-medium pt-1">
-              <span>1-5 of 7 submissions</span>
-              <span>Page {historyPage} of 2 - 5 per page</span>
+              <span>1-{filteredHistoryRows.length} of {filteredHistoryRows.length} submissions</span>
+              <span>Page 1 of 1</span>
             </div>
 
             {/* History Table */}
@@ -800,63 +964,7 @@ export function RequirementDetailOverview({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 font-medium text-gray-800 bg-white">
-                  {[
-                    {
-                      subId: 'SUB-197',
-                      avatar: 'MS',
-                      name: 'MUNTAZAR SAYED',
-                      email: 'sayedmuntazar1996@gmail.com',
-                      submittedBy: 'Harish Gadipally',
-                      submitterEmail: 'harish.g@metaforgeit.com',
-                      submittedOn: '06/19/2026, 07:29 PM',
-                      status: 'Submitted to Client',
-                      canSchedule: true,
-                    },
-                    {
-                      subId: 'SUB-196',
-                      avatar: 'NJ',
-                      name: 'Nikhil Joshte',
-                      email: 'nikhiljoshte@gmail.com',
-                      submittedBy: 'Harish Gadipally',
-                      submitterEmail: 'harish.g@metaforgeit.com',
-                      submittedOn: '06/19/2026, 07:29 PM',
-                      status: 'Submitted to Client',
-                      canSchedule: true,
-                    },
-                    {
-                      subId: 'SUB-195',
-                      avatar: 'PK',
-                      name: 'Pratibha Kale',
-                      email: 'pratibhakale13@yahoo.com',
-                      submittedBy: 'Harish Gadipally',
-                      submitterEmail: 'harish.g@metaforgeit.com',
-                      submittedOn: '06/19/2026, 06:45 PM',
-                      status: 'Submitted to Client',
-                      canSchedule: true,
-                    },
-                    {
-                      subId: 'SUB-194',
-                      avatar: 'SY',
-                      name: 'SANDEEP YADAV',
-                      email: 'sandeep886441@gmail.com',
-                      submittedBy: 'Saiteja Puttapaka',
-                      submitterEmail: 'saiteja.p@metaforgeit.com',
-                      submittedOn: '06/19/2026, 06:38 PM',
-                      status: 'Submitted to Client',
-                      canSchedule: false,
-                    },
-                    {
-                      subId: 'SUB-193',
-                      avatar: 'AS',
-                      name: 'Akshay Soni',
-                      email: 'akkisoni12123@gmail.com',
-                      submittedBy: 'Harish Gadipally',
-                      submitterEmail: 'harish.g@metaforgeit.com',
-                      submittedOn: '06/19/2026, 06:33 PM',
-                      status: 'Submitted to Client',
-                      canSchedule: true,
-                    },
-                  ].map(row => (
+                  {filteredHistoryRows.map(row => (
                     <tr key={row.subId} className="hover:bg-slate-50/70 transition-colors">
                       <td className="py-3.5 px-4 font-mono font-bold text-gray-600">
                         <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-[11px]">
@@ -895,7 +1003,10 @@ export function RequirementDetailOverview({
                         {row.canSchedule ? (
                           <div className="flex items-center justify-end gap-1.5">
                             <button
-                              onClick={() => showToast(`Scheduling interview for ${row.name}...`)}
+                              onClick={() => {
+                                setSchedulingCandidateRow(row)
+                                setIsScheduleModalOpen(true)
+                              }}
                               className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold cursor-pointer shadow-2xs flex items-center gap-1 transition-all"
                             >
                               <Calendar className="w-3 h-3 text-blue-600" />
@@ -1079,8 +1190,17 @@ export function RequirementDetailOverview({
                     <td className="py-3 px-3 text-center whitespace-nowrap">
                       {row.action === 'Schedule Interview' ? (
                         <button
-                          onClick={() => showToast(`Scheduling interview for ${row.name}...`)}
-                          className="px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold cursor-pointer shadow-2xs transition-all"
+                          onClick={() => {
+                            setSchedulingCandidateRow({
+                              name: row.name,
+                              email: `${row.name.toLowerCase().replace(/\s+/g, '.')}@gmail.com`,
+                              requirementId: requirement.id,
+                              position: requirement.title,
+                              client: requirement.client,
+                            })
+                            setIsScheduleModalOpen(true)
+                          }}
+                          className="px-3.5 py-1.5 bg-[#6B3BF6] hover:bg-[#5833E0] text-white rounded-xl text-xs font-bold cursor-pointer shadow-xs transition-all active:scale-98"
                         >
                           Schedule Interview
                         </button>
@@ -1165,79 +1285,229 @@ export function RequirementDetailOverview({
         </div>
       )}
 
-      {/* ACTIVITY TAB (MATCHING SCREENSHOT 5) */}
-      {activeTab === 'Activity' && (
-        <div className="space-y-6">
+      {/* ACTIVITY TAB (EXCLUSIVE TO SUPER ADMIN & ADMIN - REQUIREMENT HISTORY FROM CREATION TO END) */}
+      {isSuperAdminOrAdmin && activeTab === 'Activity' && (
+        <div className="space-y-6 font-sans">
           <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs space-y-6">
-            <div>
-              <h3 className="text-base font-bold text-gray-900">Activity & Audit</h3>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Newest first — requirement lifecycle events.
-              </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-extrabold text-slate-900 tracking-tight">Requirement Audit & Complete Lifecycle Activity</h3>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-100 text-purple-800 border border-purple-200 uppercase tracking-wider">
+                    Super Admin & Admin Access Only
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-1">
+                  Complete historical audit log for requirement <strong className="text-slate-800">{requirement.id}</strong> ({requirement.client}) from demand creation to present state.
+                </p>
+              </div>
+
+              <div className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 flex items-center gap-2 shrink-0">
+                <Clock className="w-3.5 h-3.5 text-slate-500" />
+                <span>Open Since: <strong>{requirement.openDays !== undefined ? `${requirement.openDays} days` : '5 days'}</strong></span>
+              </div>
             </div>
 
-            {/* 4 Summary Cards */}
+            {/* 4 Summary Lifecycle KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-              <div className="bg-slate-50/80 border border-gray-100 rounded-xl p-4 space-y-1">
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">REQUIREMENT</div>
-                <div className="font-bold text-gray-900">{requirement.id}</div>
-                <div className="text-[11px] text-gray-500">Created: 19/06/2026, 05:30</div>
-                <div className="text-[11px] text-gray-500">Current status: <span className="font-semibold text-gray-800">Submitted</span></div>
+              <div className="bg-gradient-to-br from-blue-50/80 to-slate-50 border border-blue-100 rounded-2xl p-4 space-y-1.5 shadow-2xs">
+                <div className="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider">1. CREATION & DEMAND</div>
+                <div className="font-extrabold text-slate-900 text-sm">{requirement.id}</div>
+                <div className="text-[11px] text-slate-600 font-medium">Arrived: <span className="font-bold text-slate-800">{requirement.emailArrivedTime || 'Aug 1, 2026, 10:45 AM'}</span></div>
+                <div className="text-[11px] text-slate-600 font-medium">Client: <span className="font-bold text-slate-800">{requirement.client}</span> ({requirement.openings || 4} openings)</div>
               </div>
 
-              <div className="bg-slate-50/80 border border-gray-100 rounded-xl p-4 space-y-1">
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">ASSIGNMENT</div>
-                <div className="font-bold text-gray-900">4 active recruiters</div>
-                <div className="text-[11px] text-gray-500">Assigned by: Harish Gadipally</div>
+              <div className="bg-gradient-to-br from-purple-50/80 to-slate-50 border border-purple-100 rounded-2xl p-4 space-y-1.5 shadow-2xs">
+                <div className="text-[10px] font-extrabold text-purple-600 uppercase tracking-wider">2. ASSIGNMENT & LEAD</div>
+                <div className="font-extrabold text-slate-900 text-sm">{requirement.owner || 'Marcus Chen'}</div>
+                <div className="text-[11px] text-slate-600 font-medium">Assigned Lead: <span className="font-bold text-slate-800">{requirement.assignedLead || 'Sarah Kim'}</span></div>
+                <div className="text-[11px] text-slate-600 font-medium">Status: <span className="font-bold text-emerald-700">{requirement.assignmentStatus || 'Assigned'}</span></div>
               </div>
 
-              <div className="bg-slate-50/80 border border-gray-100 rounded-xl p-4 space-y-1">
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">SUBMISSIONS</div>
-                <div className="font-bold text-gray-900">7 total</div>
-                <div className="text-[11px] text-gray-500">Submitted: 7 &nbsp; Interview: 0 &nbsp; Selected: 0 &nbsp; Rejected: 0</div>
+              <div className="bg-gradient-to-br from-emerald-50/80 to-slate-50 border border-emerald-100 rounded-2xl p-4 space-y-1.5 shadow-2xs">
+                <div className="text-[10px] font-extrabold text-emerald-600 uppercase tracking-wider">3. SUBMISSIONS & PIPELINE</div>
+                <div className="font-extrabold text-slate-900 text-sm">{requirement.submissions || 7} Candidates Submitted</div>
+                <div className="text-[11px] text-slate-600 font-medium">Interviews: <span className="font-bold text-slate-800">{requirement.interviews || 3}</span> &nbsp;|&nbsp; Placed: <span className="font-bold text-emerald-700">{requirement.placed || 1}</span></div>
+                <div className="text-[11px] text-slate-600 font-medium">Match Score Avg: <span className="font-bold text-slate-800">96%</span></div>
               </div>
 
-              <div className="bg-slate-50/80 border border-gray-100 rounded-xl p-4 space-y-1">
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">RECRUITERS WORKING</div>
-                <div className="font-bold text-gray-900">2</div>
-                <div className="text-[11px] text-gray-500">Harish Gadipally: 6 &nbsp; Saiteja Puttapaka: 1</div>
+              <div className="bg-gradient-to-br from-amber-50/80 to-slate-50 border border-amber-100 rounded-2xl p-4 space-y-1.5 shadow-2xs">
+                <div className="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider">4. REVOKE & GOVERNANCE</div>
+                <div className="font-extrabold text-slate-900 text-sm">{requirement.revokeRequested ? 'Revoke Pending' : 'Normal Lifecycle'}</div>
+                <div className="text-[11px] text-slate-600 font-medium">
+                  {requirement.revokeRequested ? (
+                    <span className="text-amber-700 font-bold">Requested by {requirement.revokeRequestedBy || 'Recruiter'}</span>
+                  ) : (
+                    <span>No active revoke holds</span>
+                  )}
+                </div>
+                <div className="text-[11px] text-slate-600 font-medium">Audit Status: <span className="font-bold text-emerald-700">Verified</span></div>
               </div>
             </div>
 
-            {/* Event Timeline Feed */}
-            <div className="space-y-4 pt-2">
-              <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                FRI, JUN 19, 2026
-              </div>
+            {/* Complete Requirement Lifecycle Timeline (Creation to Present End Status) */}
+            <div className="space-y-6 pt-2">
+              <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                <span>Complete Requirement Audit Trail (Creation to Present)</span>
+                <span className="w-full h-px bg-slate-200/80 flex-1"></span>
+              </h4>
 
-              <div className="space-y-3">
-                {[
-                  { candidate: 'MUNTAZAR SAYED', time: '19/06/2026, 19:29' },
-                  { candidate: 'Nikhil Joshte', time: '19/06/2026, 19:29' },
-                  { candidate: 'Pratibha Kale', time: '19/06/2026, 18:45' },
-                ].map((evt, idx) => (
-                  <div key={idx} className="flex gap-3 text-xs">
-                    <div className="w-2.5 h-2.5 rounded-full border-2 border-blue-600 bg-white shrink-0 mt-1.5"></div>
-                    <div className="flex-1 space-y-1.5">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-bold text-gray-900">Harish Gadipally submitted {evt.candidate} for {requirement.id}</span>
+              <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                {/* Event 1: Requirement Creation */}
+                <div className="relative flex gap-4 text-xs group">
+                  <div className="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] ring-4 ring-white shadow-2xs">
+                    1
+                  </div>
+                  <div className="flex-1 bg-slate-50/90 border border-slate-200/80 rounded-2xl p-4 space-y-2 hover:bg-slate-50 transition-colors">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                        <span>Demand Email Received & Requirement Created</span>
+                        <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-extrabold rounded-md uppercase">REQ.CREATED</span>
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-400">{requirement.emailArrivedTime || 'Aug 1, 2026, 10:45 AM'}</span>
+                    </div>
+                    <p className="text-slate-600 leading-relaxed text-xs">
+                      Requirement <strong className="text-slate-900">{requirement.id}</strong> for position <strong className="text-slate-900">{requirement.title}</strong> was parsed from client demand email sent by <strong className="text-slate-900">{requirement.client}</strong> ({requirement.clientEmail || 'recruiting@client.com'}).
+                    </p>
+                    <div className="flex flex-wrap items-center gap-4 text-[11px] text-slate-500 font-medium pt-1 border-t border-slate-200/60">
+                      <span>Openings: <strong className="text-slate-800">{requirement.openings || 4}</strong></span>
+                      <span>Budget: <strong className="text-slate-800">{requirement.budget || '$140k - $175k'}</strong></span>
+                      <span>Location: <strong className="text-slate-800">{requirement.location || 'Dallas, TX'}</strong></span>
+                      <span>Priority: <strong className="text-red-600 font-bold">{requirement.priority || 'High'}</strong></span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Event 2: Team Lead & Recruiter Assignment */}
+                <div className="relative flex gap-4 text-xs group">
+                  <div className="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-[10px] ring-4 ring-white shadow-2xs">
+                    2
+                  </div>
+                  <div className="flex-1 bg-slate-50/90 border border-slate-200/80 rounded-2xl p-4 space-y-2 hover:bg-slate-50 transition-colors">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                        <span>Assigned to Recruiter & Team Lead</span>
+                        <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-[10px] font-extrabold rounded-md uppercase">REQ.ASSIGNED</span>
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-400">Aug 2, 2026, 09:15 AM</span>
+                    </div>
+                    <p className="text-slate-600 leading-relaxed text-xs">
+                      Assigned to Team Lead <strong className="text-slate-900">{requirement.assignedLead || 'Sarah Kim'}</strong> and primary recruiter <strong className="text-slate-900">{requirement.owner || 'Marcus Chen'}</strong> by Super Admin <strong className="text-slate-900">Harish Gadipally</strong>.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Event 3: Candidate Submissions & Pipeline Sourcing */}
+                <div className="relative flex gap-4 text-xs group">
+                  <div className="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] ring-4 ring-white shadow-2xs">
+                    3
+                  </div>
+                  <div className="flex-1 bg-slate-50/90 border border-slate-200/80 rounded-2xl p-4 space-y-2.5 hover:bg-slate-50 transition-colors">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                        <span>Candidate Sourcing & Submissions Pipeline</span>
+                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-extrabold rounded-md uppercase">SUBMISSIONS.LOG</span>
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-400">Aug 3 – Aug 12, 2026</span>
+                    </div>
+                    <p className="text-slate-600 leading-relaxed text-xs">
+                      Recruiters sourced and submitted <strong className="text-slate-900">{requirement.submissions || 7} candidates</strong> for client review:
+                    </p>
+                    <div className="space-y-2 pt-1">
+                      {[
+                        { name: 'MUNTAZAR SAYED', role: 'Senior React Engineer', exp: '8 Yrs', status: 'Submitted to Client', time: 'Aug 06, 2026' },
+                        { name: 'Rania Khalil', role: 'Java / Microservices Specialist', exp: '11 Yrs', status: 'In Client Review', time: 'Aug 05, 2026' },
+                        { name: 'Ben Wallace', role: 'DevOps / Kubernetes Specialist', exp: '10 Yrs', status: 'Interview Scheduled', time: 'Aug 04, 2026' },
+                      ].map((c, cIdx) => (
+                        <div key={cIdx} className="bg-white border border-slate-200/80 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
+                          <div className="space-y-0.5">
+                            <div className="font-bold text-slate-900 text-xs">{c.name} <span className="text-slate-400 font-normal text-[11px]">({c.exp} exp)</span></div>
+                            <div className="text-[11px] text-slate-500">{c.role}</div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">{c.status}</span>
+                            <span className="text-[11px] text-slate-400">{c.time}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Event 4: Revoke Request / Audit Action (If Revoke Requested) */}
+                {requirement.revokeRequested && (
+                  <div className="relative flex gap-4 text-xs group">
+                    <div className="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-[10px] ring-4 ring-white shadow-2xs">
+                      4
+                    </div>
+                    <div className="flex-1 bg-amber-50/90 border border-amber-200 rounded-2xl p-4 space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-extrabold text-amber-950 text-sm flex items-center gap-2">
+                          <span>Revoke Permission Requested by Recruiter</span>
+                          <span className="px-2 py-0.5 bg-amber-200 text-amber-900 text-[10px] font-extrabold rounded-md uppercase">REVOKE.PENDING</span>
+                        </span>
+                        <span className="text-[11px] font-semibold text-amber-700">{requirement.revokeRequestedAt || 'Today at 01:15 PM'}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-[11px] text-gray-400">
-                        <span>{evt.time} · Harish Gadipally</span>
-                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-extrabold rounded uppercase">SUBMISSION.CREATED</span>
-                      </div>
-                      <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 flex justify-between text-xs text-gray-600">
-                        <span>Candidate: <strong className="text-gray-900">{evt.candidate}</strong></span>
-                        <span>Status: <strong className="text-gray-900">SUBMITTED_TO_LEAD</strong></span>
+                      <p className="text-amber-900 leading-relaxed text-xs">
+                        Recruiter <strong className="text-amber-950">{requirement.revokeRequestedBy || requirement.owner || 'Marcus Chen'}</strong> submitted a request to revoke assignment for requirement <strong className="text-amber-950">{requirement.id}</strong>.
+                      </p>
+                      <div className="bg-white/80 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 font-medium">
+                        <strong className="font-bold text-amber-950">Revocation Reason:</strong> "{requirement.revokeReason || 'Client JD requirements pending clarification & candidate salary expectation mismatch'}"
                       </div>
                     </div>
                   </div>
-                ))}
+                )}
+
+                {/* Event 5: Present End Lifecycle Status */}
+                <div className="relative flex gap-4 text-xs group">
+                  <div className="absolute -left-6 top-0.5 w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-[10px] ring-4 ring-white shadow-2xs">
+                    {requirement.revokeRequested ? 5 : 4}
+                  </div>
+                  <div className="flex-1 bg-slate-900 text-white rounded-2xl p-4 space-y-2 shadow-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-extrabold text-white text-sm flex items-center gap-2">
+                        <span>Current Lifecycle Status (Present)</span>
+                        <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-extrabold rounded-md uppercase">ACTIVE</span>
+                      </span>
+                      <span className="text-[11px] font-medium text-slate-400">Live System State</span>
+                    </div>
+                    <p className="text-slate-300 leading-relaxed text-xs">
+                      Requirement <strong className="text-white">{requirement.id}</strong> is currently assigned to <strong className="text-white">{requirement.owner || 'Marcus Chen'}</strong> with <strong className="text-white">{requirement.submissions || 7} total submissions</strong> and active client interviews in progress.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* SCHEDULE INTERVIEW MODAL */}
+      <ScheduleInterviewModal
+        isOpen={isScheduleModalOpen}
+        onClose={() => {
+          setIsScheduleModalOpen(false)
+          setSchedulingCandidateRow(null)
+        }}
+        onScheduleSuccess={() => {
+          showToast(`Interview successfully scheduled for ${schedulingCandidateRow?.name || 'candidate'}!`)
+          setIsScheduleModalOpen(false)
+          setSchedulingCandidateRow(null)
+        }}
+      />
+
+      {/* ADD CANDIDATE MODAL (IN-PLACE RECRUITER WORKFLOW) */}
+      <SubmitCandidateModal
+        isOpen={isAddCandidateModalOpen}
+        onClose={() => setIsAddCandidateModalOpen(false)}
+        requirements={[requirement]}
+        selectedReqId={requirement.id}
+        currentRecruiterName={currentUserName}
+        onSubmit={(newSub) => {
+          showToast(`Candidate ${newSub.candidate} successfully submitted to client for ${requirement.id}!`)
+          setIsAddCandidateModalOpen(false)
+        }}
+      />
 
       {/* TOAST NOTIFICATION */}
       {toastMsg && (

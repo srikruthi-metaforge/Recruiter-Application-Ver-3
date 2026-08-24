@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Requirement, Submission, Interview, Recruiter, Candidate } from '../../types'
+import { Requirement, Submission, Interview, Recruiter, Candidate, ActivityLogItem } from '../../types'
 import { PAGE_META, getPageTitle } from '../../config/navigation'
 import { Panel, DataTable, QuickActions, PriorityLegend } from '../wireframe/WireframeKit'
 import { PageHeader } from '../layout/PageHeader'
@@ -29,11 +29,14 @@ interface ModulePageProps {
   interviews?: Interview[]
   recruiters?: Recruiter[]
   selectedReqId?: string | null
+  activityLogs?: ActivityLogItem[]
   onOpenSubmit?: (reqId?: string) => void
   onOpenFeedback?: (iv: Interview) => void
   onOpenCandidate?: (sub: Submission) => void
   onUpdateRequirements?: (requirements: Requirement[]) => void
   onSelectRequirement?: (reqId: string | null) => void
+  onAddActivityLog?: (log: ActivityLogItem) => void
+  onNavigateToDashboard?: () => void
 }
 
 export function ModulePage({
@@ -44,14 +47,39 @@ export function ModulePage({
   interviews = [],
   recruiters = [],
   selectedReqId = null,
+  activityLogs = [],
   onOpenSubmit,
   onOpenFeedback,
   onOpenCandidate,
   onUpdateRequirements,
   onSelectRequirement,
+  onAddActivityLog,
+  onNavigateToDashboard,
 }: ModulePageProps) {
   const [candidatesList, setCandidatesList] = useState<Candidate[]>(INITIAL_CANDIDATES)
-  const [candidateViewMode, setCandidateViewMode] = useState<'add' | 'repository'>('add')
+  const [candidateViewMode, setCandidateViewMode] = useState<'add' | 'repository'>(() => {
+    try {
+      const saved = localStorage.getItem('metaforge_candidate_view_mode')
+      if (saved === 'add' || saved === 'repository') return saved
+    } catch {}
+    return 'add'
+  })
+
+  const handleCandidateViewModeChange = (mode: 'add' | 'repository') => {
+    setCandidateViewMode(mode)
+    try {
+      localStorage.setItem('metaforge_candidate_view_mode', mode)
+    } catch {}
+  }
+
+  React.useEffect(() => {
+    if (selectedReqId) {
+      setCandidateViewMode('repository')
+      try {
+        localStorage.setItem('metaforge_candidate_view_mode', 'repository')
+      } catch {}
+    }
+  }, [selectedReqId, pageKey])
 
   if (pageKey === 'My Profile' || pageKey === 'Profile') {
     return <MyProfilePage role={role as any} />
@@ -78,7 +106,7 @@ export function ModulePage({
   }
 
   if (pageKey === 'Activity Logs' || pageKey === 'Audit Logs') {
-    return <ActivityLogsPage role={role} />
+    return <ActivityLogsPage role={role} logs={activityLogs} />
   }
 
   if (pageKey === 'Teams') {
@@ -101,6 +129,7 @@ export function ModulePage({
         recruiters={recruiters}
         onOpenSubmit={onOpenSubmit}
         onUpdateRequirements={onUpdateRequirements}
+        onAddActivityLog={onAddActivityLog}
       />
     )
   }
@@ -112,8 +141,9 @@ export function ModulePage({
           candidates={candidatesList}
           requirements={requirements}
           selectedReqId={selectedReqId}
-          onOpenAddForm={() => setCandidateViewMode('add')}
+          onOpenAddForm={() => handleCandidateViewModeChange('add')}
           onSelectRequirement={onSelectRequirement}
+          onBackToDashboard={() => handleCandidateViewModeChange('add')}
         />
       )
     }
@@ -122,7 +152,7 @@ export function ModulePage({
       <AddCandidatePage
         requirements={requirements}
         selectedReqId={selectedReqId}
-        onOpenRepository={() => setCandidateViewMode('repository')}
+        onOpenRepository={() => handleCandidateViewModeChange('repository')}
         onAddCandidate={newCandidate => {
           setCandidatesList([newCandidate, ...candidatesList])
         }}
@@ -130,7 +160,7 @@ export function ModulePage({
     )
   }
 
-  if (pageKey === 'Submissions') {
+  if (pageKey === 'Submissions' || pageKey === 'Submission to Client' || pageKey === 'Submissions to Client') {
     return (
       <SubmissionsPage
         role={role}

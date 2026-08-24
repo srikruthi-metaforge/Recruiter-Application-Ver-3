@@ -25,7 +25,7 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       items: [
         { key: 'Requirements', label: 'Requirements' },
         { key: 'Candidates', label: 'Add Candidates' },
-        { key: 'Submissions', label: 'All Submissions' },
+        { key: 'Submissions', label: 'Submissions' },
       ],
     },
     {
@@ -65,7 +65,7 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       items: [
         { key: 'Requirements', label: 'Requirements' },
         { key: 'Candidates', label: 'Add Candidates' },
-        { key: 'Submissions', label: 'All Submissions' },
+        { key: 'Submissions', label: 'Submissions' },
       ],
     },
     {
@@ -89,11 +89,10 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
     {
       title: 'Overview',
       items: [
-        { key: 'Dashboard', label: 'My Work' },
-        { key: 'Requirements', label: 'Assigned Requirements' },
+        { key: 'Requirements', label: 'Requirements' },
+        { key: 'Dashboard', label: 'My Workspace' },
         { key: 'Candidates', label: 'Add Candidates' },
-        { key: 'Submissions', label: 'All Submissions' },
-        { key: 'My Team', label: 'My Team' },
+        { key: 'Submissions', label: 'Total Submissions' },
         { key: 'Interviews', label: 'Interview Tracker' },
         { key: 'Reports', label: 'Daily Reports' },
       ],
@@ -103,9 +102,10 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
     {
       title: 'Main',
       items: [
-        { key: 'Dashboard', label: 'My Work' },
+        { key: 'Dashboard', label: 'My Workspace' },
+        { key: 'Requirements', label: 'Requirements' },
         { key: 'Candidates', label: 'Add Candidates' },
-        { key: 'Submissions', label: 'Submissions' },
+        { key: 'Submissions', label: 'Total Submissions' },
         { key: 'Interviews', label: 'Interview Tracking' },
         { key: 'Reports', label: 'Reports' },
       ],
@@ -117,7 +117,7 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       items: [
         { key: 'Requirements', label: 'Requirements' },
         { key: 'Candidates', label: 'Add Candidates' },
-        { key: 'Submissions', label: 'All Submissions' },
+        { key: 'Submissions', label: 'Submissions' },
       ],
     },
     {
@@ -148,6 +148,16 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       items: [
         { key: 'Settings', label: 'Settings' },
         { key: 'Audit Logs', label: 'Audit Logs' },
+      ],
+    },
+  ],
+  client: [
+    {
+      title: 'Overview',
+      items: [
+        { key: 'Requirements', label: 'My Requirements' },
+        { key: 'Submissions', label: 'Candidate Submissions' },
+        { key: 'Interviews', label: 'Interview Feedback' },
       ],
     },
   ],
@@ -323,15 +333,6 @@ export const PAGE_META: Record<string, PageMeta> = {
     description: 'Daily operational activity across your region.',
     columns: ['Time', 'User', 'Activity', 'Details'],
     sampleRows: [['14:30', 'Marcus Chen', 'Submitted candidate', 'REQ-001 · Alex Turner']],
-  },
-  'My Team': {
-    title: 'My Team',
-    description: 'Recruiters under your supervision and daily targets.',
-    columns: ['Recruiter', 'Daily Target', 'Today', 'Weekly %', 'Score'],
-    sampleRows: [
-      ['Marcus Chen', '5', '4', '100%', 'A'],
-      ['Priya Sharma', '5', '3', '90%', 'B+'],
-    ],
   },
   Performance: {
     title: 'Recruiter Performance',

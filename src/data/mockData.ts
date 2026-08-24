@@ -1,4 +1,55 @@
-import { Admin, Lead, Recruiter, Requirement, Interview, Submission, Role, Candidate } from '../types'
+import { Admin, Lead, Recruiter, Requirement, Interview, Submission, Role, Candidate, ActivityLogItem } from '../types'
+
+export const INITIAL_ACTIVITY_LOGS: ActivityLogItem[] = [
+  {
+    id: 'LOG-1001',
+    timestamp: 'Today at 02:45 PM',
+    userName: 'Harish Gadipally',
+    userEmail: 'harish.g@metaforgeit.com',
+    userRole: 'lead',
+    userAvatar: 'H',
+    action: 'Assigned Requirement REQ-2026-08-12-001 to Marcus Chen',
+    category: 'Requirements',
+    targetEntity: 'Requirement REQ-2026-08-12-001',
+    targetId: 'REQ-2026-08-12-001',
+    clientName: 'Accenture',
+    ipAddress: '192.168.1.45',
+    status: 'Success',
+    details: 'Assigned requirement REQ-2026-08-12-001 for Accenture to team member Marcus Chen with high priority SLA.',
+  },
+  {
+    id: 'LOG-1002',
+    timestamp: 'Today at 01:15 PM',
+    userName: 'Marcus Chen',
+    userEmail: 'm.chen@talentflow.io',
+    userRole: 'recruiter',
+    userAvatar: 'M',
+    action: 'Requested Revoke Permission for REQ-003 (DevOps Lead Engineer)',
+    category: 'Requirements',
+    targetEntity: 'Requirement REQ-003',
+    targetId: 'REQ-003',
+    clientName: 'JP Morgan',
+    ipAddress: '192.168.1.88',
+    status: 'Warning',
+    details: 'Revoke Reason: Client JD requirements pending clarification & candidate salary expectation mismatch. Sent to Team Lead Sarah Kim for approval.',
+  },
+  {
+    id: 'LOG-1003',
+    timestamp: 'Yesterday at 04:15 PM',
+    userName: 'David Park',
+    userEmail: 'd.park@talentflow.io',
+    userRole: 'admin',
+    userAvatar: 'D',
+    action: 'Revoked Requirement REQ-2026-08-06-004 & Reverted to Unassigned',
+    category: 'Requirements',
+    targetEntity: 'Requirement REQ-2026-08-06-004',
+    targetId: 'REQ-2026-08-06-004',
+    clientName: 'Metaforge (Internal)',
+    ipAddress: '192.168.1.22',
+    status: 'Success',
+    details: 'Revoked requirement REQ-2026-08-06-004 due to client hold and reverted to Unassigned state.',
+  },
+]
 
 export const INITIAL_REQUIREMENTS: Requirement[] = [
   {
@@ -187,6 +238,10 @@ export const INITIAL_REQUIREMENTS: Requirement[] = [
     rejections: 0,
     assignedLead: 'Tom Walsh',
     skills: ['Kubernetes', 'Docker', 'Terraform', 'CI/CD', 'GCP'],
+    revokeRequested: true,
+    revokeReason: 'Client JD requirements pending clarification & candidate salary expectation mismatch',
+    revokeRequestedBy: 'Marcus Chen',
+    revokeRequestedAt: 'Today at 01:15 PM',
   },
   {
     id: 'REQ-004',
@@ -495,6 +550,7 @@ export const DEMO_ACCOUNTS: Record<Role, { email: string; name: string; password
   lead: { email: 'harish.g@metaforgeit.com', name: 'Harish Gadipally', password: 'Lead@2026', title: 'Senior Recruiting Lead' },
   recruiter: { email: 'm.chen@talentflow.io', name: 'Marcus Chen', password: 'Rec@2026', title: 'Lead Technical Recruiter' },
   devteam: { email: 'dev.team@talentflow.io', name: 'Dev Team Engineer', password: 'Dev@2026', title: 'Senior Systems Engineer / Core Platform' },
+  client: { email: 'client@accenture.com', name: 'Client Account Lead', password: 'Client@2026', title: 'Hiring Manager / Client Portal' },
 }
 
 export const ROLE_META: Record<Role, { label: string; desc: string; color: string; bg: string; border: string }> = {
@@ -503,6 +559,7 @@ export const ROLE_META: Record<Role, { label: string; desc: string; color: strin
   lead: { label: 'Team Lead', desc: 'Track team performance & assigned reqs', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
   recruiter: { label: 'Recruiter', desc: 'Candidate submissions & interview management', color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200' },
   devteam: { label: 'Dev Team', desc: 'Full Super Admin control, platform metrics, and administrative privileges', color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
+  client: { label: 'Client', desc: 'Client portal for requirements and candidate review', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
 }
 
 export const INITIAL_CANDIDATES: Candidate[] = [

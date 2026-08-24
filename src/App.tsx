@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { AuthScreen, Interview, InterviewStatus, Recruiter, Role, Submission, Requirement } from './types'
+import { AuthScreen, Interview, InterviewStatus, Recruiter, Role, Submission, Requirement, ActivityLogItem } from './types'
 import {
   INITIAL_ADMINS,
   INITIAL_INTERVIEWS,
@@ -7,6 +7,7 @@ import {
   INITIAL_RECRUITERS,
   INITIAL_REQUIREMENTS,
   INITIAL_SUBMISSIONS,
+  INITIAL_ACTIVITY_LOGS,
   DEMO_ACCOUNTS,
 } from './data/mockData'
 import { brand } from './theme'
@@ -48,8 +49,16 @@ export default function App() {
   })
 
   const [loginRole, setLoginRole] = useState<Role>(role)
-  const [activeNav, setActiveNav] = useState(() => {
-    return (role === 'superadmin' || role === 'devteam' || role === 'admin') ? 'Requirements' : 'Dashboard'
+  const [activeNav, setActiveNav] = useState<string>(() => {
+    try {
+      const savedNav = localStorage.getItem('metaforge_active_nav')
+      if (savedNav && savedNav !== 'Dashboard') return savedNav
+      if (savedNav === 'Dashboard' && (role === 'lead' || role === 'superadmin' || role === 'admin' || role === 'devteam')) {
+        return 'Requirements'
+      }
+      if (savedNav) return savedNav
+    } catch {}
+    return (role === 'superadmin' || role === 'devteam' || role === 'admin' || role === 'lead') ? 'Requirements' : 'Dashboard'
   })
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
@@ -59,6 +68,11 @@ export default function App() {
   const [recruiters, setRecruiters] = useState<Recruiter[]>(INITIAL_RECRUITERS)
   const [leads] = useState(INITIAL_LEADS)
   const [admins] = useState(INITIAL_ADMINS)
+  const [activityLogs, setActivityLogs] = useState<ActivityLogItem[]>(INITIAL_ACTIVITY_LOGS)
+
+  const handleAddActivityLog = (newLog: ActivityLogItem) => {
+    setActivityLogs(prev => [newLog, ...prev])
+  }
 
   const [isNewReqOpen, setIsNewReqOpen] = useState(false)
   const [isSubmitCandidateOpen, setIsSubmitCandidateOpen] = useState(false)
@@ -74,6 +88,9 @@ export default function App() {
     try {
       localStorage.removeItem('metaforge_session_active')
       localStorage.removeItem('metaforge_user_role')
+      localStorage.removeItem('metaforge_active_nav')
+      localStorage.removeItem('metaforge_reports_active_view')
+      localStorage.removeItem('metaforge_candidate_view_mode')
     } catch (e) {
       // ignore
     }
@@ -86,11 +103,16 @@ export default function App() {
       setSelectedReqIdForSubmit(null)
     }
     setActiveNav(nav)
+    try {
+      localStorage.setItem('metaforge_active_nav', nav)
+    } catch (e) {}
   }
 
   const handleOpenSubmitCandidateFromDashboard = (reqId?: string) => {
     setSelectedReqIdForSubmit(reqId || null)
-    setActiveNav('Candidates')
+    if (role !== 'recruiter') {
+      handleNavSelect('Candidates')
+    }
   }
 
   const handleAddRequirement = (newReq: Requirement) => {
@@ -117,7 +139,7 @@ export default function App() {
 
   const handleOpenSubmitForReq = (reqId?: string) => {
     setSelectedReqIdForSubmit(reqId || null)
-    setActiveNav('Candidates')
+    handleNavSelect('Candidates')
   }
 
   const handleOpenFeedbackForInterview = (iv: Interview) => {
@@ -147,13 +169,15 @@ export default function App() {
         role={loginRole}
         onLogin={r => {
           setRole(r)
+          const defaultNav = (r === 'superadmin' || r === 'devteam' || r === 'admin' || r === 'lead') ? 'Requirements' : 'Dashboard'
           try {
             localStorage.setItem('metaforge_session_active', 'true')
             localStorage.setItem('metaforge_user_role', r)
+            localStorage.setItem('metaforge_active_nav', defaultNav)
           } catch (e) {
             // ignore
           }
-          setActiveNav((r === 'superadmin' || r === 'devteam' || r === 'admin') ? 'Requirements' : 'Dashboard')
+          setActiveNav(defaultNav)
           setScreen('app')
         }}
         onBack={() => setScreen('role-select')}
@@ -197,24 +221,12 @@ export default function App() {
               interviews={interviews}
               requirements={requirements}
               onOpenSubmitCandidate={handleOpenSubmitCandidateFromDashboard}
+              onOpenCandidateRepo={handleOpenSubmitCandidateFromDashboard}
               onOpenFeedbackModal={handleOpenFeedbackForInterview}
               onOpenCandidateDetail={handleOpenCandidateDetail}
             />
           )
       }
-    }
-
-    if (effectiveNav === 'Requirements' && role === 'recruiter') {
-      return (
-        <RecruiterDashboard
-          submissions={submissions}
-          interviews={interviews}
-          requirements={requirements}
-          onOpenSubmitCandidate={handleOpenSubmitCandidateFromDashboard}
-          onOpenFeedbackModal={handleOpenFeedbackForInterview}
-          onOpenCandidateDetail={handleOpenCandidateDetail}
-        />
-      )
     }
 
     return (
@@ -231,6 +243,9 @@ export default function App() {
         onOpenCandidate={handleOpenCandidateDetail}
         onUpdateRequirements={setRequirements}
         onSelectRequirement={setSelectedReqIdForSubmit}
+        activityLogs={activityLogs}
+        onAddActivityLog={handleAddActivityLog}
+        onNavigateToDashboard={() => setActiveNav('Dashboard')}
       />
     )
   }

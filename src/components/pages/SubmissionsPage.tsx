@@ -24,6 +24,8 @@ import {
   ExternalLink,
 } from 'lucide-react'
 
+import { ScheduleInterviewModal } from '../modals/ScheduleInterviewModal'
+
 interface SubmissionsPageProps {
   role?: Role
   submissions?: Submission[]
@@ -180,7 +182,7 @@ export function SubmissionsPage({
   onUpdateRequirements,
 }: SubmissionsPageProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [dateFilter, setDateFilter] = useState('All')
+  const [dateFilter, setDateFilter] = useState('Today')
   const [customStartDate, setCustomStartDate] = useState('')
   const [customEndDate, setCustomEndDate] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
@@ -193,9 +195,69 @@ export function SubmissionsPage({
   const [editingReq, setEditingReq] = useState<Requirement | null>(null)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
 
+  // Interview Schedule Modal state
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
+  const [targetSubForInterview, setTargetSubForInterview] = useState<ScreenshotSubmission | null>(null)
+
+  // Dynamic Submissions List State
+  const [submissionsList, setSubmissionsList] = useState<ScreenshotSubmission[]>(() => {
+    if (submissions && submissions.length > 0) {
+      const mapped = submissions.map(s => ({
+        id: s.id,
+        candidateName: s.candidate,
+        requirement: s.req || 'Senior Developer',
+        reqId: s.req || 'REQ-2026-08-12-001',
+        clientName: s.client || 'Accenture',
+        experience: s.experience || '6 Years',
+        currentCompany: s.client || 'Tech Enterprise',
+        submittedBy: s.recruiter || 'Marcus Chen',
+        submittedOn: s.date || 'Aug 17, 2026',
+        status: s.stage === 'Submitted' ? 'Submitted to Client' : s.stage,
+      }))
+      return [...DEFAULT_SCREENSHOT_SUBMISSIONS, ...mapped]
+    }
+    return DEFAULT_SCREENSHOT_SUBMISSIONS
+  })
+
   const showToast = (msg: string) => {
     setToastMsg(msg)
     setTimeout(() => setToastMsg(null), 3500)
+  }
+
+  const handleScheduleSuccess = (data: any) => {
+    const scheduledStatus = data.interviewRound ? `${data.interviewRound} Scheduled` : 'Interview Scheduled'
+
+    // Update status in Submissions table
+    setSubmissionsList(prev =>
+      prev.map(item => {
+        if (targetSubForInterview && item.id === targetSubForInterview.id) {
+          return { ...item, status: scheduledStatus }
+        }
+        if (data.submission && data.submission.includes(item.candidateName)) {
+          return { ...item, status: scheduledStatus }
+        }
+        return item
+      })
+    )
+
+    // Update Requirement status and Recruitment Progress step if callback exists
+    if (onUpdateRequirements && requirements.length > 0) {
+      const targetReqId = targetSubForInterview?.reqId || 'REQ-2026-08-12-001'
+      const updatedReqs: Requirement[] = requirements.map(r => {
+        if (r.id === targetReqId) {
+          return {
+            ...r,
+            interviews: (r.interviews || 0) + 1,
+            stage: 'Interview Scheduled',
+          } as Requirement
+        }
+        return r
+      })
+      onUpdateRequirements(updatedReqs)
+    }
+
+    showToast(`Interview scheduled! Candidate status updated to "${scheduledStatus}" in table and recruitment progress.`)
+    setTargetSubForInterview(null)
   }
 
   const handleOpenReqOverview = (reqId: string, position: string, company: string) => {
@@ -208,10 +270,10 @@ export function SubmissionsPage({
         title: position,
         client: company,
         company: company,
-        status: 'Open',
+        status: 'Interview Scheduled',
         createdDate: '12 Aug 2026',
         submissionsCount: 7,
-        interviewsCount: 2,
+        interviewsCount: 3,
         owner: 'Harish Gadipally',
         assignedRecruiter: 'Harish Gadipally',
         experienceRequired: '5 - 10 Years',
@@ -229,32 +291,13 @@ export function SubmissionsPage({
     'SUB-007': 'Expected CTC exceeds approved budget limit',
   })
 
-  // Map initial submissions array or screenshot default data
-  const combinedSubmissions: ScreenshotSubmission[] = useMemo(() => {
-    if (submissions && submissions.length > 0) {
-      const mapped = submissions.map(s => ({
-        id: s.id,
-        candidateName: s.candidate,
-        requirement: s.req || 'Senior Developer',
-        experience: s.experience || '6 Years',
-        currentCompany: s.client || 'Tech Enterprise',
-        submittedBy: s.recruiter || 'Marcus Chen',
-        submittedOn: s.date || 'Aug 06, 26',
-        status: s.stage === 'Submitted' ? 'Submitted to Client' : s.stage,
-      }))
-      return [...DEFAULT_SCREENSHOT_SUBMISSIONS, ...mapped]
-    }
-    return DEFAULT_SCREENSHOT_SUBMISSIONS
-  }, [submissions])
-
   // Scope filter: 'all' (members + lead), 'my_submissions' (lead only), 'team_members' (members only)
   const [scopeTab, setScopeTab] = useState<'all' | 'my_submissions' | 'team_members'>('all')
 
   // Scope submissions data for team lead and recruiter roles
   const scopeSubmissions = useMemo(() => {
     if (role === 'lead') {
-      // Team Lead sees both team members' submissions and their own individual submissions
-      return combinedSubmissions.filter(item => {
+      return submissionsList.filter(item => {
         const by = item.submittedBy.toLowerCase()
         if (scopeTab === 'my_submissions') {
           return by.includes('harish') || by.includes('lead')
@@ -262,18 +305,17 @@ export function SubmissionsPage({
         if (scopeTab === 'team_members') {
           return !by.includes('harish') && !by.includes('lead')
         }
-        // 'all' tab shows both team members and Team Lead individual submissions
         return true
       })
     }
     if (role === 'recruiter') {
-      return combinedSubmissions.filter(item => {
+      return submissionsList.filter(item => {
         const by = item.submittedBy.toLowerCase()
-        return by.includes('marcus') || by.includes('recruiter')
+        return by.includes('marcus') || by === 'marcus chen'
       })
     }
-    return combinedSubmissions
-  }, [combinedSubmissions, role, scopeTab])
+    return submissionsList
+  }, [submissionsList, role, scopeTab])
 
   // Dynamic filter
   const filteredData = useMemo(() => {
@@ -390,6 +432,7 @@ export function SubmissionsPage({
     return (
       <RequirementDetailOverview
         requirement={selectedReqDetail}
+        role={role}
         onBack={() => setSelectedReqDetail(null)}
         onAddCandidate={() => onOpenSubmitCandidate?.(selectedReqDetail.id)}
         onEditRequirement={() => {
@@ -406,15 +449,31 @@ export function SubmissionsPage({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Submissions</h1>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Total Submissions</h1>
             <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-purple-100 text-[#6B3BF6] border border-purple-200 inline-flex items-center gap-1.5 shadow-2xs">
               <FileText className="w-3.5 h-3.5 text-[#6B3BF6]" />
-              <span>{filteredData.length} Candidates Submitted Today</span>
+              <span>
+                {filteredData.length} {dateFilter === 'Today' ? 'Candidates Submitted Today' : dateFilter === 'Yesterday' ? 'Candidates Submitted Yesterday' : dateFilter === 'This week' ? 'Candidates Submitted This Week' : dateFilter === 'This month' ? 'Candidates Submitted This Month' : 'Candidates Submitted'}
+              </span>
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
             Track candidate submissions sent to internal leads and client partners.
           </p>
+        </div>
+
+        <div>
+          <button
+            type="button"
+            onClick={() => {
+              setTargetSubForInterview(null)
+              setIsScheduleModalOpen(true)
+            }}
+            className="px-4 py-2.5 bg-[#6B3BF6] hover:bg-[#5B51D8] text-white rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 shadow-md active:scale-95"
+          >
+            <Calendar className="w-4 h-4 text-white" />
+            <span>Schedule New Interview</span>
+          </button>
         </div>
       </div>
 
@@ -423,7 +482,7 @@ export function SubmissionsPage({
         <div className="bg-white rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              Total Submissions Today
+              {dateFilter === 'Today' ? 'Total Submissions Today' : dateFilter === 'Yesterday' ? 'Total Submissions Yesterday' : dateFilter === 'This week' ? 'Total Submissions This Week' : dateFilter === 'This month' ? 'Total Submissions This Month' : 'Total Submissions'}
             </span>
             <p className="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">
               {filteredData.length}
@@ -501,24 +560,34 @@ export function SubmissionsPage({
 
       <div className="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-sm">
         <div className="flex flex-col sm:flex-row items-center gap-3 justify-between">
-          {/* Search Bar */}
-          <div className="relative w-full sm:w-96">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search candidate name or company..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-9 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-800 placeholder-slate-400 bg-slate-50/50"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-semibold rounded-full w-4 h-4 flex items-center justify-center bg-slate-200"
-              >
-                ✕
-              </button>
-            )}
+          {/* Search Bar & Submissions Count Pill */}
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-80">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search candidate name or company..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-9 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-800 placeholder-slate-400 bg-slate-50/50"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-semibold rounded-full w-4 h-4 flex items-center justify-center bg-slate-200"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Submission Count Pill beside Search Bar */}
+            <div className="px-3.5 py-2 rounded-xl bg-purple-50 text-[#6B3BF6] border border-purple-200 text-xs font-extrabold flex items-center gap-2 shrink-0 shadow-2xs animate-in fade-in duration-150">
+              <FileText className="w-3.5 h-3.5 text-[#6B3BF6]" />
+              <span>
+                {filteredData.length} {dateFilter === 'Today' ? 'Submissions Today' : dateFilter === 'Yesterday' ? 'Submissions Yesterday' : dateFilter === 'This week' ? 'Submissions This Week' : dateFilter === 'This month' ? 'Submissions This Month' : dateFilter === 'Custom range' ? 'Submissions (Custom)' : 'Total Submissions'}
+              </span>
+            </div>
           </div>
 
           {/* Right Filter Dropdowns */}
@@ -530,11 +599,11 @@ export function SubmissionsPage({
                 onChange={e => setDateFilter(e.target.value)}
                 className="w-full appearance-none pl-3.5 pr-8 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-700 bg-white font-bold cursor-pointer"
               >
-                <option value="All">All Submissions</option>
                 <option value="Today">Today</option>
                 <option value="Yesterday">Yesterday</option>
                 <option value="This week">This week</option>
                 <option value="This month">This month</option>
+                <option value="All">All Submissions</option>
                 <option value="Custom range">Custom range...</option>
               </select>
               <ChevronDown className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -549,13 +618,24 @@ export function SubmissionsPage({
                   onChange={e => setCustomStartDate(e.target.value)}
                   className="px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:border-[#6B3BF6]"
                 />
-                <span className="text-xs text-slate-400">to</span>
+                <span className="text-xs text-slate-400 font-bold">to</span>
                 <input
                   type="date"
                   value={customEndDate}
                   onChange={e => setCustomEndDate(e.target.value)}
                   className="px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:border-[#6B3BF6]"
                 />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomStartDate('')
+                    setCustomEndDate('')
+                    setDateFilter('All')
+                  }}
+                  className="px-2.5 py-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors cursor-pointer shrink-0"
+                >
+                  Clear filter
+                </button>
               </div>
             )}
 
@@ -567,7 +647,7 @@ export function SubmissionsPage({
                 className="w-full appearance-none pl-3.5 pr-8 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-700 bg-white font-bold cursor-pointer"
               >
                 <option value="All">All Candidate Statuses</option>
-                <option value="Submitted to Lead">Submitted to Lead / Client</option>
+                <option value="Submitted to Lead">Submitted to Client / Lead</option>
                 <option value="Interview Scheduled">Interview Scheduled</option>
                 <option value="Selected">Selected in Interview</option>
                 <option value="Placed">Placed</option>
@@ -592,12 +672,13 @@ export function SubmissionsPage({
                 <th className="py-3.5 px-4">SUBMITTED TO (CLIENT)</th>
                 <th className="py-3.5 px-4">STATUS</th>
                 <th className="py-3.5 px-4">REASON FOR REJECTION</th>
+                <th className="py-3.5 px-4 text-right">ACTION</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
               {paginatedSubmissions.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
                     <p className="font-bold text-sm">No candidate submissions found</p>
                     <p className="text-xs mt-1">Try adjusting your search query or date range filter above</p>
                   </td>
@@ -697,6 +778,21 @@ export function SubmissionsPage({
                         <span className="text-slate-400 font-normal text-xs">—</span>
                       )}
                     </td>
+
+                    {/* 8. ACTION */}
+                    <td className="py-4 px-4 text-right whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTargetSubForInterview(sub)
+                          setIsScheduleModalOpen(true)
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#EEF2FF] hover:bg-[#6B3BF6] text-[#5B51D8] hover:text-white border border-[#C7D2FE] hover:border-[#6B3BF6] rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-95"
+                      >
+                        <Calendar className="w-3.5 h-3.5" />
+                        <span>Schedule Interview</span>
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -716,6 +812,7 @@ export function SubmissionsPage({
       {/* Candidate Detail Modal */}
       {selectedSub && (
         <SubmissionCandidateDetailModal
+          role={role}
           submission={{
             id: selectedSub.id,
             candidate: selectedSub.candidateName,
@@ -741,6 +838,17 @@ export function SubmissionsPage({
           onClose={() => setSelectedSub(null)}
         />
       )}
+
+      {/* Schedule Interview Modal */}
+      <ScheduleInterviewModal
+        isOpen={isScheduleModalOpen}
+        initialSubmission={targetSubForInterview ? `${targetSubForInterview.candidateName} — ${targetSubForInterview.requirement}` : undefined}
+        onClose={() => {
+          setIsScheduleModalOpen(false)
+          setTargetSubForInterview(null)
+        }}
+        onScheduleSuccess={handleScheduleSuccess}
+      />
 
       {/* Toast Notification */}
       {toastMsg && (

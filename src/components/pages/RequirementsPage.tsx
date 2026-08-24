@@ -17,6 +17,10 @@ import {
   ArrowUpDown,
   RefreshCw,
   UserPlus,
+  RotateCcw,
+  ShieldAlert,
+  AlertTriangle,
+  Check,
   X,
 } from 'lucide-react'
 
@@ -24,6 +28,7 @@ import { RequirementCardsGrid, CardFilterType } from '../ui/RequirementCardsGrid
 import { RequirementDetailOverview } from './RequirementDetailOverview'
 import { CreateJobDemandForm } from './CreateJobDemandForm'
 import { PaginationFooter } from '../ui/PaginationFooter'
+import { RevokeRequirementModal } from '../modals/RevokeRequirementModal'
 
 interface RequirementsPageProps {
   role?: string
@@ -33,6 +38,8 @@ interface RequirementsPageProps {
   recruiters?: Recruiter[]
   onOpenSubmit?: (reqId?: string) => void
   onUpdateRequirements?: (updated: Requirement[]) => void
+  onAddActivityLog?: (log: any) => void
+  onNavigateToDashboard?: () => void
 }
 
 export function RequirementsPage({
@@ -43,6 +50,8 @@ export function RequirementsPage({
   recruiters = [],
   onOpenSubmit,
   onUpdateRequirements,
+  onAddActivityLog,
+  onNavigateToDashboard,
 }: RequirementsPageProps) {
   // Local requirements state so assignments take immediate visual effect
   const [localRequirements, setLocalRequirements] = useState<Requirement[]>(requirements)
@@ -59,7 +68,7 @@ export function RequirementsPage({
 
   // Search and Filter states
   const [globalSearch, setGlobalSearch] = useState('')
-  const [statusDropdown, setStatusDropdown] = useState<string>('All')
+  const [statusDropdown, setStatusDropdown] = useState<string>('Unassigned')
   const [clientDropdown, setClientDropdown] = useState<string>('All')
 
   // Selected card filter
@@ -144,6 +153,24 @@ export function RequirementsPage({
     }, 4000)
   }
 
+  // Single Self Assign handler
+  const handleSingleSelfAssign = (req: Requirement) => {
+    const updated = localRequirements.map(r =>
+      r.id === req.id
+        ? { ...r, owner: currentUserName, assignmentStatus: 'Assigned' as const }
+        : r
+    )
+    setLocalRequirements(updated)
+    onUpdateRequirements?.(updated)
+    showToast(`Successfully assigned requirement ${req.id} to ${currentUserName} (Myself)`)
+
+    if (onNavigateToDashboard) {
+      setTimeout(() => {
+        onNavigateToDashboard()
+      }, 400)
+    }
+  }
+
   // Self Assign handler shortcut
   const handleSelfAssign = () => {
     if (selectedReqIds.size === 0) return
@@ -157,6 +184,12 @@ export function RequirementsPage({
     onUpdateRequirements?.(updated)
     setSelectedReqIds(new Set())
     showToast(`Successfully assigned ${count} requirement(s) to ${currentUserName} (Myself)`)
+
+    if (onNavigateToDashboard) {
+      setTimeout(() => {
+        onNavigateToDashboard()
+      }, 400)
+    }
   }
 
   // Confirm assignment from the modal
@@ -188,6 +221,8 @@ export function RequirementsPage({
       })
     }
 
+    const assignedToMyself = isAssignMyselfChecked || assignees.some(a => a.toLowerCase().includes(currentUserName.toLowerCase()) || a.toLowerCase().includes('harish'))
+
     setSelectedReqIds(new Set())
     setIsAssignModalOpen(false)
     setSelectedRecruiterNames(new Set())
@@ -195,6 +230,192 @@ export function RequirementsPage({
     setRecruiterSearchQuery('')
 
     showToast(`Successfully assigned ${assignees.length} recruiter(s)`)
+
+    onAddActivityLog?.({
+      id: `LOG-${Date.now()}`,
+      timestamp: 'Just now',
+      userName: currentUserName,
+      userEmail: 'user@metaforgeit.com',
+      userRole: role as any,
+      userAvatar: currentUserName.charAt(0),
+      action: `Assigned Requirement(s) to ${assigneesText}`,
+      category: 'Requirements',
+      targetEntity: `Requirement Assignment`,
+      ipAddress: '192.168.1.45',
+      status: 'Success',
+      details: `Assigned requirement workload to ${assigneesText}.`,
+    })
+
+    if (assignedToMyself && onNavigateToDashboard) {
+      setTimeout(() => {
+        onNavigateToDashboard()
+      }, 400)
+    }
+  }
+
+  // Revoke Modal State & Handlers
+  const [isRevokeModalOpen, setIsRevokeModalOpen] = useState(false)
+  const [selectedReqForRevoke, setSelectedReqForRevoke] = useState<Requirement | null>(null)
+
+  const handleOpenRevoke = (req: Requirement) => {
+    setSelectedReqForRevoke(req)
+    setIsRevokeModalOpen(true)
+  }
+
+  const handleConfirmRevoke = (reqId: string, reason: string, isDirectRevoke: boolean) => {
+    const target = localRequirements.find(r => r.id === reqId)
+    const oldOwner = target?.owner || 'Assigned Recruiter'
+
+    let updated: Requirement[]
+    if (isDirectRevoke) {
+      // Direct Revoke by Lead / Admin / SuperAdmin -> Reverts to Unassigned immediately
+      updated = localRequirements.map(r =>
+        r.id === reqId
+          ? {
+              ...r,
+              owner: 'Unassigned',
+              assignmentStatus: 'Unassigned' as const,
+              revokeRequested: false,
+              revokeReason: undefined,
+              revokeRequestedBy: undefined,
+              revokeRequestedAt: undefined,
+            }
+          : r
+      )
+      showToast(`Requirement ${reqId} revoked successfully and reverted to Unassigned state.`)
+      onAddActivityLog?.({
+        id: `LOG-${Date.now()}`,
+        timestamp: 'Just now',
+        userName: currentUserName,
+        userEmail: 'user@metaforgeit.com',
+        userRole: role as any,
+        userAvatar: currentUserName.charAt(0),
+        action: `Revoked Requirement ${reqId} & Reverted to Unassigned`,
+        category: 'Requirements',
+        targetEntity: `Requirement ${reqId}`,
+        targetId: reqId,
+        clientName: target?.client,
+        ipAddress: '192.168.1.45',
+        status: 'Success',
+        details: `Reason for revocation: ${reason}. Previous owner was ${oldOwner}. Reverted requirement to Unassigned state.`,
+      })
+    } else {
+      // Permission request by Recruiter -> Needs Lead / Admin approval
+      updated = localRequirements.map(r =>
+        r.id === reqId
+          ? {
+              ...r,
+              revokeRequested: true,
+              revokeReason: reason,
+              revokeRequestedBy: currentUserName,
+              revokeRequestedAt: 'Just now',
+            }
+          : r
+      )
+      showToast(`Revoke permission request for ${reqId} submitted to Team Lead / Admin for approval.`)
+      onAddActivityLog?.({
+        id: `LOG-${Date.now()}`,
+        timestamp: 'Just now',
+        userName: currentUserName,
+        userEmail: 'user@metaforgeit.com',
+        userRole: role as any,
+        userAvatar: currentUserName.charAt(0),
+        action: `Requested Revoke Permission for Requirement ${reqId}`,
+        category: 'Requirements',
+        targetEntity: `Requirement ${reqId}`,
+        targetId: reqId,
+        clientName: target?.client,
+        ipAddress: '192.168.1.45',
+        status: 'Warning',
+        details: `Reason for revoke request: ${reason}. Pending approval from Team Lead / Admin.`,
+      })
+    }
+
+    setLocalRequirements(updated)
+    onUpdateRequirements?.(updated)
+    if (selectedReqForDetail && selectedReqForDetail.id === reqId) {
+      const updatedReq = updated.find(r => r.id === reqId) || null
+      setSelectedReqForDetail(updatedReq)
+    }
+  }
+
+  const handleGrantRevokeApproval = (reqId: string) => {
+    const target = localRequirements.find(r => r.id === reqId)
+    const requester = target?.revokeRequestedBy || 'Recruiter'
+    const reason = target?.revokeReason || 'Revoke request approved'
+
+    const updated = localRequirements.map(r =>
+      r.id === reqId
+        ? {
+            ...r,
+            owner: 'Unassigned',
+            assignmentStatus: 'Unassigned' as const,
+            revokeRequested: false,
+            revokeReason: undefined,
+            revokeRequestedBy: undefined,
+            revokeRequestedAt: undefined,
+          }
+        : r
+    )
+
+    setLocalRequirements(updated)
+    onUpdateRequirements?.(updated)
+    showToast(`Granted revoke approval for ${reqId}. Requirement reverted to Unassigned state.`)
+
+    onAddActivityLog?.({
+      id: `LOG-${Date.now()}`,
+      timestamp: 'Just now',
+      userName: currentUserName,
+      userEmail: 'user@metaforgeit.com',
+      userRole: role as any,
+      userAvatar: currentUserName.charAt(0),
+      action: `Approved Revoke Permission for Requirement ${reqId} (Reverted to Unassigned)`,
+      category: 'Requirements',
+      targetEntity: `Requirement ${reqId}`,
+      targetId: reqId,
+      clientName: target?.client,
+      ipAddress: '192.168.1.45',
+      status: 'Success',
+      details: `Revoke permission granted by ${currentUserName} for request by ${requester}. Reason: ${reason}. Requirement reverted to Unassigned.`,
+    })
+  }
+
+  const handleDeclineRevokeRequest = (reqId: string) => {
+    const target = localRequirements.find(r => r.id === reqId)
+    const requester = target?.revokeRequestedBy || 'Recruiter'
+
+    const updated = localRequirements.map(r =>
+      r.id === reqId
+        ? {
+            ...r,
+            revokeRequested: false,
+            revokeReason: undefined,
+            revokeRequestedBy: undefined,
+            revokeRequestedAt: undefined,
+          }
+        : r
+    )
+
+    setLocalRequirements(updated)
+    onUpdateRequirements?.(updated)
+    showToast(`Declined revoke request for ${reqId}.`)
+
+    onAddActivityLog?.({
+      id: `LOG-${Date.now()}`,
+      timestamp: 'Just now',
+      userName: currentUserName,
+      userEmail: 'user@metaforgeit.com',
+      userRole: role as any,
+      userAvatar: currentUserName.charAt(0),
+      action: `Declined Revoke Request for Requirement ${reqId}`,
+      category: 'Requirements',
+      targetEntity: `Requirement ${reqId}`,
+      targetId: reqId,
+      clientName: target?.client,
+      ipAddress: '192.168.1.45',
+      status: 'Warning',
+      details: `Revoke request from ${requester} for requirement ${reqId} was declined by ${currentUserName}.`,
+    })
   }
 
   // Filter requirements based on single global search field & active card filter
@@ -314,7 +535,7 @@ export function RequirementsPage({
 
   const handleResetFilters = () => {
     setGlobalSearch('')
-    setStatusDropdown('All')
+    setStatusDropdown(role === 'recruiter' ? 'Unassigned' : 'All')
     setClientDropdown('All')
     setActiveCardFilter('ALL')
   }
@@ -331,6 +552,11 @@ export function RequirementsPage({
   // Edit Job Demand state
   const [isEditingDemand, setIsEditingDemand] = useState(false)
   const [editingReq, setEditingReq] = useState<Requirement | null>(null)
+
+  // Pending Revoke Requests list for Lead / Admin approval (Declared before early returns to satisfy React Hook rules)
+  const pendingRevokeRequests = useMemo(() => {
+    return localRequirements.filter(r => r.revokeRequested)
+  }, [localRequirements])
 
   if (isCreatingDemand) {
     return (
@@ -377,16 +603,18 @@ export function RequirementsPage({
       <>
         <RequirementDetailOverview
           requirement={selectedReqForDetail}
+          role={role}
           onBack={() => setSelectedReqForDetail(null)}
           onAddCandidate={() => onOpenSubmit?.(selectedReqForDetail.id)}
           onEditRequirement={() => {
             setEditingReq(selectedReqForDetail)
             setIsEditingDemand(true)
           }}
-          onOpenAssignModal={() => {
+          onOpenAssignModal={role !== 'recruiter' ? () => {
             setSelectedReqIds(new Set([selectedReqForDetail.id]))
             setIsAssignModalOpen(true)
-          }}
+          } : undefined}
+          onRevokeRequirement={() => handleOpenRevoke(selectedReqForDetail)}
         />
 
         {/* REASSIGN MODAL OVERLAY */}
@@ -520,7 +748,79 @@ export function RequirementsPage({
         onCreateNewJobDemand={() => setIsCreatingDemand(true)}
         title="Requirements Dashboard"
         badgeLabel={roleLabel}
+        hideCards={role === 'recruiter' || role === 'lead'}
       />
+
+      {/* PENDING REVOKE APPROVAL BANNER (EXCLUSIVELY FOR SUPER ADMIN & ADMIN) */}
+      {(role === 'superadmin' || role === 'admin' || role === 'devteam') && pendingRevokeRequests.length > 0 && (
+        <div className="bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-purple-500/10 border border-amber-300/80 rounded-2xl p-4 shadow-sm space-y-3 font-sans animate-in fade-in duration-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-xs">
+                <AlertTriangle className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                  <span>Pending Revoke Permission Requests</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-500 text-white font-extrabold">
+                    {pendingRevokeRequests.length} Pending
+                  </span>
+                </h4>
+                <p className="text-xs text-slate-600 font-medium mt-0.5">
+                  Recruiters have requested permission to revoke requirement assignments. Approving will revert the requirement to Unassigned.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {pendingRevokeRequests.map(pReq => (
+              <div
+                key={pReq.id}
+                className="bg-white/90 backdrop-blur-xs border border-amber-200/80 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs"
+              >
+                <div className="space-y-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 font-bold">
+                    <span className="text-[#6B3BF6]">{pReq.id}</span>
+                    <span className="text-slate-400">•</span>
+                    <span className="text-slate-800">{pReq.title}</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] bg-slate-100 text-slate-700 font-bold border border-slate-200">
+                      {pReq.client}
+                    </span>
+                  </div>
+                  <div className="text-slate-600 text-[11px] leading-relaxed">
+                    <span className="font-extrabold text-amber-700">Requested by:</span> {pReq.revokeRequestedBy || pReq.owner || 'Recruiter'}
+                    {pReq.revokeReason && (
+                      <>
+                        <span className="mx-1.5 text-slate-300">|</span>
+                        <span className="font-bold text-slate-700">Reason:</span> "{pReq.revokeReason}"
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => handleGrantRevokeApproval(pReq.id)}
+                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-98"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Grant Approval & Revert</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleDeclineRevokeRequest(pReq.id)}
+                    className="px-3 py-1.5 bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-700 border border-slate-200 hover:border-rose-200 text-xs font-bold rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>Decline</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* UNIFIED SINGLE SEARCH BAR */}
       <div className="bg-white rounded-xl border border-gray-200 p-3.5 shadow-sm">
@@ -566,9 +866,8 @@ export function RequirementsPage({
             <select
               value={statusDropdown}
               onChange={e => setStatusDropdown(e.target.value)}
-              className="w-full appearance-none pl-3.5 pr-8 py-2.5 text-xs sm:text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-700 bg-gray-50/50 font-medium cursor-pointer"
+              className="w-full appearance-none pl-3.5 pr-8 py-2.5 text-xs sm:text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-700 bg-gray-50/50 font-semibold cursor-pointer"
             >
-              <option value="All">All Statuses</option>
               <option value="Unassigned">Unassigned</option>
               <option value="Assigned">Assigned</option>
               <option value="Submitted">Submitted</option>
@@ -578,6 +877,7 @@ export function RequirementsPage({
               <option value="Selected">Selected</option>
               <option value="Rejected">Rejected</option>
               <option value="Closed">Closed</option>
+              <option value="All">All Statuses</option>
             </select>
             <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
@@ -590,17 +890,6 @@ export function RequirementsPage({
           <span className="text-sm font-semibold text-gray-700">
             {filteredRequirements.length} requirement(s)
           </span>
-          {(globalSearch ||
-            statusDropdown !== 'All' ||
-            clientDropdown !== 'All' ||
-            activeCardFilter !== 'ALL') && (
-            <button
-              onClick={handleResetFilters}
-              className="text-xs text-blue-600 hover:text-blue-800 font-medium underline ml-2"
-            >
-              Clear search & filters
-            </button>
-          )}
         </div>
 
         {selectedReqIds.size > 0 && (
@@ -619,14 +908,16 @@ export function RequirementsPage({
               <span>Self Assign ({currentUserName})</span>
             </button>
 
-            {/* Assign to Someone Button */}
-            <button
-              onClick={() => setIsAssignModalOpen(true)}
-              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
-            >
-              <UserPlus className="w-3.5 h-3.5" />
-              <span>Assign to Someone...</span>
-            </button>
+            {/* Assign to Someone Button — Hidden for recruiters */}
+            {role !== 'recruiter' && (
+              <button
+                onClick={() => setIsAssignModalOpen(true)}
+                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Assign to Someone...</span>
+              </button>
+            )}
 
             <button
               onClick={() => setSelectedReqIds(new Set())}
@@ -669,12 +960,6 @@ export function RequirementsPage({
                     <p className="text-sm font-medium">
                       No requirements match your current search or filter.
                     </p>
-                    <button
-                      onClick={handleResetFilters}
-                      className="mt-2 text-xs text-blue-600 font-semibold hover:underline"
-                    >
-                      Reset filters
-                    </button>
                   </td>
                 </tr>
               ) : (
@@ -927,6 +1212,16 @@ export function RequirementsPage({
           </div>
         </div>
       )}
+
+      {/* REVOKE REQUIREMENT MODAL */}
+      <RevokeRequirementModal
+        isOpen={isRevokeModalOpen}
+        onClose={() => setIsRevokeModalOpen(false)}
+        requirement={selectedReqForRevoke}
+        userRole={role as any}
+        currentUserName={currentUserName}
+        onSubmitRevoke={handleConfirmRevoke}
+      />
 
       {/* SUCCESS TOAST NOTIFICATION */}
       {toastMessage && (

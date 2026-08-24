@@ -163,7 +163,7 @@ const MOCK_FIRST_SUB_TIMELINE = [
   { reqId: 'REQ-006', title: 'Python ML Engineer', client: 'Tesla', reqTime: 'Aug 4, 02:00 PM', firstSubTime: 'Aug 4, 04:15 PM', turnaround: '2.2 hrs', speedClass: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
 ]
 
-export function AnalyticsReports() {
+export function AnalyticsReports({ role }: { role?: string }) {
   // Data for Report 1: Submission vs Non-Submission Requirements
   const subVsNonSubSegments: PieSegment[] = [
     { label: 'Requirements WITH Submissions', value: 15, color: '#2563EB' },
@@ -197,9 +197,11 @@ export function AnalyticsReports() {
           </p>
         </div>
 
-        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-mono font-semibold rounded-xl shadow-md transition-all flex items-center gap-2 self-start md:self-auto">
-          <Download className="w-4 h-4" /> Export Analytics (PDF/CSV)
-        </button>
+        {role !== 'recruiter' && role !== 'lead' && role !== 'admin' && (
+          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-mono font-semibold rounded-xl shadow-md transition-all flex items-center gap-2 self-start md:self-auto">
+            <Download className="w-4 h-4" /> Export Analytics (PDF/CSV)
+          </button>
+        )}
       </div>
 
       {/* Grid Row 1: Report 1 (Submissions vs Non-Submissions) & Report 2 (Performance Trend) */}
