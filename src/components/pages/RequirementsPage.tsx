@@ -535,7 +535,7 @@ export function RequirementsPage({
 
   const handleResetFilters = () => {
     setGlobalSearch('')
-    setStatusDropdown(role === 'recruiter' ? 'Unassigned' : 'All')
+    setStatusDropdown('Unassigned')
     setClientDropdown('All')
     setActiveCardFilter('ALL')
   }
@@ -871,13 +871,10 @@ export function RequirementsPage({
               <option value="Unassigned">Unassigned</option>
               <option value="Assigned">Assigned</option>
               <option value="Submitted">Submitted</option>
-              <option value="Submitted to Lead">Submitted to Lead</option>
-              <option value="Submitted to Client">Submitted to Client</option>
               <option value="Interview">Interview</option>
               <option value="Selected">Selected</option>
               <option value="Rejected">Rejected</option>
               <option value="Closed">Closed</option>
-              <option value="All">All Statuses</option>
             </select>
             <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
@@ -946,17 +943,18 @@ export function RequirementsPage({
                 <th className="py-3 px-4 font-bold">REQUIREMENT ID</th>
                 <th className="py-3 px-4 font-bold">CLIENT NAME</th>
                 <th className="py-3 px-4 font-bold">ROLE</th>
+                <th className="py-3 px-4 font-bold text-center">POSITIONS</th>
                 <th className="py-3 px-4 font-bold">PRIORITY</th>
                 <th className="py-3 px-4 font-bold">OWNER</th>
                 <th className="py-3 px-4 font-bold">EMAIL ARRIVED TIME</th>
                 <th className="py-3 px-4 font-bold">OPEN SINCE</th>
-                <th className="py-3 px-4 font-bold text-center">SUBMISSIONS</th>
+                <th className="py-3 px-4 font-bold text-center">SLA</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
               {filteredRequirements.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-gray-400">
+                  <td colSpan={10} className="py-12 text-center text-gray-400">
                     <p className="text-sm font-medium">
                       No requirements match your current search or filter.
                     </p>
@@ -1026,6 +1024,13 @@ export function RequirementsPage({
                         )}
                       </td>
 
+                      {/* Count of Positions */}
+                      <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                        <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-800 border border-slate-200 text-xs font-bold tabular-nums">
+                          {req.openings || 1}
+                        </span>
+                      </td>
+
                       {/* Priority Badge */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <span
@@ -1073,9 +1078,12 @@ export function RequirementsPage({
                           : '0 days'}
                       </td>
 
-                      {/* Submissions Count */}
-                      <td className="py-3.5 px-4 text-center font-bold text-gray-900 tabular-nums">
-                        {req.submissions || 0}
+                      {/* SLA */}
+                      <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                          <Clock className="w-3 h-3 text-purple-500" />
+                          {req.sla || (req.priority === 'High' ? '24 Hours' : req.priority === 'Medium' ? '48 Hours' : '72 Hours')}
+                        </span>
                       </td>
                     </tr>
                   )

@@ -127,13 +127,59 @@ const CustomStageTooltip = ({ active, payload }: any) => {
 
 import { Role } from '../../types'
 
+// Lead Individual Stage Pipeline Dataset
+const STAGE_PIPELINE_DATA_INDIVIDUAL: StageMetric[] = [
+  { stage: 'L1', stageName: 'Technical Round 1 (L1)', requirementsCount: 6, positionsCount: 15, submissionsCount: 14, placedCount: 3, closuresCount: 2, conversionPct: '100%' },
+  { stage: 'L2', stageName: 'Technical Round 2 (L2)', requirementsCount: 4, positionsCount: 10, submissionsCount: 8, placedCount: 2, closuresCount: 1, conversionPct: '66.7%' },
+  { stage: 'L3', stageName: 'Managerial / Architecture (L3)', requirementsCount: 3, positionsCount: 6, submissionsCount: 5, placedCount: 1, closuresCount: 1, conversionPct: '42.8%' },
+  { stage: 'Final', stageName: 'Client Final / HR Round', requirementsCount: 2, positionsCount: 4, submissionsCount: 3, placedCount: 1, closuresCount: 1, conversionPct: '28.5%' },
+]
+
+// Team Members Comparison Overall Dataset
+const STAGE_PIPELINE_DATA_TEAM: StageMetric[] = [
+  { stage: 'L1', stageName: 'Technical Round 1 (L1)', requirementsCount: 18, positionsCount: 45, submissionsCount: 42, placedCount: 12, closuresCount: 8, conversionPct: '100%' },
+  { stage: 'L2', stageName: 'Technical Round 2 (L2)', requirementsCount: 14, positionsCount: 36, submissionsCount: 28, placedCount: 9, closuresCount: 6, conversionPct: '66.7%' },
+  { stage: 'L3', stageName: 'Managerial / Architecture (L3)', requirementsCount: 10, positionsCount: 24, submissionsCount: 18, placedCount: 6, closuresCount: 4, conversionPct: '42.8%' },
+  { stage: 'Final', stageName: 'Client Final / HR Round', requirementsCount: 6, positionsCount: 15, submissionsCount: 12, placedCount: 4, closuresCount: 3, conversionPct: '28.5%' },
+]
+
 export interface StagePipelinePerformanceChartProps {
   role?: Role
 }
 
 export function StagePipelinePerformanceChart({ role = 'lead' }: StagePipelinePerformanceChartProps) {
   const [leadChartView, setLeadChartView] = useState<'individual' | 'team'>('individual')
-  const [data] = useState<StageMetric[]>(STAGE_PIPELINE_DATA)
+  const [selectedTeammate, setSelectedTeammate] = useState<string>('All Team Members')
+
+  // Dynamic stage pipeline data based on view mode and selected teammate
+  const data = React.useMemo(() => {
+    if (leadChartView === 'individual') return STAGE_PIPELINE_DATA_INDIVIDUAL
+    if (selectedTeammate === 'Marcus Chen') {
+      return [
+        { stage: 'L1', stageName: 'Technical Round 1 (L1)', requirementsCount: 8, positionsCount: 20, submissionsCount: 18, placedCount: 5, closuresCount: 3, conversionPct: '100%' },
+        { stage: 'L2', stageName: 'Technical Round 2 (L2)', requirementsCount: 6, positionsCount: 15, submissionsCount: 12, placedCount: 4, closuresCount: 2, conversionPct: '75%' },
+        { stage: 'L3', stageName: 'Managerial / Architecture (L3)', requirementsCount: 4, positionsCount: 10, submissionsCount: 8, placedCount: 3, closuresCount: 2, conversionPct: '50%' },
+        { stage: 'Final', stageName: 'Client Final / HR Round', requirementsCount: 3, positionsCount: 6, submissionsCount: 5, placedCount: 2, closuresCount: 1, conversionPct: '33%' },
+      ]
+    }
+    if (selectedTeammate === 'Priya Sharma') {
+      return [
+        { stage: 'L1', stageName: 'Technical Round 1 (L1)', requirementsCount: 6, positionsCount: 15, submissionsCount: 14, placedCount: 4, closuresCount: 3, conversionPct: '100%' },
+        { stage: 'L2', stageName: 'Technical Round 2 (L2)', requirementsCount: 5, positionsCount: 12, submissionsCount: 9, placedCount: 3, closuresCount: 2, conversionPct: '64%' },
+        { stage: 'L3', stageName: 'Managerial / Architecture (L3)', requirementsCount: 3, positionsCount: 8, submissionsCount: 5, placedCount: 2, closuresCount: 1, conversionPct: '38%' },
+        { stage: 'Final', stageName: 'Client Final / HR Round', requirementsCount: 2, positionsCount: 5, submissionsCount: 4, placedCount: 1, closuresCount: 1, conversionPct: '25%' },
+      ]
+    }
+    if (selectedTeammate === 'Arvind GR') {
+      return [
+        { stage: 'L1', stageName: 'Technical Round 1 (L1)', requirementsCount: 3, positionsCount: 8, submissionsCount: 6, placedCount: 2, closuresCount: 1, conversionPct: '100%' },
+        { stage: 'L2', stageName: 'Technical Round 2 (L2)', requirementsCount: 2, positionsCount: 5, submissionsCount: 4, placedCount: 1, closuresCount: 1, conversionPct: '66%' },
+        { stage: 'L3', stageName: 'Managerial / Architecture (L3)', requirementsCount: 1, positionsCount: 3, submissionsCount: 2, placedCount: 1, closuresCount: 0, conversionPct: '33%' },
+        { stage: 'Final', stageName: 'Client Final / HR Round', requirementsCount: 1, positionsCount: 2, submissionsCount: 1, placedCount: 0, closuresCount: 0, conversionPct: '20%' },
+      ]
+    }
+    return STAGE_PIPELINE_DATA_TEAM
+  }, [leadChartView, selectedTeammate])
 
   const totalReqs = data.reduce((acc, curr) => acc + (Number(curr.requirementsCount) || 0), 0)
   const totalPositions = data.reduce((acc, curr) => acc + (Number(curr.positionsCount) || 0), 0)
@@ -151,31 +197,35 @@ export function StagePipelinePerformanceChart({ role = 'lead' }: StagePipelinePe
               <Layers className="w-4 h-4" />
             </div>
             <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-              {role === 'lead'
+              {role !== 'recruiter'
                 ? leadChartView === 'individual'
-                  ? 'Lead Individual Pipeline: Requirements, Positions & Candidate Submissions by Interview Stage'
+                  ? 'Lead Individual Pipeline: Requirements, Positions & Candidate Submissions by Stage'
+                  : selectedTeammate !== 'All Team Members'
+                  ? `${selectedTeammate}: Stage Pipeline Performance Breakdown`
                   : 'Team Members Comparison: Interview Stage Pipeline Breakdown'
                 : 'Requirements, Positions & Candidate Submissions by Interview Stage'}
             </h2>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            {role === 'lead'
+          <p className="text-xs text-slate-500 mt-0.5 font-medium">
+            {role !== 'recruiter'
               ? leadChartView === 'individual'
-                ? 'Individual recruitment pipeline progression with total requirement position counts across L1, L2, L3, and Final rounds'
-                : 'Team members pipeline progression comparison with position counts'
+                ? 'Individual recruitment pipeline progression with total position counts across L1, L2, L3, and Final rounds for Harish Gadipally'
+                : selectedTeammate !== 'All Team Members'
+                ? `Stage pipeline progression and candidate volume for ${selectedTeammate}`
+                : 'Team members pipeline progression comparison across L1, L2, L3, and Final interview rounds'
               : 'Recruitment pipeline progression showing candidate volume & total requirement positions across L1, L2, L3, and Final rounds'}
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Lead View Mode Toggle (Lead Only) */}
-          {role === 'lead' && (
+        {/* Controls: Lead View Mode Toggle & Teammate Filter */}
+        {role !== 'recruiter' && (
+          <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-1 p-1 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold">
               <button
                 type="button"
                 onClick={() => setLeadChartView('individual')}
                 className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  leadChartView === 'individual' ? 'bg-[#6B3BF6] text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-slate-200/60'
+                  leadChartView === 'individual' ? 'bg-[#6B3BF6] text-white shadow-2xs font-extrabold' : 'text-slate-600 hover:bg-slate-200/60'
                 }`}
               >
                 Lead Individual Performance
@@ -184,14 +234,29 @@ export function StagePipelinePerformanceChart({ role = 'lead' }: StagePipelinePe
                 type="button"
                 onClick={() => setLeadChartView('team')}
                 className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  leadChartView === 'team' ? 'bg-blue-600 text-white shadow-2xs font-bold' : 'text-slate-600 hover:bg-slate-200/60'
+                  leadChartView === 'team' ? 'bg-blue-600 text-white shadow-2xs font-extrabold' : 'text-slate-600 hover:bg-slate-200/60'
                 }`}
               >
                 Team Members Comparison
               </button>
             </div>
-          )}
-        </div>
+
+            {/* Teammate Filter Dropdown (Active in Team Mode) */}
+            {leadChartView === 'team' && (
+              <select
+                value={selectedTeammate}
+                onChange={e => setSelectedTeammate(e.target.value)}
+                className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none focus:border-[#6B3BF6] cursor-pointer shadow-2xs"
+              >
+                <option value="All Team Members">All Team Members (Engineering Pod)</option>
+                <option value="Harish Gadipally">Harish Gadipally (Team Lead)</option>
+                <option value="Marcus Chen">Marcus Chen (Senior Recruiter)</option>
+                <option value="Priya Sharma">Priya Sharma (IT Recruiter)</option>
+                <option value="Arvind GR">Arvind GR (Sourcing Specialist)</option>
+              </select>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 2. SUMMARY TABLE & BAR GRAPH GRID */}

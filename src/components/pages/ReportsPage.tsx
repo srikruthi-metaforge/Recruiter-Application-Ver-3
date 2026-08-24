@@ -443,6 +443,9 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
     'assigned_breakdown' | 'monthly_timeline' | 'stage_pipeline'
   >('assigned_breakdown')
 
+  // Toggle mode for Assigned REQs Breakdown: 'individual' (Lead Individual Performance) vs 'team' (Team Members Comparison)
+  const [assignedBreakdownToggle, setAssignedBreakdownToggle] = useState<'individual' | 'team'>('individual')
+
   // Dashboard Table 10-item Pagination State
   const [dashPage, setDashPage] = useState(1)
   const dashPageSize = 10
@@ -1686,38 +1689,128 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
 
           {/* 1) Worked vs Non-Worked REQs Breakdown & Non-Worked Reason Note Diagram */}
           {activeGraphFilter === 'assigned_breakdown' && (
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-4 animate-in fade-in duration-150">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-5 animate-in fade-in duration-150 font-sans">
+              {/* Header & Toggle Controls */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <Briefcase className="w-4.5 h-4.5 text-[#6B3BF6]" />
-                    <span>My Assigned Requirements Breakdown ({myPersonalProfile.requirementsList.length})</span>
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Detailed status of requirements assigned to {myPersonalProfile.name}
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                      <Briefcase className="w-4.5 h-4.5 text-[#6B3BF6]" />
+                      <span>
+                        {assignedBreakdownToggle === 'individual'
+                          ? `Lead Individual Requirements Breakdown (${myPersonalProfile.requirementsList.length} REQs)`
+                          : `Whole Team Assigned Requirements Breakdown (24 REQs)`}
+                      </span>
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                    {assignedBreakdownToggle === 'individual'
+                      ? `Detailed status of requirements assigned to Harish Gadipally (Team Lead)`
+                      : `Detailed status of requirements assigned across all team members under Harish Gadipally (Engineering Pod)`}
                   </p>
                 </div>
 
-                {/* Tabs */}
-                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-semibold">
-                  <button
-                    onClick={() => setPersonalTab('worked')}
-                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                      personalTab === 'worked' ? 'bg-white text-blue-700 shadow-2xs font-bold' : 'text-slate-600'
-                    }`}
-                  >
-                    Worked ({myPersonalProfile.workedReqs})
-                  </button>
-                  <button
-                    onClick={() => setPersonalTab('non_worked')}
-                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                      personalTab === 'non_worked' ? 'bg-white text-amber-700 shadow-2xs font-bold' : 'text-slate-600'
-                    }`}
-                  >
-                    Non-Worked ({myPersonalProfile.nonWorkedReqs})
-                  </button>
+                <div className="flex items-center gap-3 flex-wrap">
+                  {/* Lead Individual Performance vs Team Members Comparison Toggle */}
+                  {role !== 'recruiter' && (
+                    <div className="flex items-center gap-1 p-1 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold">
+                      <button
+                        type="button"
+                        onClick={() => setAssignedBreakdownToggle('individual')}
+                        className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                          assignedBreakdownToggle === 'individual'
+                            ? 'bg-[#6B3BF6] text-white shadow-2xs font-extrabold'
+                            : 'text-slate-600 hover:bg-slate-200/60'
+                        }`}
+                      >
+                        Lead Individual Performance
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAssignedBreakdownToggle('team')}
+                        className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                          assignedBreakdownToggle === 'team'
+                            ? 'bg-blue-600 text-white shadow-2xs font-extrabold'
+                            : 'text-slate-600 hover:bg-slate-200/60'
+                        }`}
+                      >
+                        Team Members Comparison
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Worked / Non-Worked Tabs */}
+                  <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-semibold shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setPersonalTab('worked')}
+                      className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                        personalTab === 'worked' ? 'bg-white text-blue-700 shadow-2xs font-bold' : 'text-slate-600'
+                      }`}
+                    >
+                      Worked ({assignedBreakdownToggle === 'individual' ? myPersonalProfile.workedReqs : 18})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPersonalTab('non_worked')}
+                      className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                        personalTab === 'non_worked' ? 'bg-white text-amber-700 shadow-2xs font-bold' : 'text-slate-600'
+                      }`}
+                    >
+                      Non-Worked ({assignedBreakdownToggle === 'individual' ? myPersonalProfile.nonWorkedReqs : 6})
+                    </button>
+                  </div>
                 </div>
               </div>
+
+              {/* TEAM MEMBER COMPARISON WORKLOAD PILLS (Displayed in Team mode) */}
+              {assignedBreakdownToggle === 'team' && (
+                <div className="bg-gradient-to-r from-blue-50/80 via-indigo-50/60 to-purple-50/80 border border-blue-200/80 rounded-2xl p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-blue-600" />
+                      Team Members Workload Distribution (Engineering Pod)
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-900 border border-blue-300 rounded-full">
+                      4 Team Members
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                    <div className="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs">
+                      <div className="font-extrabold text-slate-900">Harish Gadipally (Lead)</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5 flex items-center justify-between">
+                        <span>6 REQs assigned</span>
+                        <span className="font-bold text-blue-700">3 Worked (50%)</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs">
+                      <div className="font-extrabold text-slate-900">Marcus Chen</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5 flex items-center justify-between">
+                        <span>14 REQs assigned</span>
+                        <span className="font-bold text-emerald-700">12 Worked (86%)</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs">
+                      <div className="font-extrabold text-slate-900">Priya Sharma</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5 flex items-center justify-between">
+                        <span>12 REQs assigned</span>
+                        <span className="font-bold text-blue-700">10 Worked (83%)</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs">
+                      <div className="font-extrabold text-slate-900">Arvind GR</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5 flex items-center justify-between">
+                        <span>4 REQs assigned</span>
+                        <span className="font-bold text-blue-700">3 Worked (75%)</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* VISUAL DIAGRAM: WORKED VS NON-WORKED REQS BREAKDOWN */}
               <div className="bg-slate-50/70 border border-slate-200/90 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-6">
@@ -1734,7 +1827,7 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                       />
                       <path
                         className="text-[#2563EB]"
-                        strokeDasharray="50, 100"
+                        strokeDasharray={assignedBreakdownToggle === 'individual' ? "50, 100" : "75, 100"}
                         strokeWidth="4"
                         strokeLinecap="round"
                         stroke="currentColor"
@@ -1743,8 +1836,12 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                       />
                     </svg>
                     <div className="absolute flex flex-col items-center justify-center text-center">
-                      <span className="text-xl font-extrabold text-slate-900 leading-none">6</span>
-                      <span className="text-[10px] font-semibold text-slate-500">Assigned</span>
+                      <span className="text-xl font-extrabold text-slate-900 leading-none">
+                        {assignedBreakdownToggle === 'individual' ? '6' : '24'}
+                      </span>
+                      <span className="text-[10px] font-semibold text-slate-500">
+                        {assignedBreakdownToggle === 'individual' ? 'Assigned' : 'Team REQs'}
+                      </span>
                     </div>
                   </div>
 
@@ -1752,12 +1849,16 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full bg-[#2563EB] shrink-0" />
                       <span className="font-bold text-slate-800">Worked REQs:</span>
-                      <span className="font-extrabold text-[#2563EB]">3 REQs (50%)</span>
+                      <span className="font-extrabold text-[#2563EB]">
+                        {assignedBreakdownToggle === 'individual' ? '3 REQs (50%)' : '18 REQs (75%)'}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full bg-amber-500 shrink-0" />
                       <span className="font-bold text-slate-800">Non-Worked REQs:</span>
-                      <span className="font-extrabold text-amber-700">3 REQs (50%)</span>
+                      <span className="font-extrabold text-amber-700">
+                        {assignedBreakdownToggle === 'individual' ? '3 REQs (50%)' : '6 REQs (25%)'}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1766,20 +1867,28 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                 <div className="w-full md:w-1/2 bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs space-y-2 text-xs">
                   <div className="font-extrabold text-slate-900 border-b border-slate-100 pb-1.5 flex items-center justify-between">
                     <span>Non-Worked Reasons Summary Diagram</span>
-                    <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold">3 Unworked REQs</span>
+                    <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold">
+                      {assignedBreakdownToggle === 'individual' ? '3 Unworked REQs' : '6 Unworked Team REQs'}
+                    </span>
                   </div>
                   <div className="space-y-1.5 text-[11px]">
                     <div className="flex items-center justify-between text-slate-700 bg-amber-50/50 px-2.5 py-1 rounded-lg border border-amber-100">
                       <span className="font-medium truncate">• Low CTC budget approval from client</span>
-                      <span className="font-bold text-amber-900 shrink-0 ml-2">1 REQ (33%)</span>
+                      <span className="font-bold text-amber-900 shrink-0 ml-2">
+                        {assignedBreakdownToggle === 'individual' ? '1 REQ (33%)' : '2 REQs (33%)'}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-slate-700 bg-amber-50/50 px-2.5 py-1 rounded-lg border border-amber-100">
                       <span className="font-medium truncate">• Priority shifted to urgent LTTS REQ</span>
-                      <span className="font-bold text-amber-900 shrink-0 ml-2">1 REQ (33%)</span>
+                      <span className="font-bold text-amber-900 shrink-0 ml-2">
+                        {assignedBreakdownToggle === 'individual' ? '1 REQ (33%)' : '2 REQs (33%)'}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-slate-700 bg-amber-50/50 px-2.5 py-1 rounded-lg border border-amber-100">
                       <span className="font-medium truncate">• Awaiting updated JD & location clarification</span>
-                      <span className="font-bold text-amber-900 shrink-0 ml-2">1 REQ (33%)</span>
+                      <span className="font-bold text-amber-900 shrink-0 ml-2">
+                        {assignedBreakdownToggle === 'individual' ? '1 REQ (33%)' : '2 REQs (33%)'}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1790,6 +1899,9 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
                     <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      {assignedBreakdownToggle === 'team' && (
+                        <th className="py-3.5 px-4 bg-purple-50/80 text-purple-900 font-extrabold">RECRUITER / LEAD</th>
+                      )}
                       <th className="py-3.5 px-4">REQUIREMENT TITLE & ID</th>
                       <th className="py-3.5 px-4">CLIENT NAME</th>
                       <th className="py-3.5 px-4 text-center bg-indigo-50/60 text-indigo-900 font-extrabold">POSITIONS (OPENINGS)</th>
@@ -1799,10 +1911,33 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
-                    {myPersonalProfile.requirementsList
+                    {(assignedBreakdownToggle === 'individual'
+                      ? myPersonalProfile.requirementsList
+                      : [
+                          { id: 'REQ-701', title: 'Lead Java Full Stack Developer', recruiterName: 'Harish Gadipally (Team Lead)', client: 'Accenture', status: 'Worked', submissions: 42, interviews: 12, positions: 10 },
+                          { id: 'REQ-702', title: 'Senior React Native Mobile Dev', recruiterName: 'Harish Gadipally (Team Lead)', client: 'LTTS Automotive', status: 'Worked', submissions: 36, interviews: 10, positions: 8 },
+                          { id: 'REQ-703', title: 'Cloud Solutions Architect', recruiterName: 'Harish Gadipally (Team Lead)', client: 'Infosys', status: 'Worked', submissions: 28, interviews: 8, positions: 6 },
+                          { id: 'REQ-704', title: 'Cyber Security Analyst', recruiterName: 'Harish Gadipally (Team Lead)', client: 'HCL Technologies', status: 'Non-Worked', submissions: 0, interviews: 0, positions: 3, reasonNote: 'Low CTC budget approval from client' },
+                          { id: 'REQ-705', title: 'Lead Data Platform Architect', recruiterName: 'Harish Gadipally (Team Lead)', client: 'Tesla Mobility', status: 'Non-Worked', submissions: 0, interviews: 0, positions: 4, reasonNote: 'Priority shifted to urgent LTTS REQ' },
+                          { id: 'REQ-501', title: 'Junior QA Automation Tester', recruiterName: 'Harish Gadipally (Team Lead)', client: 'Wipro', status: 'Non-Worked', submissions: 0, interviews: 0, positions: 2, reasonNote: 'Location constraint / No local candidates available' },
+                          { id: 'REQ-MC01', title: 'Senior Java Fullstack Engineer', recruiterName: 'Marcus Chen', client: 'Accenture', status: 'Worked', submissions: 24, interviews: 8, positions: 8 },
+                          { id: 'REQ-MC02', title: 'React.js Frontend Architect', recruiterName: 'Marcus Chen', client: 'Accenture', status: 'Worked', submissions: 24, interviews: 4, positions: 6 },
+                          { id: 'REQ-MC03', title: 'AI Data Engineer', recruiterName: 'Marcus Chen', client: 'Metaforge IT', status: 'Non-Worked', submissions: 0, interviews: 0, positions: 4, reasonNote: 'Awaiting client technical specification updates' },
+                          { id: 'REQ-PS01', title: 'Backend Node.js Microservices Dev', recruiterName: 'Priya Sharma', client: 'Accenture', status: 'Worked', submissions: 18, interviews: 5, positions: 5 },
+                          { id: 'REQ-PS02', title: 'DevOps & Kubernetes Engineer', recruiterName: 'Priya Sharma', client: 'Accenture', status: 'Worked', submissions: 18, interviews: 4, positions: 4 },
+                          { id: 'REQ-PS03', title: 'Database Administrator', recruiterName: 'Priya Sharma', client: 'Cognizant', status: 'Non-Worked', submissions: 0, interviews: 0, positions: 3, reasonNote: 'Client paused requirement temporarily' },
+                          { id: 'REQ-AG01', title: 'Frontend Developer (React/Vue)', recruiterName: 'Arvind GR', client: 'Infosys', status: 'Worked', submissions: 12, interviews: 3, positions: 4 },
+                          { id: 'REQ-AG02', title: 'QA Automation SDET', recruiterName: 'Arvind GR', client: 'Wipro', status: 'Non-Worked', submissions: 0, interviews: 0, positions: 2, reasonNote: 'Shifted focus to priority Accenture roles' },
+                        ]
+                    )
                       .filter(req => (personalTab === 'worked' ? req.status === 'Worked' : req.status === 'Non-Worked'))
                       .map(req => (
                         <tr key={req.id} className="hover:bg-slate-50/60 transition-colors">
+                          {assignedBreakdownToggle === 'team' && (
+                            <td className="py-3.5 px-4 font-extrabold text-purple-900 bg-purple-50/30 whitespace-nowrap">
+                              {(req as any).recruiterName || 'Harish Gadipally'}
+                            </td>
+                          )}
                           <td className="py-3.5 px-4 font-bold text-slate-900">
                             <div>{req.title}</div>
                             <span className="text-[10px] text-slate-400 font-normal">{req.id}</span>
