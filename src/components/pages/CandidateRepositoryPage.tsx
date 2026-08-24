@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   Search,
   Eye,
+  EyeOff,
   Edit2,
   X,
   Download,
@@ -29,6 +30,40 @@ import { Candidate, Requirement, Role } from '../../types'
 import { PaginationFooter } from '../ui/PaginationFooter'
 import { SubmitToLeadPage } from './SubmitToLeadPage'
 import { INITIAL_REQUIREMENTS } from '../../data/mockData'
+
+/**
+ * Masks email address:
+ * e.g., "priyanka.sharma@gmail.com" -> "p***************a@gmail.com"
+ * e.g., "vishwateja.t@gmail.com" -> "v***********t@gmail.com"
+ */
+export function maskEmail(email: string): string {
+  if (!email || !email.includes('@')) return email || ''
+  const parts = email.split('@')
+  const user = parts[0]
+  const domain = parts[1]
+  if (user.length <= 2) {
+    return user[0] + '*'.repeat(user.length - 1) + '@' + domain
+  }
+  const firstChar = user[0]
+  const lastChar = user[user.length - 1]
+  const maskedMiddle = '*'.repeat(user.length - 2)
+  return `${firstChar}${maskedMiddle}${lastChar}@${domain}`
+}
+
+/**
+ * Masks phone number:
+ * e.g., "+91 98210 44905" -> "+91**********"
+ */
+export function maskPhone(phone: string): string {
+  if (!phone) return '+91**********'
+  const trimmed = phone.trim()
+  if (trimmed.startsWith('+')) {
+    const parts = trimmed.split(' ')
+    const countryCode = parts[0]
+    return `${countryCode}**********`
+  }
+  return '+91**********'
+}
 
 export interface CandidateRepoItem {
   id: string
@@ -325,8 +360,84 @@ export function CandidateRepositoryPage({
 
   const [selectedCandidatesForSubmit, setSelectedCandidatesForSubmit] = useState<CandidateRepoItem[]>([])
 
-  // Mask toggling for phone/email in table view
+  // Mask toggling for phone/email in table view with 5-second session timeout
   const [unmaskedIds, setUnmaskedIds] = useState<Set<string>>(new Set())
+  const [unmaskedTimers, setUnmaskedTimers] = useState<{ [id: string]: number }>({})
+
+  const timerRefs = React.useRef<{ [id: string]: NodeJS.Timeout }>({})
+  const intervalRefs = React.useRef<{ [id: string]: NodeJS.Timeout }>({})
+
+  // Clean up timers on unmount
+  React.useEffect(() => {
+    return () => {
+      Object.values(timerRefs.current).forEach(clearTimeout)
+      Object.values(intervalRefs.current).forEach(clearInterval)
+    }
+  }, [])
+
+  const clearCandidateTimers = (id: string) => {
+    if (timerRefs.current[id]) {
+      clearTimeout(timerRefs.current[id])
+      delete timerRefs.current[id]
+    }
+    if (intervalRefs.current[id]) {
+      clearInterval(intervalRefs.current[id])
+      delete intervalRefs.current[id]
+    }
+  }
+
+  const toggleMask = (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation()
+
+    if (unmaskedIds.has(id)) {
+      // Re-mask immediately
+      clearCandidateTimers(id)
+      setUnmaskedIds(prev => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+      setUnmaskedTimers(prev => {
+        const next = { ...prev }
+        delete next[id]
+        return next
+      })
+    } else {
+      // Unmask with 5-second session timeout
+      clearCandidateTimers(id)
+
+      setUnmaskedIds(prev => new Set(prev).add(id))
+      setUnmaskedTimers(prev => ({ ...prev, [id]: 5 }))
+
+      // Countdown timer interval (updates badge seconds: 5, 4, 3, 2, 1)
+      intervalRefs.current[id] = setInterval(() => {
+        setUnmaskedTimers(prev => {
+          const currentVal = prev[id] ?? 0
+          if (currentVal <= 1) {
+            const next = { ...prev }
+            delete next[id]
+            return next
+          }
+          return { ...prev, [id]: currentVal - 1 }
+        })
+      }, 1000)
+
+      // Auto re-mask after 5 seconds
+      timerRefs.current[id] = setTimeout(() => {
+        clearCandidateTimers(id)
+        setUnmaskedIds(prev => {
+          const next = new Set(prev)
+          next.delete(id)
+          return next
+        })
+        setUnmaskedTimers(prev => {
+          const next = { ...prev }
+          delete next[id]
+          return next
+        })
+      }, 5000)
+    }
+  }
 
   // Detail Modal view state (displays WHOLE information about candidate)
   const [viewingCandidateDetail, setViewingCandidateDetail] = useState<CandidateRepoItem | null>(null)
@@ -361,14 +472,6 @@ export function CandidateRepositoryPage({
   const showToast = (msg: string) => {
     setToastMsg(msg)
     setTimeout(() => setToastMsg(null), 3500)
-  }
-
-  const toggleMask = (id: string, e?: React.MouseEvent) => {
-    e?.stopPropagation()
-    const next = new Set(unmaskedIds)
-    if (next.has(id)) next.delete(id)
-    else next.add(id)
-    setUnmaskedIds(next)
   }
 
   // Filter repo list dynamically
@@ -922,21 +1025,32 @@ export function CandidateRepositoryPage({
                       {item.currentCompany || '—'}
                     </td>
 
-                    {/* Contact (Email & Phone with Eye toggle) */}
-                    <td className="px-4 py-4">
+                    {/* Contact (Email & Phone with Eye toggle & 5s session timeout) */}
+                    <td className="px-4 py-4" onClick={e => e.stopPropagation()}>
                       <div className="space-y-1">
-                        <div className="font-mono text-slate-700 text-xs truncate max-w-[180px]">
-                          {isUnmasked ? `${item.name.toLowerCase().replace(/\s+/g, '.')}@gmail.com` : item.email}
+                        <div className="font-mono text-slate-700 text-xs truncate max-w-[190px]" title={isUnmasked ? item.email : maskEmail(item.email)}>
+                          {isUnmasked ? item.email : maskEmail(item.email)}
                         </div>
-                        <div className="flex items-center gap-1.5 font-mono text-slate-500 text-[11px]">
-                          <span>{isUnmasked ? '+91 98765 43210' : item.phone}</span>
+                        <div className="flex items-center justify-between gap-1.5 font-mono text-slate-500 text-[11px]">
+                          <span>{isUnmasked ? item.phone : maskPhone(item.phone)}</span>
                           <button
                             type="button"
                             onClick={e => toggleMask(item.id, e)}
-                            className="p-0.5 rounded-md border border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                            title={isUnmasked ? 'Mask contact info' : 'View unmasked contact info'}
+                            className={`px-1.5 py-0.5 rounded-md border transition-all cursor-pointer flex items-center gap-1 text-[10px] font-bold ${
+                              isUnmasked
+                                ? 'bg-amber-50 border-amber-300 text-amber-700 shadow-2xs'
+                                : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                            }`}
+                            title={isUnmasked ? 'Click to re-mask contact info immediately' : 'Click to view unmasked contact info for 5 seconds'}
                           >
-                            <Eye className="w-3 h-3" />
+                            {isUnmasked ? (
+                              <>
+                                <EyeOff className="w-3 h-3 text-amber-600" />
+                                <span className="text-[9px] font-black text-amber-700 tabular-nums">{unmaskedTimers[item.id] ?? 5}s</span>
+                              </>
+                            ) : (
+                              <Eye className="w-3 h-3" />
+                            )}
                           </button>
                         </div>
                       </div>
@@ -1135,10 +1249,34 @@ export function CandidateRepositoryPage({
             <div className="p-6 overflow-y-auto space-y-6 flex-1 custom-scrollbar">
               {/* Section 1: Basic & Contact Details */}
               <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 space-y-3">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-[#6B3BF6]" />
-                  Contact & Identification
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 text-[#6B3BF6]" />
+                    Contact & Identification
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={e => toggleMask(viewingCandidateDetail.id, e)}
+                    className={`px-2.5 py-1 rounded-lg border text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      unmaskedIds.has(viewingCandidateDetail.id)
+                        ? 'bg-amber-50 border-amber-300 text-amber-700 shadow-2xs'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                    title={unmaskedIds.has(viewingCandidateDetail.id) ? 'Click to re-mask contact info immediately' : 'Click to reveal contact info for 5 seconds'}
+                  >
+                    {unmaskedIds.has(viewingCandidateDetail.id) ? (
+                      <>
+                        <EyeOff className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Re-mask ({unmaskedTimers[viewingCandidateDetail.id] ?? 5}s)</span>
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="w-3.5 h-3.5 text-slate-500" />
+                        <span>Reveal Contact (5s)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
                   <div>
@@ -1150,8 +1288,8 @@ export function CandidateRepositoryPage({
                     <span className="text-slate-400 block text-[11px] font-medium">Email Address</span>
                     <span className="font-mono font-semibold text-slate-800">
                       {unmaskedIds.has(viewingCandidateDetail.id)
-                        ? `${viewingCandidateDetail.name.toLowerCase().replace(/\s+/g, '.')}@gmail.com`
-                        : viewingCandidateDetail.email}
+                        ? viewingCandidateDetail.email
+                        : maskEmail(viewingCandidateDetail.email)}
                     </span>
                   </div>
 
@@ -1159,8 +1297,8 @@ export function CandidateRepositoryPage({
                     <span className="text-slate-400 block text-[11px] font-medium">Phone Number</span>
                     <span className="font-mono font-semibold text-slate-800">
                       {unmaskedIds.has(viewingCandidateDetail.id)
-                        ? '+91 98765 43210'
-                        : viewingCandidateDetail.phone}
+                        ? viewingCandidateDetail.phone
+                        : maskPhone(viewingCandidateDetail.phone)}
                     </span>
                   </div>
                 </div>

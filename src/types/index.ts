@@ -40,6 +40,7 @@ export interface Requirement {
   revokeReason?: string
   revokeRequestedBy?: string
   revokeRequestedAt?: string
+  sla?: string
 }
 
 export interface ActivityLogItem {
