@@ -4,7 +4,6 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  TrendingUp,
   Bell,
   Search,
   Filter,
@@ -16,9 +15,6 @@ import {
   X,
   UserCheck,
   UserX,
-  Kanban,
-  List as ListIcon,
-  Clock3,
   MessageSquare,
   Building2,
   ExternalLink,
@@ -26,198 +22,292 @@ import {
   User,
   Star,
   FileText,
-  PhoneCall,
   Briefcase,
-  Share2,
   AlertTriangle,
-  Sparkles,
-  ArrowUpRight,
-  ShieldCheck,
   Building,
   Users,
-  UserPlus,
-  ArrowRight,
+  ChevronLeft,
   Activity,
-  Layers,
-  Lock,
+  CalendarRange,
+  Laptop,
+  Play,
+  Send,
 } from 'lucide-react'
-import { Interview, Role } from '../../types'
+import { Interview, Role, Requirement } from '../../types'
 import { ScheduleInterviewModal } from '../modals/ScheduleInterviewModal'
+import { RequirementDetailOverview } from './RequirementDetailOverview'
+import { PaginationFooter } from '../ui/PaginationFooter'
 
-export type InterviewStage =
-  | 'Screening'
-  | 'Shortlisted'
-  | 'Interview Scheduled'
-  | 'Completed'
-
-export interface CandidateCardItem {
+export interface ScheduleRowItem {
   id: string
-  name: string
-  role: string
-  experience: string
-  currentCompany: string
-  stage: InterviewStage
+  candidateName: string
+  position: string
+  company: string
+  round: string // 'L1' | 'Final'
   dateTime: string
-  isToday?: boolean
-  isOverdue?: boolean
-  stageProgress: number // 1 to 4
-  lastActivity: string
-  assignedRecruiter: string
-  team: string
-  department: string
-  meetingMode: 'Zoom' | 'Google Meet' | 'Teams' | 'In-Person'
-  meetingUrl?: string
-  statusBadge: string
-  statusColor: 'blue' | 'purple' | 'emerald' | 'amber' | 'rose' | 'slate'
-  notes: string[]
-  feedback?: string
-  rating?: number
+  mode: string // 'Online' | 'In-Person'
+  status: 'Upcoming' | 'In Progress' | 'Completed' | 'Scheduled'
+  requirementId?: string
+  teamLead?: string
+  submittedBy?: string
 }
 
-const INITIAL_CANDIDATES: CandidateCardItem[] = [
+export interface FinalDecisionRowItem {
+  id: string
+  candidateName: string
+  requirementId: string
+  requirement: string
+  decision: 'Selected for Interview' | 'Rejected in Interview' | 'Pending'
+  rejectionReason: string
+  offerLetter: string
+  client?: string
+  teamLead?: string
+  submittedBy?: string
+}
+
+const DEFAULT_SCHEDULE_ROWS: ScheduleRowItem[] = [
   {
-    id: 'c-101',
-    name: 'Siddharth Sunil',
-    role: 'Java Full Stack Developer',
-    experience: '4 Yrs 2 Mos',
-    currentCompany: 'Infosys Ltd',
-    stage: 'Screening',
-    dateTime: 'Today • 11:30 AM',
-    isToday: true,
-    stageProgress: 1,
-    lastActivity: 'HR call completed 20m ago',
-    assignedRecruiter: 'Harish Gadipally',
-    team: 'Engineering Team',
-    department: 'Software Engineering',
-    meetingMode: 'Zoom',
-    meetingUrl: 'https://zoom.us/j/123456789',
-    statusBadge: 'Screening Call',
-    statusColor: 'amber',
-    notes: ['Profile matched automated AI screener with 92% score.', 'Resume verified.'],
+    id: '0',
+    candidateName: 'Harish Gadipally (Team Lead Candidate)',
+    position: 'Senior React / Fullstack Architect',
+    company: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Harish Gadipally',
+    round: 'L1 Technical',
+    dateTime: 'Today, 12:00 PM',
+    mode: 'Online',
+    status: 'Upcoming',
+    requirementId: 'REQ-2026-08-12-001',
   },
   {
-    id: 'c-102',
-    name: 'Priyanka Sharma',
-    role: 'Senior React Developer',
-    experience: '5 Yrs 8 Mos',
-    currentCompany: 'TCS Cyber',
-    stage: 'Screening',
-    dateTime: 'Yesterday • 02:30 PM',
-    isOverdue: true,
-    stageProgress: 1,
-    lastActivity: 'Needs feedback review',
-    assignedRecruiter: 'Arvind GR',
-    team: 'Engineering Team',
-    department: 'Software Engineering',
-    meetingMode: 'Google Meet',
-    meetingUrl: 'https://meet.google.com/abc-defg-hij',
-    statusBadge: 'Review Overdue',
-    statusColor: 'rose',
-    notes: ['Completed HR screening call. Good communication skills.', 'Notice period: 15 days.'],
+    id: '1',
+    candidateName: 'Arpit Srivastav',
+    position: 'Senior React Native Mobile Dev',
+    company: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Marcus Chen',
+    round: 'L2 Technical',
+    dateTime: '2026-08-18 18:00',
+    mode: 'Online',
+    status: 'Completed',
+    requirementId: 'REQ-2026-08-12-002',
   },
   {
-    id: 'c-103',
-    name: 'Arpit Srivastav',
-    role: 'MIG welding Fixtures Engineer',
-    experience: '6 Yrs 1 Mo',
-    currentCompany: 'LTTS Mobility',
-    stage: 'Shortlisted',
-    dateTime: 'Aug 12, 2026 • 11:00 AM',
-    stageProgress: 2,
-    lastActivity: 'Shortlisted by hiring manager',
-    assignedRecruiter: 'Charlie Darwin',
-    team: 'Automotive Team',
-    department: 'Hardware & Automotive',
-    meetingMode: 'Teams',
-    meetingUrl: 'https://teams.microsoft.com/l/meetup-join/123',
-    statusBadge: 'Shortlisted',
-    statusColor: 'purple',
-    notes: ['Shortlisted by Lead Recruiter for L1 Technical Round.'],
+    id: '2',
+    candidateName: 'Vidyasagar Gade',
+    position: 'Cloud Solutions Architect',
+    company: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Priya Sharma',
+    round: 'Final HR Round',
+    dateTime: '2026-08-19 14:00',
+    mode: 'Online',
+    status: 'Completed',
+    requirementId: 'REQ-2026-08-12-003',
   },
   {
-    id: 'c-104',
-    name: 'Vidyasagar Gade',
-    role: 'SAP MM + Ariba Specialist',
-    experience: '7 Yrs 5 Mos',
-    currentCompany: 'ITC Infotech',
-    stage: 'Interview Scheduled',
-    dateTime: 'Today • 04:00 PM',
-    isToday: true,
-    stageProgress: 3,
-    lastActivity: 'Meeting link sent via email',
-    assignedRecruiter: 'Harish Gadipally',
-    team: 'ERP & SAP Team',
-    department: 'Enterprise Applications',
-    meetingMode: 'Zoom',
-    meetingUrl: 'https://zoom.us/j/987654321',
-    statusBadge: 'L1 Scheduled',
-    statusColor: 'blue',
-    notes: ['L1 Technical round scheduled with Senior Architect.'],
+    id: '3',
+    candidateName: 'Suresh Kulkarni (Team Member Candidate)',
+    position: 'PLM / PDM Lead Engineer',
+    company: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Suresh kulkarni',
+    round: 'L1 Technical',
+    dateTime: '2026-08-19 10:00',
+    mode: 'Online',
+    status: 'In Progress',
+    requirementId: 'REQ-2026-08-12-004',
   },
   {
-    id: 'c-105',
-    name: 'Kanchan Meshram',
-    role: 'AI Developer / Data Engineer',
-    experience: '3 Yrs 10 Mos',
-    currentCompany: 'Deloitte Digital',
-    stage: 'Completed',
-    dateTime: 'Aug 09, 2026 • 03:00 PM',
-    stageProgress: 4,
-    lastActivity: 'L2 feedback recorded 5/5',
-    assignedRecruiter: 'Harini Sindey',
-    team: 'Engineering Team',
-    department: 'Software Engineering',
-    meetingMode: 'Google Meet',
-    meetingUrl: 'https://meet.google.com/xyz-uvwx-rst',
-    statusBadge: 'L2 Cleared',
-    statusColor: 'emerald',
-    notes: ['Cleared L2 technical assessment. Excellent problem solving.'],
-    feedback: 'Strong understanding of LLMs, Python & PyTorch pipelines. Recommended for offer.',
-    rating: 5,
+    id: '4',
+    candidateName: 'Alex Turner',
+    position: 'Lead Java Engineer',
+    company: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Marcus Chen',
+    round: 'Technical Round 1',
+    dateTime: '2026-08-20 13:06',
+    mode: 'Online',
+    status: 'Upcoming',
+    requirementId: 'REQ-2026-08-12-005',
   },
   {
-    id: 'c-106',
-    name: 'Abhijit Narke',
-    role: 'Mechanical Design Engineer (Catia V5)',
-    experience: '8 Yrs 0 Mos',
-    currentCompany: 'LTTS Automotive',
-    stage: 'Completed',
-    dateTime: 'Aug 08, 2026 • 05:00 PM',
-    stageProgress: 4,
-    lastActivity: 'Selected for offer generation',
-    assignedRecruiter: 'Puttapaka Saiteja',
-    team: 'Automotive Team',
-    department: 'Hardware & Automotive',
-    meetingMode: 'Zoom',
-    meetingUrl: 'https://zoom.us/j/555666777',
-    statusBadge: 'Offer Selected',
-    statusColor: 'emerald',
-    notes: ['Final Partner Round Cleared. Offer letter generation in progress.'],
-    feedback: 'Top tier candidate. Strong leadership and CAD expertise.',
-    rating: 5,
+    id: '5',
+    candidateName: 'Kanchan Meshram',
+    position: 'AI Solutions Specialist',
+    company: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Priya Sharma',
+    round: 'Technical Round 2',
+    dateTime: '2026-08-20 11:45',
+    mode: 'Online',
+    status: 'Completed',
+    requirementId: 'REQ-2026-08-12-006',
+  },
+  {
+    id: '6',
+    candidateName: 'Rania Khalil',
+    position: 'Java Architect',
+    company: 'Goldman Sachs',
+    teamLead: 'Tom Walsh',
+    submittedBy: 'lakshmi.v Recruiter',
+    round: 'Manager Round',
+    dateTime: 'Aug 06, 02:00 PM',
+    mode: 'Online',
+    status: 'In Progress',
+    requirementId: 'REQ-2026-08-06-005',
+  },
+  {
+    id: '7',
+    candidateName: 'Ben Wallace',
+    position: 'Python ML Engineer',
+    company: 'Tesla',
+    teamLead: 'Nina Brooks',
+    submittedBy: 'Recruiter',
+    round: 'Screening',
+    dateTime: 'Aug 07, 11:00 AM',
+    mode: 'Online',
+    status: 'Completed',
+    requirementId: 'REQ-2026-08-07-006',
+  },
+  {
+    id: '8',
+    candidateName: 'Pritish Malik',
+    position: 'C# Automation - Bangalore/Mysore',
+    company: 'LTTS / L&T',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Harish Gadipally',
+    round: 'Final Round (Cleared - Offer Released)',
+    dateTime: 'Today, 02:30 PM',
+    mode: 'Online',
+    status: 'In Progress',
+    requirementId: 'REQ-003',
+  },
+  {
+    id: '9',
+    candidateName: 'Ananya Deshmukh',
+    position: 'Senior Data Scientist',
+    company: 'Microsoft',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Harish Gadipally',
+    round: 'Final HR Round',
+    dateTime: 'Aug 21, 11:00 AM',
+    mode: 'Online',
+    status: 'In Progress',
+    requirementId: 'REQ-004',
+  },
+  {
+    id: '10',
+    candidateName: 'Rahul Verma',
+    position: 'Salesforce Admin',
+    company: 'Deloitte',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Harish Gadipally',
+    round: 'L2 Technical Evaluation',
+    dateTime: 'Aug 21, 03:00 PM',
+    mode: 'Online',
+    status: 'In Progress',
+    requirementId: 'REQ-005',
   },
 ]
 
-const STAGES: InterviewStage[] = [
-  'Screening',
-  'Shortlisted',
-  'Interview Scheduled',
-  'Completed',
-]
-
-const STAGE_STYLES: Record<InterviewStage, { border: string; bg: string; badge: string; text: string }> = {
-  Screening: { border: 'border-amber-200', bg: 'bg-amber-50/30', badge: 'bg-amber-100 text-amber-900 border border-amber-200', text: 'text-amber-900' },
-  Shortlisted: { border: 'border-[#C7D2FE]', bg: 'bg-[#EEF2FF]/40', badge: 'bg-[#EEF2FF] text-[#5B51D8] border border-[#C7D2FE]', text: 'text-[#5B51D8]' },
-  'Interview Scheduled': { border: 'border-blue-200', bg: 'bg-blue-50/40', badge: 'bg-blue-100 text-blue-900 border border-blue-200', text: 'text-blue-900' },
-  Completed: { border: 'border-emerald-200', bg: 'bg-emerald-50/40', badge: 'bg-emerald-100 text-emerald-900 border border-emerald-200', text: 'text-emerald-900' },
+export interface OfferLetterRowItem {
+  id: string
+  candidateName: string
+  position: string
+  client: string
+  requirementId: string
+  offerDate: string
+  offeredCTC: string
+  joiningDate?: string
+  status: 'Offer Released' | 'Accepted' | 'Declined' | 'Joined'
+  declineReason?: string
 }
 
-const RECRUITERS = [
-  'Harish Gadipally',
-  'Arvind GR',
-  'Charlie Darwin',
-  'Harini Sindey',
-  'Puttapaka Saiteja',
+const DEFAULT_OFFER_LETTERS: OfferLetterRowItem[] = [
+  {
+    id: 'off-1',
+    candidateName: 'Pritish Malik',
+    position: 'C# Automation - Bangalore/Mysore',
+    client: 'LTTS / L&T',
+    requirementId: 'REQ-003',
+    offerDate: 'Aug 19, 2026',
+    offeredCTC: '₹22,00,000 PA',
+    joiningDate: 'Sep 01, 2026',
+    status: 'Offer Released',
+  },
+  {
+    id: 'off-2',
+    candidateName: 'Vidyasagar Gade',
+    position: 'Cloud Solutions Architect',
+    client: 'Accenture',
+    requirementId: 'REQ-2026-08-12-003',
+    offerDate: 'Aug 18, 2026',
+    offeredCTC: '₹34,00,000 PA',
+    joiningDate: 'Sep 15, 2026',
+    status: 'Accepted',
+  },
+  {
+    id: 'off-3',
+    candidateName: 'Arpit Srivastav',
+    position: 'Senior React Native Dev',
+    client: 'Accenture',
+    requirementId: 'REQ-2026-08-12-002',
+    offerDate: 'Aug 15, 2026',
+    offeredCTC: '₹26,00,000 PA',
+    joiningDate: 'Aug 25, 2026',
+    status: 'Joined',
+  },
+  {
+    id: 'off-4',
+    candidateName: 'Kanchan Meshram',
+    position: 'AI Solutions Specialist',
+    client: 'Continental Automotive',
+    requirementId: 'REQ-2026-08-12-006',
+    offerDate: 'Aug 12, 2026',
+    offeredCTC: '₹28,00,000 PA',
+    declineReason: 'Competing offer with higher compensation',
+    status: 'Declined',
+  },
+]
+
+const DEFAULT_FINAL_DECISIONS: FinalDecisionRowItem[] = [
+  {
+    id: 'fd-1',
+    candidateName: 'Abhijit Narke',
+    requirementId: 'REQ-2026-08-12-001',
+    requirement: 'Senior React / Fullstack Architect for Accenture',
+    decision: 'Selected for Interview',
+    rejectionReason: '—',
+    offerLetter: '—',
+    client: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Marcus Chen',
+  },
+  {
+    id: 'fd-2',
+    candidateName: 'Kiran Shantaram More',
+    requirementId: 'REQ-2026-08-12-002',
+    requirement: 'Senior React Native Mobile Dev for Accenture',
+    decision: 'Selected for Interview',
+    rejectionReason: '—',
+    offerLetter: '—',
+    client: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Priya Sharma',
+  },
+  {
+    id: 'fd-3',
+    candidateName: 'Vidyasagar Gade',
+    requirementId: 'REQ-2026-08-12-003',
+    requirement: 'Cloud Solutions Architect for Accenture',
+    decision: 'Selected for Interview',
+    rejectionReason: '—',
+    offerLetter: '—',
+    client: 'Accenture',
+    teamLead: 'Harish Gadipally',
+    submittedBy: 'Harish Gadipally',
+  },
 ]
 
 interface InterviewTrackingPageProps {
@@ -231,25 +321,28 @@ export function InterviewTrackingPage({
   interviews,
   onOpenFeedbackModal,
 }: InterviewTrackingPageProps) {
-  const [candidates, setCandidates] = useState<CandidateCardItem[]>(INITIAL_CANDIDATES)
-  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban')
+  // Toggle Switcher (Default: 'upcoming')
+  const [statusToggle, setStatusToggle] = useState<'upcoming' | 'in_progress' | 'completed' | 'all'>('upcoming')
 
-  // Search & Filter State
+  // Search & Filter
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedDept, setSelectedDept] = useState('All Departments')
-  const [selectedTeam, setSelectedTeam] = useState('All Teams')
-  const [roleFilter, setRoleFilter] = useState('All Roles')
-  const [statusFilter, setStatusFilter] = useState('All Stages')
+  const [dateFilter, setDateFilter] = useState<'today' | 'this_week' | 'this_month' | 'custom_range'>('this_month')
 
-  // Reassign Modal State
-  const [reassignCandidate, setReassignCandidate] = useState<CandidateCardItem | null>(null)
-  const [targetRecruiter, setTargetRecruiter] = useState('')
+  // Tables State
+  const [scheduleList, setScheduleList] = useState<ScheduleRowItem[]>(DEFAULT_SCHEDULE_ROWS)
+  const [finalDecisions, setFinalDecisions] = useState<FinalDecisionRowItem[]>(DEFAULT_FINAL_DECISIONS)
+  const [offerLetters, setOfferLetters] = useState<OfferLetterRowItem[]>(DEFAULT_OFFER_LETTERS)
 
-  // Profile & Schedule Modal
-  const [selectedCandidate, setSelectedCandidate] = useState<CandidateCardItem | null>(null)
+  // Modals & Requirement Overview State
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
+  const [calendarStateFilter, setCalendarStateFilter] = useState<'all' | 'Upcoming' | 'In Progress' | 'Completed'>('all')
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false)
-  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false)
-  const [newNoteText, setNewNoteText] = useState('')
+  const [selectedSchedule, setSelectedSchedule] = useState<ScheduleRowItem | null>(null)
+  const [remindModalCandidate, setRemindModalCandidate] = useState<ScheduleRowItem | null>(null)
+  const [rejectModalCandidate, setRejectModalCandidate] = useState<ScheduleRowItem | null>(null)
+  const [selectedRejectionReason, setSelectedRejectionReason] = useState<string>('Technical evaluation score below threshold')
+  const [customRejectionNote, setCustomRejectionNote] = useState<string>('')
+  const [selectedReqDetail, setSelectedReqDetail] = useState<Requirement | null>(null)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
 
   const showToast = (msg: string) => {
@@ -257,540 +350,854 @@ export function InterviewTrackingPage({
     setTimeout(() => setToastMsg(null), 3500)
   }
 
-  // Filter candidates based on Role & Filters
-  const filteredCandidates = useMemo(() => {
-    return candidates.filter(c => {
-      // Role scope restriction
-      if (role === 'recruiter' && c.assignedRecruiter !== 'Harish Gadipally') {
-        // In recruiter mode, show primary recruiter candidates
-        // (for demo completeness, if empty allow view)
+  const handleOpenReqOverview = (reqId: string, position: string, company: string) => {
+    setSelectedReqDetail({
+      id: reqId,
+      title: position,
+      client: company,
+      company: company,
+      status: 'Open',
+      createdDate: '12 Aug 2026',
+      submissionsCount: 4,
+      interviewsCount: 2,
+      owner: 'Harish Gadipally',
+      assignedRecruiter: 'Harish Gadipally',
+      experienceRequired: '5 - 8 Years',
+      location: 'Hyderabad / Remote',
+      salaryRange: '₹18 - ₹24 LPA',
+      skills: ['React.js', 'TypeScript', 'Node.js', 'Tailwind CSS', 'PostgreSQL'],
+      description: `Requirement details for ${position} at ${company}. Full job overview, candidate pipeline, and interview history.`,
+    } as any)
+  }
+
+  // Map passed interviews prop into ScheduleRowItems
+  const mappedPropInterviews: ScheduleRowItem[] = useMemo(() => {
+    if (interviews && interviews.length > 0) {
+      return interviews.map((iv, idx) => {
+        const sStr = (iv.status as string) || ''
+        const isUpcoming = sStr === 'Confirmed' || sStr === 'Scheduled'
+        const isCompleted = sStr === 'Passed' || sStr === 'Completed' || sStr === 'Rejected'
+        const isInProgress = sStr === 'In Progress' || sStr === 'Pending'
+
+        const mappedStatus: 'Upcoming' | 'In Progress' | 'Completed' = isUpcoming
+          ? 'Upcoming'
+          : isCompleted
+          ? 'Completed'
+          : isInProgress
+          ? 'In Progress'
+          : 'Upcoming'
+
+        return {
+          id: iv.id || `prop-iv-${idx}`,
+          candidateName: iv.candidate,
+          position: iv.position,
+          company: iv.client,
+          round: iv.stage || 'L1',
+          dateTime: iv.date || 'Aug 06, 10:00 AM',
+          mode: 'Online',
+          status: mappedStatus,
+          requirementId: `REQ-2026-0${idx + 1}`,
+        }
+      })
+    }
+    return []
+  }, [interviews])
+
+  // Combine state scheduleList with mappedPropInterviews
+  const combinedScheduleList = useMemo(() => {
+    const existingIds = new Set(scheduleList.map(s => s.id))
+    const extras = mappedPropInterviews.filter(m => !existingIds.has(m.id))
+    return [...scheduleList, ...extras]
+  }, [scheduleList, mappedPropInterviews])
+
+  // Scope interviews data by role (single recruiter vs organization-wide)
+  const scopeScheduleList = useMemo(() => {
+    if (role === 'recruiter') {
+      return combinedScheduleList.filter(s =>
+        s.submittedBy ? s.submittedBy.toLowerCase().includes('marcus') || s.submittedBy.toLowerCase().includes('recruiter') : true
+      )
+    }
+    return combinedScheduleList
+  }, [combinedScheduleList, role])
+
+  // Scope offer letters by role
+  const scopeOfferLetters = useMemo(() => {
+    if (role === 'recruiter') {
+      return offerLetters.filter(o =>
+        (o as any).submittedBy ? (o as any).submittedBy.toLowerCase().includes('marcus') || (o as any).submittedBy.toLowerCase().includes('recruiter') : true
+      )
+    }
+    return offerLetters
+  }, [offerLetters, role])
+
+  // Scope final decisions by role
+  const scopeFinalDecisions = useMemo(() => {
+    if (role === 'recruiter') {
+      return finalDecisions.filter(d =>
+        d.submittedBy ? d.submittedBy.toLowerCase().includes('marcus') || d.submittedBy.toLowerCase().includes('recruiter') : true
+      )
+    }
+    return finalDecisions
+  }, [finalDecisions, role])
+
+  // Evaluated Schedule List:
+  // 1. Scheduled in future -> Upcoming
+  // 2. Scheduled time arrives / exceeds (e.g. 12:00 PM -> 12:01 PM) -> Auto-transitions to In Progress
+  // 3. Selected / Rejected / Marked Completed -> Completed
+  const evaluatedScheduleList = useMemo(() => {
+    const now = new Date()
+
+    return scopeScheduleList.map(row => {
+      // 1. Explicitly Completed / Selected / Rejected
+      if (
+        row.status === 'Completed' ||
+        (row.status as string) === 'Selected' ||
+        (row.status as string) === 'Rejected'
+      ) {
+        return { ...row, status: 'Completed' as const }
       }
 
+      // 2. Explicitly In Progress
+      if (row.status === 'In Progress') {
+        return { ...row, status: 'In Progress' as const }
+      }
+
+      // 3. Check if scheduled time has arrived or passed (e.g. scheduled at 12:00 PM & current time >= 12:00 PM)
+      const timeStr = row.dateTime || ''
+
+      if (timeStr.toLowerCase().includes('today')) {
+        const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i)
+        if (match) {
+          let hour = parseInt(match[1], 10)
+          const min = parseInt(match[2], 10)
+          const ampm = match[3].toUpperCase()
+          if (ampm === 'PM' && hour < 12) hour += 12
+          if (ampm === 'AM' && hour === 12) hour = 0
+
+          const schedTime = new Date()
+          schedTime.setHours(hour, min, 0, 0)
+
+          if (now >= schedTime) {
+            return { ...row, status: 'In Progress' as const }
+          }
+        }
+      }
+
+      // Past date check
+      const parsedDate = new Date(timeStr.replace(/-/g, '/'))
+      if (!isNaN(parsedDate.getTime()) && now >= parsedDate) {
+        return { ...row, status: 'In Progress' as const }
+      }
+
+      return { ...row, status: 'Upcoming' as const }
+    })
+  }, [scopeScheduleList])
+
+  // Filter Schedule Rows according to selected statusToggle
+  const filteredScheduleList = useMemo(() => {
+    return evaluatedScheduleList.filter(row => {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim()
-        const matchName = c.name.toLowerCase().includes(q)
-        const matchRole = c.role.toLowerCase().includes(q)
-        const matchCompany = c.currentCompany.toLowerCase().includes(q)
-        const matchRecruiter = c.assignedRecruiter.toLowerCase().includes(q)
-        if (!matchName && !matchRole && !matchCompany && !matchRecruiter) return false
+        const matchName = row.candidateName.toLowerCase().includes(q)
+        const matchPos = row.position.toLowerCase().includes(q)
+        const matchComp = row.company.toLowerCase().includes(q)
+        const matchRound = row.round.toLowerCase().includes(q)
+        if (!matchName && !matchPos && !matchComp && !matchRound) return false
       }
 
-      if (selectedDept !== 'All Departments' && c.department !== selectedDept) return false
-      if (selectedTeam !== 'All Teams' && c.team !== selectedTeam) return false
-      if (roleFilter !== 'All Roles' && !c.role.toLowerCase().includes(roleFilter.toLowerCase())) return false
-      if (statusFilter !== 'All Stages' && c.stage !== statusFilter) return false
-
+      if (statusToggle === 'upcoming') {
+        return (row.status as string) === 'Upcoming' || (row.status as string) === 'Scheduled'
+      }
+      if (statusToggle === 'in_progress') {
+        return row.status === 'In Progress'
+      }
+      if (statusToggle === 'completed') {
+        return row.status === 'Completed'
+      }
       return true
     })
-  }, [candidates, searchQuery, selectedDept, selectedTeam, roleFilter, statusFilter, role])
+  }, [evaluatedScheduleList, searchQuery, statusToggle])
 
-  // Move stage handler
-  const moveStage = (candidateId: string, newStage: InterviewStage) => {
-    if (role === 'superadmin') {
-      showToast('Super Admin view is read-only. Micro actions are disabled.')
-      return
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 10
+
+  const totalPages = Math.ceil(filteredScheduleList.length / pageSize) || 1
+
+  const paginatedScheduleList = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredScheduleList.slice(start, start + pageSize)
+  }, [filteredScheduleList, currentPage, pageSize])
+
+  const getRoundBadgeStyle = (round: string) => {
+    const r = round.toLowerCase()
+    if (r.includes('l1') || r.includes('screening')) {
+      return 'bg-purple-100 text-purple-800 border-purple-200'
     }
-
-    const progressMap: Record<InterviewStage, number> = {
-      Screening: 1,
-      Shortlisted: 2,
-      'Interview Scheduled': 3,
-      Completed: 4,
+    if (r.includes('l2') || r.includes('technical')) {
+      return 'bg-blue-100 text-blue-800 border-blue-200'
     }
-
-    setCandidates(prev =>
-      prev.map(c => (c.id === candidateId ? { ...c, stage: newStage, stageProgress: progressMap[newStage], lastActivity: `Stage updated to ${newStage}` } : c))
-    )
-    const cand = candidates.find(c => c.id === candidateId)
-    showToast(`Updated ${cand?.name || 'candidate'} stage to "${newStage}"`)
+    if (r.includes('manager') || r.includes('hr')) {
+      return 'bg-amber-100 text-amber-800 border-amber-200'
+    }
+    if (r.includes('final')) {
+      return 'bg-emerald-100 text-emerald-800 border-emerald-200'
+    }
+    return 'bg-slate-100 text-slate-800 border-slate-200'
   }
 
-  // Reassign recruiter handler
-  const handleReassign = () => {
-    if (!reassignCandidate || !targetRecruiter) return
-    setCandidates(prev =>
-      prev.map(c => (c.id === reassignCandidate.id ? { ...c, assignedRecruiter: targetRecruiter, lastActivity: `Reassigned to ${targetRecruiter}` } : c))
+  // Move Upcoming Interview to In Progress
+  const handleShiftToInProgress = (id: string, candidateName: string) => {
+    setScheduleList(prev =>
+      prev.map(item => (item.id === id ? { ...item, status: 'In Progress' } : item))
     )
-    showToast(`Candidate ${reassignCandidate.name} reassigned to ${targetRecruiter}`)
-    setReassignCandidate(null)
+    showToast(`Interview for ${candidateName} shifted to In Progress`)
   }
 
-  const handleAddNote = () => {
-    if (!selectedCandidate || !newNoteText.trim()) return
-    const updatedNotes = [...selectedCandidate.notes, newNoteText.trim()]
-    setCandidates(prev =>
-      prev.map(c => (c.id === selectedCandidate.id ? { ...c, notes: updatedNotes } : c))
+  // Action in In Progress: Select in Interview
+  const handleSelectInInterview = (row: ScheduleRowItem) => {
+    setScheduleList(prev =>
+      prev.map(item => (item.id === row.id ? { ...item, status: 'Completed' } : item))
     )
-    setSelectedCandidate({ ...selectedCandidate, notes: updatedNotes })
-    setNewNoteText('')
-    showToast('Note added successfully!')
+    setFinalDecisions(prev => [
+      {
+        id: `fd-${Date.now()}`,
+        candidateName: row.candidateName,
+        requirementId: row.requirementId || 'REQ-2026-08-12-001',
+        requirement: `${row.position} for ${row.company}`,
+        decision: 'Selected for Interview',
+        rejectionReason: '—',
+        offerLetter: '—',
+      },
+      ...prev,
+    ])
+    showToast(`${row.candidateName} marked as Selected in Interview! Added to Final Decision.`)
+  }
+
+  // Action in In Progress: Open Rejection Reason Modal
+  const handleRejectInInterview = (row: ScheduleRowItem) => {
+    setSelectedRejectionReason('Technical evaluation score below threshold')
+    setCustomRejectionNote('')
+    setRejectModalCandidate(row)
+  }
+
+  // Confirm and save rejection with reason
+  const handleConfirmRejectCandidate = () => {
+    if (!rejectModalCandidate) return
+    const finalReason = selectedRejectionReason === 'Other' && customRejectionNote.trim()
+      ? customRejectionNote.trim()
+      : selectedRejectionReason
+
+    setScheduleList(prev =>
+      prev.map(item => (item.id === rejectModalCandidate.id ? { ...item, status: 'Completed' } : item))
+    )
+    setFinalDecisions(prev => [
+      {
+        id: `fd-${Date.now()}`,
+        candidateName: rejectModalCandidate.candidateName,
+        requirementId: rejectModalCandidate.requirementId || 'REQ-2026-08-12-001',
+        requirement: `${rejectModalCandidate.position} for ${rejectModalCandidate.company}`,
+        decision: 'Rejected in Interview',
+        rejectionReason: finalReason,
+        offerLetter: '—',
+      },
+      ...prev,
+    ])
+    showToast(`Rejection recorded for ${rejectModalCandidate.candidateName} with reason: "${finalReason}"!`)
+    setRejectModalCandidate(null)
+    setCustomRejectionNote('')
+  }
+
+  const handleDeleteSchedule = (id: string) => {
+    setScheduleList(prev => prev.filter(item => item.id !== id))
+    showToast('Interview schedule record deleted')
+  }
+
+  const handleUpdateDecision = (id: string, decision: 'Selected for Interview' | 'Rejected in Interview') => {
+    setFinalDecisions(prev =>
+      prev.map(item => (item.id === id ? { ...item, decision } : item))
+    )
+    showToast(`Final decision updated to ${decision}`)
+  }
+
+  if (selectedReqDetail) {
+    return (
+      <RequirementDetailOverview
+        requirement={selectedReqDetail}
+        role={role}
+        onBack={() => setSelectedReqDetail(null)}
+      />
+    )
   }
 
   return (
-    <div className="space-y-6 w-full pb-16 font-sans text-slate-800">
-      {/* 1. TOP HEADER WITH ROLE IDENTIFIER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 w-full pb-20 font-sans text-slate-800 animate-in fade-in duration-200">
+      {/* 1. TOP PAGE HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Interview Tracking</h1>
-
-            {role === 'superadmin' && (
-              <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-rose-100 text-rose-800 border border-rose-200 inline-flex items-center gap-1.5 shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse" />
-                <span>🔴 Super Admin View (Org-Wide)</span>
-              </span>
-            )}
-
-            {role === 'admin' && (
-              <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-900 border border-amber-200 inline-flex items-center gap-1.5 shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-amber-600 animate-pulse" />
-                <span>🟠 Admin View (Multi-Team Operations)</span>
-              </span>
-            )}
-
-            {role === 'lead' && (
-              <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-blue-100 text-blue-900 border border-blue-200 inline-flex items-center gap-1.5 shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-                <span>🔵 Team Lead View (Candidate Flow)</span>
-              </span>
-            )}
-
-            {role === 'recruiter' && (
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#EEF2FF] text-[#5B51D8] border border-[#C7D2FE] inline-flex items-center gap-1.5 shadow-2xs">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#5B51D8]" />
-                <span>My Candidates Only</span>
-              </span>
-            )}
-          </div>
-
-          <p className="text-xs text-slate-500 mt-1">
-            {role === 'superadmin' && 'Organization-wide hiring pipeline overview, bottleneck heatmaps, and aggregated activity.'}
-            {role === 'admin' && 'Monitor team progress, reassign candidates, and balance recruiter capacity across teams.'}
-            {role === 'lead' && 'Manage day-to-day candidate flow, track recruiter workload, and drive closures.'}
-            {role === 'recruiter' && 'Track your individual assigned candidates across interview stages.'}
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Interview Schedule</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Track upcoming interviews, in-progress sessions, final decisions, and offer letters
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* View Toggle */}
-          <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1 border border-slate-200/80">
-            <button
-              onClick={() => setViewMode('kanban')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                viewMode === 'kanban'
-                  ? 'bg-white text-[#6B3BF6] shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Kanban className="w-3.5 h-3.5" />
-              <span>Kanban View</span>
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                viewMode === 'list'
-                  ? 'bg-white text-[#6B3BF6] shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <ListIcon className="w-3.5 h-3.5" />
-              <span>List View</span>
-            </button>
-          </div>
-
-          {role !== 'superadmin' && (
-            <button
-              onClick={() => setIsScheduleModalOpen(true)}
-              className="px-4 py-2.5 bg-gradient-to-r from-[#6B3BF6] to-[#5833E0] hover:from-[#5833E0] hover:to-[#4A2BC2] text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-98"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Schedule Interview</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => setIsCalendarModalOpen(true)}
+            className="px-4 py-2.5 bg-[#6B3BF6] hover:bg-[#5B2DF0] text-white rounded-2xl text-xs font-extrabold shadow-md transition-all cursor-pointer flex items-center gap-2 active:scale-98"
+          >
+            <CalendarIcon className="w-4 h-4 text-white" />
+            <span>Open Interview Calendar View</span>
+          </button>
         </div>
       </div>
 
-      {/* 2. ROLE-BASED TOP METRICS & ALERTS WIDGET */}
-      {role === 'superadmin' && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-slate-900 text-white rounded-2xl p-4 space-y-1 shadow-md border border-slate-800">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              Total Org Candidates in Pipeline
+      {/* 2. TOGGLE SWITCHER & SEARCH BAR (DEFAULT: UPCOMING INTERVIEWS) */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Left Toggles (UPCOMING IS DEFAULT) */}
+        <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 text-xs font-bold">
+          <button
+            onClick={() => setStatusToggle('upcoming')}
+            className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+              statusToggle === 'upcoming'
+                ? 'bg-[#6B3BF6] text-white shadow-md font-extrabold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+            }`}
+          >
+            <Clock className="w-4 h-4" />
+            <span>Upcoming Interviews</span>
+            <span
+              className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                statusToggle === 'upcoming' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-900'
+              }`}
+            >
+              {evaluatedScheduleList.filter(s => (s.status as string) === 'Upcoming' || (s.status as string) === 'Scheduled').length}
             </span>
-            <p className="text-3xl font-extrabold text-white tabular-nums">486</p>
-            <p className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
-              <ArrowUpRight className="w-3 h-3" />
-              <span>+18% across 5 departments</span>
-            </p>
-          </div>
+          </button>
 
-          <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-2xl p-4 space-y-1 shadow-md">
-            <span className="text-[11px] font-bold text-purple-200 uppercase tracking-wider">
-              Total Interviews Scheduled Today
+          <button
+            onClick={() => setStatusToggle('in_progress')}
+            className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+              statusToggle === 'in_progress'
+                ? 'bg-amber-600 text-white shadow-md font-extrabold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+            }`}
+          >
+            <Activity className="w-4 h-4" />
+            <span>In Progress</span>
+            <span
+              className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                statusToggle === 'in_progress' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-900'
+              }`}
+            >
+              {evaluatedScheduleList.filter(s => s.status === 'In Progress').length}
             </span>
-            <p className="text-3xl font-extrabold text-white tabular-nums">24</p>
-            <p className="text-[10px] text-purple-200 font-medium">18 Online • 6 In-Person</p>
-          </div>
+          </button>
 
-          <div className="bg-emerald-950 text-emerald-100 rounded-2xl p-4 space-y-1 shadow-md border border-emerald-800">
-            <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">
-              Organization Conversion Rate
+          <button
+            onClick={() => setStatusToggle('completed')}
+            className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+              statusToggle === 'completed'
+                ? 'bg-emerald-600 text-white shadow-md font-extrabold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+            }`}
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            <span>Completed</span>
+            <span
+              className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                statusToggle === 'completed' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-900'
+              }`}
+            >
+              {evaluatedScheduleList.filter(s => s.status === 'Completed').length}
             </span>
-            <p className="text-3xl font-extrabold text-emerald-300 tabular-nums">28.4%</p>
-            <p className="text-[10px] text-emerald-400 font-medium">Sourced to Offer acceptance</p>
+          </button>
+
+          <button
+            onClick={() => setStatusToggle('all')}
+            className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+              statusToggle === 'all'
+                ? 'bg-slate-900 text-white shadow-md font-extrabold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            <span>All ({evaluatedScheduleList.length})</span>
+          </button>
+        </div>
+
+        {/* Right Search Input */}
+        <div className="relative w-full md:w-72">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search candidate or position..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6B3BF6] text-slate-800"
+          />
+        </div>
+      </div>
+
+      {/* HELPER BANNERS FOR CURRENT STAGE */}
+      {statusToggle === 'upcoming' && (
+        <div className="p-3.5 bg-purple-50/70 border border-purple-200/80 rounded-xl flex items-center justify-between text-xs text-purple-950 font-medium">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-[#6B3BF6]" />
+            <span>
+              <strong>Upcoming Interviews:</strong> All scheduled interviews reflect here. When the interview date/time completes, it shifts to <strong>In Progress</strong> waiting for the evaluation result.
+            </span>
           </div>
         </div>
       )}
 
-      {role === 'admin' && (
-        <div className="space-y-3">
-          {/* Delayed Alert Banner */}
-          <div className="bg-rose-50 border border-rose-200 rounded-2xl p-3.5 flex items-center justify-between gap-3 text-xs text-rose-900 shadow-2xs">
-            <div className="flex items-center gap-2.5">
-              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span className="font-semibold">
-                <strong>Attention Admin:</strong> 4 interviews in Engineering Team are pending feedback &gt; 48 hours.
-              </span>
-            </div>
-            <button
-              onClick={() => showToast('Filtered to 4 delayed interviews')}
-              className="px-3 py-1 bg-rose-600 text-white font-bold rounded-lg hover:bg-rose-700 cursor-pointer text-[11px]"
-            >
-              Resolve Bottlenecks
-            </button>
-          </div>
-
-          {/* Team Capacity Metrics */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="bg-white border border-slate-200 rounded-2xl p-3.5 space-y-1 shadow-2xs">
-              <span className="text-[11px] font-bold text-slate-400 uppercase">Active Team Candidates</span>
-              <p className="text-2xl font-extrabold text-slate-900">{candidates.length}</p>
-            </div>
-
-            <div className="bg-white border border-slate-200 rounded-2xl p-3.5 space-y-1 shadow-2xs">
-              <span className="text-[11px] font-bold text-slate-400 uppercase">Avg Workload / Recruiter</span>
-              <p className="text-2xl font-extrabold text-[#6B3BF6]">8.4 Candidates</p>
-            </div>
-
-            <div className="bg-white border border-slate-200 rounded-2xl p-3.5 space-y-1 shadow-2xs">
-              <span className="text-[11px] font-bold text-slate-400 uppercase">Team Capacity Utilization</span>
-              <p className="text-2xl font-extrabold text-emerald-600">88%</p>
-            </div>
+      {statusToggle === 'in_progress' && (
+        <div className="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-xl flex items-center justify-between text-xs text-amber-950 font-medium">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-amber-700" />
+            <span>
+              <strong>In Progress (Awaiting Result):</strong> Interview sessions completed waiting for result. Perform actions here to record <strong>Selected in Interview</strong> or <strong>Rejected in Interview</strong>.
+            </span>
           </div>
         </div>
       )}
 
-      {/* 3. FILTER CONTROLS BAR */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-          {/* Search */}
-          <div className="relative md:col-span-2">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search candidate name, role, company, or assigned recruiter..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-[#6B3BF6] text-slate-800 placeholder:text-slate-400 transition-all"
-            />
-          </div>
-
-          {/* Super Admin & Admin Department Filter */}
-          {(role === 'superadmin' || role === 'admin') && (
-            <div>
-              <select
-                value={selectedDept}
-                onChange={e => setSelectedDept(e.target.value)}
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
-              >
-                <option value="All Departments">All Departments</option>
-                <option value="Software Engineering">Software Engineering</option>
-                <option value="Hardware & Automotive">Hardware & Automotive</option>
-                <option value="Enterprise Applications">Enterprise Applications</option>
-              </select>
-            </div>
-          )}
-
-          {/* Admin Team Switcher */}
-          {(role === 'admin' || role === 'lead' || role === 'superadmin') && (
-            <div>
-              <select
-                value={selectedTeam}
-                onChange={e => setSelectedTeam(e.target.value)}
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-[#6B3BF6] bg-purple-50/50 border-purple-200 focus:outline-none cursor-pointer"
-              >
-                <option value="All Teams">All Hiring Teams</option>
-                <option value="Engineering Team">Engineering Team</option>
-                <option value="Automotive Team">Automotive Team</option>
-                <option value="ERP & SAP Team">ERP & SAP Team</option>
-              </select>
-            </div>
-          )}
-
-          {/* Reset Filters */}
-          <div>
-            <button
-              onClick={() => {
-                setSearchQuery('')
-                setSelectedDept('All Departments')
-                setSelectedTeam('All Teams')
-                setStatusFilter('All Stages')
-                setRoleFilter('All Roles')
-                showToast('Filters reset')
-              }}
-              className="w-full py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
-            >
-              Reset Filters
-            </button>
+      {statusToggle === 'completed' && (
+        <div className="p-3.5 bg-emerald-50/70 border border-emerald-200/80 rounded-xl flex items-center justify-between text-xs text-emerald-950 font-medium">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+            <span>
+              <strong>Completed Interviews:</strong> Displays final evaluation results of interviews, candidate decision outcomes, rejection reasons, and offer letter tracking.
+            </span>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* 4. MAIN CONTENT AREA: KANBAN BOARD WITH ROLE FEATURES */}
-      {viewMode === 'kanban' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 overflow-x-auto pb-4 custom-scrollbar min-h-[580px]">
-          {STAGES.map(stage => {
-            const stageCandidates = filteredCandidates.filter(c => c.stage === stage)
-            const style = STAGE_STYLES[stage]
+      {/* 3. CARD 1: INTERVIEW SCHEDULE TABLE */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden space-y-3 p-5">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h2 className="text-base font-extrabold text-slate-900 tracking-tight">
+            {statusToggle === 'upcoming'
+              ? 'Upcoming Interviews'
+              : statusToggle === 'in_progress'
+              ? 'In Progress Interviews'
+              : statusToggle === 'completed'
+              ? 'Completed Interviews'
+              : 'All Scheduled & Conducted Interviews'}
+          </h2>
+          <span className="text-xs text-slate-400 font-medium">
+            Showing {filteredScheduleList.length} of {combinedScheduleList.length} interviews
+          </span>
+        </div>
 
-            // Super Admin Bottleneck Heatmap Indicator
-            const isBottleneck = role === 'superadmin' && stage === 'Screening' && stageCandidates.length >= 2
-
-            return (
-              <div
-                key={stage}
-                className={`bg-slate-50/80 rounded-2xl border ${
-                  isBottleneck ? 'border-rose-400 bg-rose-50/30' : style.border
-                } p-4 flex flex-col flex-1 min-w-[285px] shadow-2xs relative`}
-              >
-                {/* Super Admin Heatmap Alert Banner */}
-                {isBottleneck && (
-                  <div className="mb-2 p-2 bg-rose-500 text-white rounded-xl text-[10px] font-bold flex items-center justify-between">
-                    <span>⚠️ BOTTLENECK DETECTED</span>
-                    <span className="underline cursor-pointer">Inspect</span>
-                  </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-slate-100 bg-slate-50/50">
+                {statusToggle === 'all' ? (
+                  <>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      CANDIDATE NAME
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      REQUIREMENT ID & ROLE
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      CLIENT
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      INTERVIEW ROUND
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      MODE & SCHEDULE
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      STATUS
+                    </th>
+                  </>
+                ) : statusToggle === 'upcoming' ? (
+                  <>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      NAME
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      REQUIREMENT ID + ROLE
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      CLIENT
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      ROUND
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      MODE
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      SCHEDULE ACTIONS
+                    </th>
+                  </>
+                ) : (
+                  <>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      NAME
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      REQUIREMENT ID + ROLE
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      CLIENT
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      ROUND
+                    </th>
+                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      MODE
+                    </th>
+                  </>
                 )}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
+              {paginatedScheduleList.length === 0 ? (
+                <tr>
+                  <td colSpan={statusToggle === 'in_progress' || statusToggle === 'completed' ? 5 : 6} className="py-10 text-center text-slate-400">
+                    No interviews in this section.
+                  </td>
+                </tr>
+              ) : (
+                paginatedScheduleList.map(row => (
+                  <tr key={row.id} className="hover:bg-purple-50/30 transition-colors">
+                    {statusToggle === 'all' ? (
+                      <>
+                        {/* 1. CANDIDATE NAME */}
+                        <td className="px-4 py-4 font-extrabold text-slate-900 flex items-center gap-2">
+                          <User className="w-4 h-4 text-slate-400" />
+                          <span>{row.candidateName}</span>
+                        </td>
 
-                {/* Column Header */}
-                <div className="flex items-center justify-between border-b border-slate-200/80 pb-3 mb-3.5">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs font-bold ${style.text}`}>{stage}</span>
-                  </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${style.badge}`}>
-                    {stageCandidates.length}
-                  </span>
-                </div>
-
-                {/* Cards Container */}
-                <div className="space-y-3.5 flex-1 overflow-y-auto pr-0.5 custom-scrollbar">
-                  {stageCandidates.length === 0 ? (
-                    <div className="h-36 border-2 border-dashed border-slate-200/80 rounded-2xl flex flex-col items-center justify-center text-center p-4">
-                      <span className="text-xs text-slate-400 font-medium">No candidates in {stage}</span>
-                    </div>
-                  ) : (
-                    stageCandidates.map(cand => (
-                      <div
-                        key={cand.id}
-                        className={`bg-white rounded-2xl border ${
-                          cand.isOverdue
-                            ? 'border-rose-300 ring-2 ring-rose-500/20'
-                            : cand.isToday
-                            ? 'border-blue-300 ring-2 ring-blue-500/20'
-                            : 'border-slate-200/90'
-                        } p-4 shadow-2xs hover:shadow-md transition-all duration-200 group space-y-3 relative`}
-                      >
-                        {/* Assigned Recruiter Badge for Admin & Team Lead */}
-                        <div className="flex items-center justify-between text-[10px] font-semibold text-slate-500 border-b border-slate-100 pb-2">
-                          <span className="flex items-center gap-1 text-slate-700">
-                            <User className="w-3 h-3 text-[#6B3BF6]" />
-                            <span>{cand.assignedRecruiter}</span>
-                          </span>
-
-                          {(role === 'admin' || role === 'lead') && (
+                        {/* 2. REQUIREMENT ID + ROLE */}
+                        <td className="px-4 py-4 max-w-xs">
+                          <div className="flex items-center gap-1.5 mb-1">
                             <button
-                              onClick={() => {
-                                setReassignCandidate(cand)
-                                setTargetRecruiter(cand.assignedRecruiter)
-                              }}
-                              className="text-blue-600 font-bold hover:underline cursor-pointer flex items-center gap-0.5"
+                              onClick={() => handleOpenReqOverview(row.requirementId || 'REQ-2026-08-12-001', row.position, row.company)}
+                              className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-mono hover:underline cursor-pointer transition-all flex items-center gap-1"
+                              title="Click to view Requirement Overview"
                             >
-                              <UserPlus className="w-3 h-3" />
-                              <span>Reassign</span>
+                              <span>{row.requirementId || 'REQ-2026-08-12-001'}</span>
+                              <ExternalLink className="w-2.5 h-2.5 text-blue-600" />
                             </button>
-                          )}
-                        </div>
-
-                        {/* Candidate Name & Role */}
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#6B3BF6] transition-colors leading-snug">
-                              {cand.name}
-                            </h4>
-                            <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                              {cand.role}
-                            </p>
                           </div>
-                          {cand.meetingUrl && (
-                            <a
-                              href={cand.meetingUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors shrink-0"
-                              title={`Join via ${cand.meetingMode}`}
-                            >
-                              <Video className="w-3.5 h-3.5" />
-                            </a>
-                          )}
-                        </div>
+                          <div className="font-extrabold text-slate-900 text-xs">{row.position}</div>
+                        </td>
 
-                        {/* Details */}
-                        <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100 space-y-1 text-[11px] text-slate-600">
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Experience:</span>
-                            <span className="font-semibold text-slate-800">{cand.experience}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-slate-400">Company:</span>
-                            <span className="font-semibold text-slate-800 truncate max-w-[130px]">
-                              {cand.currentCompany}
+                        {/* 3. CLIENT */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                            <Building2 className="w-3.5 h-3.5 text-purple-600 inline shrink-0" />
+                            <span>{row.company || 'Accenture'}</span>
+                            <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              Active Client
                             </span>
                           </div>
-                          <div className="flex justify-between items-center pt-1 border-t border-slate-200/60 text-[10px]">
-                            <span className="text-slate-400 flex items-center gap-1">
-                              <CalendarIcon className="w-3 h-3 text-slate-400" />
-                              {cand.dateTime}
+                          <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+                            Lead: {row.teamLead || 'Harish Gadipally'} | By: {row.submittedBy || 'Marcus Chen'}
+                          </div>
+                        </td>
+
+                        {/* 4. ROUND */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${getRoundBadgeStyle(row.round)}`}>
+                            {row.round}
+                          </span>
+                        </td>
+
+                        {/* 5. MODE & SCHEDULE */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-1.5 text-xs text-blue-600 font-semibold">
+                            <Laptop className="w-3.5 h-3.5 text-blue-500" />
+                            <span>{row.mode} ({row.dateTime})</span>
+                          </div>
+                        </td>
+
+                        {/* 6. STATUS */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${
+                              (row.status as string) === 'Upcoming' || (row.status as string) === 'Scheduled'
+                                ? 'bg-purple-100 text-purple-800 border-purple-200'
+                                : row.status === 'In Progress'
+                                ? 'bg-amber-100 text-amber-800 border-amber-200'
+                                : 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                            }`}
+                          >
+                            {row.status}
+                          </span>
+                        </td>
+                      </>
+                    ) : statusToggle === 'upcoming' ? (
+                      <>
+                        {/* 1. NAME */}
+                        <td className="px-4 py-4 font-extrabold text-slate-900 flex items-center gap-2">
+                          <User className="w-4 h-4 text-slate-400" />
+                          <span>{row.candidateName}</span>
+                        </td>
+
+                        {/* 2. REQUIREMENT ID + ROLE */}
+                        <td className="px-4 py-4 max-w-xs">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <button
+                              onClick={() => handleOpenReqOverview(row.requirementId || 'REQ-2026-08-12-001', row.position, row.company)}
+                              className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-mono hover:underline cursor-pointer transition-all flex items-center gap-1"
+                              title="Click to view Requirement Overview"
+                            >
+                              <span>{row.requirementId || 'REQ-2026-08-12-001'}</span>
+                              <ExternalLink className="w-2.5 h-2.5 text-blue-600" />
+                            </button>
+                          </div>
+                          <div className="font-extrabold text-slate-900 text-xs">{row.position}</div>
+                        </td>
+
+                        {/* 3. CLIENT */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                            <Building2 className="w-3.5 h-3.5 text-purple-600 inline shrink-0" />
+                            <span>{row.company || 'Accenture'}</span>
+                            <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              Active Client
                             </span>
                           </div>
-                        </div>
+                          <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+                            Lead: {row.teamLead || 'Harish Gadipally'} | By: {row.submittedBy || 'Marcus Chen'}
+                          </div>
+                        </td>
 
-                        {/* Stage Mover Selector (Locked for Super Admin) */}
-                        {role !== 'superadmin' ? (
-                          <div>
-                            <label className="text-[10px] text-slate-400 font-semibold mb-1 block">
-                              Update Stage:
-                            </label>
-                            <select
-                              value={cand.stage}
-                              onChange={e => moveStage(cand.id, e.target.value as InterviewStage)}
-                              className="w-full text-[11px] bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 font-semibold text-slate-700 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
+                        {/* 4. ROUND */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold ${
+                              row.round === 'Final'
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                : 'bg-purple-100 text-purple-800 border border-purple-200'
+                            }`}
+                          >
+                            {row.round}
+                          </span>
+                        </td>
+
+                        {/* 5. MODE */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-1.5 text-xs text-blue-600 font-semibold">
+                            <Laptop className="w-3.5 h-3.5 text-blue-500" />
+                            <span>{row.mode} ({row.dateTime})</span>
+                          </div>
+                        </td>
+
+                        {/* 6. SCHEDULE ACTIONS: EDIT & REMIND */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setRemindModalCandidate(row)}
+                              className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 cursor-pointer shadow-2xs flex items-center gap-1.5"
                             >
-                              {STAGES.map(s => (
-                                <option key={s} value={s}>
-                                  {s}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        ) : (
-                          <div className="text-[10px] text-slate-400 font-medium italic flex items-center gap-1">
-                            <Lock className="w-3 h-3 text-slate-400" />
-                            <span>Read-only overview mode</span>
-                          </div>
-                        )}
+                              <Bell className="w-3.5 h-3.5 text-[#6B3BF6]" />
+                              <span>Remind Candidate</span>
+                            </button>
 
-                        {/* Quick Actions Footer */}
-                        <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
-                          <button
-                            onClick={() => setSelectedCandidate(cand)}
-                            className="text-[#6B3BF6] font-bold hover:underline flex items-center gap-1 cursor-pointer"
-                          >
-                            <span>View Profile</span>
-                            <ChevronRight className="w-3 h-3" />
-                          </button>
+                            <button
+                              onClick={() => setSelectedSchedule(row)}
+                              className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 cursor-pointer shadow-2xs flex items-center gap-1.5"
+                              title="Edit schedule"
+                            >
+                              <Edit2 className="w-3.5 h-3.5 text-slate-500" />
+                              <span>Edit</span>
+                            </button>
+                          </div>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        {/* 1. NAME */}
+                        <td className="px-4 py-4 font-extrabold text-slate-900 flex items-center gap-2">
+                          <User className="w-4 h-4 text-slate-400" />
+                          <span>{row.candidateName}</span>
+                        </td>
 
-                          <button
-                            onClick={() => {
-                              setSelectedCandidate(cand)
-                              setIsNotesModalOpen(true)
-                            }}
-                            className="text-slate-500 hover:text-slate-900 font-medium flex items-center gap-1 cursor-pointer"
+                        {/* 2. REQUIREMENT ID + ROLE */}
+                        <td className="px-4 py-4 max-w-xs">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <button
+                              onClick={() => handleOpenReqOverview(row.requirementId || 'REQ-2026-08-12-001', row.position, row.company)}
+                              className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-mono hover:underline cursor-pointer transition-all flex items-center gap-1"
+                              title="Click to view Requirement Overview"
+                            >
+                              <span>{row.requirementId || 'REQ-2026-08-12-001'}</span>
+                              <ExternalLink className="w-2.5 h-2.5 text-blue-600" />
+                            </button>
+                          </div>
+                          <div className="font-extrabold text-slate-900 text-xs">{row.position}</div>
+                        </td>
+
+                        {/* 3. CLIENT */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                            <Building2 className="w-3.5 h-3.5 text-purple-600 inline shrink-0" />
+                            <span>{row.company || 'Accenture'}</span>
+                            <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              Active Client
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+                            Lead: {row.teamLead || 'Harish Gadipally'} | By: {row.submittedBy || 'Marcus Chen'}
+                          </div>
+                        </td>
+
+                        {/* 4. ROUND */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${getRoundBadgeStyle(row.round)}`}
                           >
-                            <MessageSquare className="w-3 h-3" />
-                            <span>Notes ({cand.notes.length})</span>
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )
-          })}
+                            {row.round}
+                          </span>
+                        </td>
+
+                        {/* 5. MODE */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-1.5 text-xs text-blue-600 font-semibold">
+                            <Laptop className="w-3.5 h-3.5 text-blue-500" />
+                            <span>{row.mode} ({row.dateTime})</span>
+                          </div>
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
 
-      {/* 5. LIST VIEW TABLE */}
-      {viewMode === 'list' && (
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+        {/* 10-ITEM PAGINATION FOOTER */}
+        <PaginationFooter
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredScheduleList.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+        />
+      </div>
+
+
+
+      {/* 5. CARD 3: RELEASED OFFER LETTER (ONLY DISPLAYED IN COMPLETED & ALL TABS) */}
+      {(statusToggle === 'completed' || statusToggle === 'all') && (
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="text-base font-extrabold text-slate-900 tracking-tight">Released offer letter</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                For offers released after final round evaluation, track candidate response status, CTC, joining date, or decline reasons for recruiter reference.
+              </p>
+            </div>
+            <span className="text-xs font-extrabold text-[#6B3BF6] bg-purple-50 px-3 py-1 rounded-xl border border-purple-200">
+              {scopeOfferLetters.length} candidate(s)
+            </span>
+          </div>
+
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3.5 px-4">CANDIDATE NAME</th>
-                  <th className="py-3.5 px-4">ASSIGNED RECRUITER</th>
-                  <th className="py-3.5 px-4">ROLE APPLIED</th>
-                  <th className="py-3.5 px-4">EXPERIENCE</th>
-                  <th className="py-3.5 px-4">INTERVIEW STAGE</th>
-                  <th className="py-3.5 px-4">INTERVIEW DATE</th>
-                  <th className="py-3.5 px-4 text-right">ACTIONS</th>
+                <tr className="border-b border-slate-200/80 bg-slate-50/70 text-slate-500 font-bold text-[11px] uppercase tracking-wider">
+                  <th className="px-4 py-3">CANDIDATE NAME</th>
+                  <th className="px-4 py-3">REQUIREMENT & ROLE</th>
+                  <th className="px-4 py-3">CLIENT</th>
+                  <th className="px-4 py-3">OFFER DATE & CTC</th>
+                  <th className="px-4 py-3">JOINING DATE</th>
+                  <th className="px-4 py-3">STATUS</th>
+                  <th className="px-4 py-3 text-right">ACTIONS</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
-                {filteredCandidates.map(c => (
-                  <tr key={c.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-slate-900 flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-[#6B3BF6]/10 text-[#6B3BF6] font-bold flex items-center justify-center text-xs">
-                        {c.name.charAt(0)}
-                      </div>
-                      <div>
-                        <div>{c.name}</div>
-                        <div className="text-[10px] text-slate-400 font-normal">{c.currentCompany}</div>
-                      </div>
+              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                {scopeOfferLetters.map(item => (
+                  <tr key={item.id} className="hover:bg-slate-50/60 transition-colors align-middle">
+                    <td className="px-4 py-3.5 font-extrabold text-slate-900">
+                      {item.candidateName}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-purple-700">
-                      <span className="inline-flex items-center gap-1.5">
-                        <User className="w-3 h-3 text-[#6B3BF6]" />
-                        <span>{c.assignedRecruiter}</span>
-                      </span>
+                    <td className="px-4 py-3.5">
+                      <span className="text-[10px] font-mono text-blue-600 font-bold block">{item.requirementId}</span>
+                      <span className="text-xs text-slate-800 font-semibold">{item.position}</span>
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">{c.role}</td>
-                    <td className="py-3.5 px-4">{c.experience}</td>
-                    <td className="py-3.5 px-4">
-                      {role !== 'superadmin' ? (
-                        <select
-                          value={c.stage}
-                          onChange={e => moveStage(c.id, e.target.value as InterviewStage)}
-                          className="px-2.5 py-1 text-xs rounded-xl font-bold bg-slate-100 border border-slate-200 text-slate-800 cursor-pointer"
-                        >
-                          {STAGES.map(s => (
-                            <option key={s} value={s}>
-                              {s}
-                            </option>
-                          ))}
-                        </select>
+                    <td className="px-4 py-3.5 font-bold text-slate-800">{item.client}</td>
+                    <td className="px-4 py-3.5">
+                      <span className="text-xs text-slate-900 font-bold block">{item.offeredCTC}</span>
+                      <span className="text-[10px] text-slate-400">Released: {item.offerDate}</span>
+                    </td>
+                    <td className="px-4 py-3.5 font-semibold text-slate-700">
+                      {item.joiningDate ? (
+                        <span className="text-emerald-700 font-bold">{item.joiningDate}</span>
                       ) : (
-                        <span className="font-bold text-slate-900">{c.stage}</span>
+                        <span className="text-slate-400 text-[11px] italic">Not set</span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">{c.dateTime}</td>
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap space-x-2">
-                      {(role === 'admin' || role === 'lead') && (
+                    <td className="px-4 py-3.5">
+                      {item.status === 'Offer Released' && (
+                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 inline-block">
+                          Offer Released
+                        </span>
+                      )}
+                      {item.status === 'Accepted' && (
+                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-block">
+                          Accepted
+                        </span>
+                      )}
+                      {item.status === 'Joined' && (
+                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200 inline-block">
+                          Joined
+                        </span>
+                      )}
+                      {item.status === 'Declined' && (
+                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200 inline-block" title={item.declineReason}>
+                          Declined
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3.5 text-right space-x-1.5 whitespace-nowrap">
+                      {item.status === 'Offer Released' && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setOfferLetters(prev => prev.map(o => o.id === item.id ? { ...o, status: 'Accepted', joiningDate: o.joiningDate || 'Sep 10, 2026' } : o))
+                              showToast(`Offer marked as Accepted for ${item.candidateName}`)
+                            }}
+                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg cursor-pointer transition-all"
+                          >
+                            Mark Accepted
+                          </button>
+                          <button
+                            onClick={() => {
+                              setOfferLetters(prev => prev.map(o => o.id === item.id ? { ...o, status: 'Declined', declineReason: 'Candidate declined offer' } : o))
+                              showToast(`Offer marked as Declined for ${item.candidateName}`)
+                            }}
+                            className="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-600 text-[11px] font-bold rounded-lg cursor-pointer transition-all border border-slate-200"
+                          >
+                            Declined
+                          </button>
+                        </>
+                      )}
+                      {item.status === 'Accepted' && (
                         <button
                           onClick={() => {
-                            setReassignCandidate(c)
-                            setTargetRecruiter(c.assignedRecruiter)
+                            setOfferLetters(prev => prev.map(o => o.id === item.id ? { ...o, status: 'Joined' } : o))
+                            showToast(`${item.candidateName} marked as Joined!`)
                           }}
-                          className="px-2.5 py-1.5 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 font-bold cursor-pointer"
+                          className="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-bold rounded-lg cursor-pointer transition-all"
                         >
-                          Reassign
+                          Mark Joined
                         </button>
                       )}
-                      <button
-                        onClick={() => setSelectedCandidate(c)}
-                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
-                      >
-                        View Profile
-                      </button>
+                      {(item.status === 'Joined' || item.status === 'Declined') && (
+                        <span className="text-[10px] font-bold text-slate-400">Record Finalized</span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -800,88 +1207,365 @@ export function InterviewTrackingPage({
         </div>
       )}
 
-      {/* REASSIGN CANDIDATE MODAL (FOR ADMIN & TEAM LEAD) */}
-      {reassignCandidate && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-100">
+      {/* SCHEDULE INTERVIEW MODAL */}
+      {isScheduleModalOpen && (
+        <ScheduleInterviewModal
+          isOpen={isScheduleModalOpen}
+          onClose={() => setIsScheduleModalOpen(false)}
+          onScheduleSuccess={() => {
+            showToast('Interview scheduled successfully!')
+            setIsScheduleModalOpen(false)
+          }}
+        />
+      )}
+
+      {/* REMIND CANDIDATE MODAL */}
+      {remindModalCandidate && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Reassign Candidate Recruiter</h3>
-              <button onClick={() => setReassignCandidate(null)} className="text-slate-400 hover:text-slate-600">
+              <div className="flex items-center gap-2 text-[#6B3BF6]">
+                <Bell className="w-5 h-5" />
+                <h3 className="text-base font-extrabold text-slate-900">Send Candidate Interview Reminder</h3>
+              </div>
+              <button
+                onClick={() => setRemindModalCandidate(null)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div>
-                <span className="text-slate-400 block font-medium">Candidate Name</span>
-                <p className="text-sm font-bold text-slate-900">{reassignCandidate.name}</p>
-                <p className="text-xs text-slate-500">{reassignCandidate.role}</p>
-              </div>
+            <div className="space-y-3 text-xs text-slate-700">
+              <p className="font-semibold">
+                Would you like to send an automated interview reminder notification to candidate <strong className="text-slate-900">{remindModalCandidate.candidateName}</strong>?
+              </p>
 
-              <div>
-                <label className="block font-bold text-slate-700 mb-1.5">Select Target Recruiter</label>
-                <select
-                  value={targetRecruiter}
-                  onChange={e => setTargetRecruiter(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-[#6B3BF6]"
-                >
-                  {RECRUITERS.map(r => (
-                    <option key={r} value={r}>
-                      {r} {r === reassignCandidate.assignedRecruiter ? '(Current)' : ''}
-                    </option>
-                  ))}
-                </select>
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-1.5 font-medium">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Candidate:</span>
+                  <span className="font-bold text-slate-900">{remindModalCandidate.candidateName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Requirement / Role:</span>
+                  <span className="font-bold text-slate-900">{remindModalCandidate.position}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Client:</span>
+                  <span className="font-bold text-purple-700">{remindModalCandidate.company}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Scheduled Time:</span>
+                  <span className="font-bold text-blue-600">{remindModalCandidate.dateTime}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Delivery Channels:</span>
+                  <span className="font-bold text-emerald-700">Email & SMS Notification</span>
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-2 pt-2">
               <button
-                type="button"
-                onClick={() => setReassignCandidate(null)}
-                className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl"
+                onClick={() => setRemindModalCandidate(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
               >
                 Cancel
               </button>
               <button
-                type="button"
-                onClick={handleReassign}
-                className="px-5 py-2 text-xs font-bold bg-[#6B3BF6] text-white rounded-xl hover:bg-[#5833E0]"
+                onClick={() => {
+                  showToast(`Interview reminder sent to ${remindModalCandidate.candidateName} via Email & SMS!`)
+                  setRemindModalCandidate(null)
+                }}
+                className="px-4 py-2 bg-[#6B3BF6] hover:bg-[#5b30d9] text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-1.5"
               >
-                Confirm Reassignment
+                <Send className="w-3.5 h-3.5" />
+                <span>Send Reminder to Candidate</span>
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* SCHEDULE MODAL */}
-      <ScheduleInterviewModal
-        isOpen={isScheduleModalOpen}
-        onClose={() => setIsScheduleModalOpen(false)}
-        onScheduleSuccess={data => {
-          const newCard: CandidateCardItem = {
-            id: `c-${Date.now()}`,
-            name: data.submission.split(' — ')[0] || 'Scheduled Candidate',
-            role: data.submission.split(' — ')[1] || 'Candidate Role',
-            experience: '4 Yrs',
-            currentCompany: 'Verified Applicant',
-            stage: 'Interview Scheduled',
-            stageProgress: 3,
-            lastActivity: 'Scheduled via form',
-            assignedRecruiter: 'Harish Gadipally',
-            team: 'Engineering Team',
-            department: 'Software Engineering',
-            dateTime: `${data.date} • ${data.time}`,
-            meetingMode: data.interviewMode === 'Offline / In-Person' ? 'In-Person' : 'Zoom',
-            meetingUrl: data.meetingLink || 'https://meet.google.com/xxx-xxx-xxx',
-            statusBadge: data.status || 'Scheduled',
-            statusColor: 'blue',
-            notes: data.notes ? [data.notes] : ['Interview scheduled successfully.'],
-          }
-          setCandidates([newCard, ...candidates])
-          showToast(`Interview for ${newCard.name} scheduled successfully!`)
-        }}
-      />
+      {/* REJECTION REASON MODAL UI */}
+      {rejectModalCandidate && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 text-rose-600">
+                <UserX className="w-5 h-5" />
+                <h3 className="text-base font-extrabold text-slate-900">Record Interview Rejection Reason</h3>
+              </div>
+              <button
+                onClick={() => setRejectModalCandidate(null)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-700">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-1 font-medium">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Candidate:</span>
+                  <span className="font-bold text-slate-900">{rejectModalCandidate.candidateName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Requirement / Role:</span>
+                  <span className="font-bold text-slate-900">{rejectModalCandidate.position}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Round:</span>
+                  <span className="font-bold text-purple-700">{rejectModalCandidate.round}</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-800">
+                  Select Reason for Rejection <span className="text-rose-500">*</span>
+                </label>
+                <div className="space-y-1.5">
+                  {[
+                    'Technical evaluation score below threshold',
+                    'Domain experience mismatch for client requirement',
+                    'Salary expectation exceeds approved budget',
+                    'Communication / soft skills mismatch',
+                    'Candidate withdrew / unavailable for next round',
+                    'Other',
+                  ].map(reason => (
+                    <label
+                      key={reason}
+                      className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
+                        selectedRejectionReason === reason
+                          ? 'border-purple-600 bg-purple-50/60 font-bold text-slate-900 shadow-2xs'
+                          : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="rejectionReasonRadio"
+                        value={reason}
+                        checked={selectedRejectionReason === reason}
+                        onChange={() => setSelectedRejectionReason(reason)}
+                        className="text-[#6B3BF6] focus:ring-[#6B3BF6]"
+                      />
+                      <span>{reason}</span>
+                    </label>
+                  ))}
+                </div>
+
+                {selectedRejectionReason === 'Other' && (
+                  <div className="pt-2 space-y-1">
+                    <label className="block text-[11px] font-bold text-slate-700">Specify Custom Rejection Reason</label>
+                    <textarea
+                      rows={2}
+                      value={customRejectionNote}
+                      onChange={e => setCustomRejectionNote(e.target.value)}
+                      placeholder="Type custom reason for rejection..."
+                      className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6B3BF6] text-slate-800"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                onClick={() => setRejectModalCandidate(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmRejectCandidate}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-1.5"
+              >
+                <UserX className="w-3.5 h-3.5" />
+                <span>Submit Rejection & Move to Final Decision</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. INTERACTIVE INTERVIEW CALENDAR MODAL */}
+      {isCalendarModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl border border-slate-200 max-w-4xl w-full p-6 space-y-5 shadow-2xl animate-in zoom-in-95 duration-200 font-sans max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <CalendarIcon className="w-5 h-5 text-[#6B3BF6]" />
+                  <h3 className="text-lg font-extrabold text-slate-900">August 2026 — Interview Schedule Calendar</h3>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-100 text-[#6B3BF6] border border-purple-200">
+                    Live Calendar View
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Interviews mapped by scheduled date, status state (Upcoming, In Progress, Completed), and client company
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {/* State Filter Buttons */}
+                <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-extrabold">
+                  <button
+                    onClick={() => setCalendarStateFilter('all')}
+                    className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                      calendarStateFilter === 'all'
+                        ? 'bg-white text-purple-700 shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    All States
+                  </button>
+                  <button
+                    onClick={() => setCalendarStateFilter('Upcoming')}
+                    className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                      calendarStateFilter === 'Upcoming'
+                        ? 'bg-[#6B3BF6] text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Upcoming
+                  </button>
+                  <button
+                    onClick={() => setCalendarStateFilter('In Progress')}
+                    className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                      calendarStateFilter === 'In Progress'
+                        ? 'bg-amber-600 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    In Progress
+                  </button>
+                  <button
+                    onClick={() => setCalendarStateFilter('Completed')}
+                    className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                      calendarStateFilter === 'Completed'
+                        ? 'bg-emerald-600 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Completed
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setIsCalendarModalOpen(false)}
+                  className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-full transition-all cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Days of Week Bar */}
+            <div className="grid grid-cols-7 gap-2 text-center text-[11px] font-extrabold text-slate-500 uppercase tracking-wider bg-slate-50 p-2 rounded-xl border border-slate-100">
+              <span>Sun</span>
+              <span>Mon</span>
+              <span>Tue</span>
+              <span>Wed</span>
+              <span>Thu</span>
+              <span>Fri</span>
+              <span>Sat</span>
+            </div>
+
+            {/* Monthly Calendar Grid (Aug 2026) */}
+            <div className="grid grid-cols-7 gap-2">
+              {/* Previous month filler days */}
+              {[26, 27, 28, 29, 30, 31].map(d => (
+                <div key={`prev-${d}`} className="min-h-24 p-2 bg-slate-50/40 rounded-2xl border border-slate-100/60 opacity-40">
+                  <span className="text-[10px] font-bold text-slate-400">{d}</span>
+                </div>
+              ))}
+
+              {/* August Days 1 - 31 */}
+              {Array.from({ length: 31 }, (_, i) => i + 1).map(day => {
+                const dayStr = day < 10 ? `0${day}` : `${day}`
+                const dayInterviews = combinedScheduleList.filter(s => {
+                  if (calendarStateFilter !== 'all' && s.status !== calendarStateFilter) return false
+                  return s.dateTime.includes(`Aug ${dayStr}`) || s.dateTime.includes(`2026-08-${dayStr}`) || (day === 17 && s.dateTime.includes('Today'))
+                })
+
+                return (
+                  <div
+                    key={`aug-${day}`}
+                    className={`min-h-28 p-2.5 rounded-2xl border transition-all flex flex-col justify-between ${
+                      day === 17
+                        ? 'bg-purple-50/40 border-purple-300 ring-2 ring-[#6B3BF6]/20'
+                        : 'bg-white border-slate-200/80 hover:border-purple-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-xs font-extrabold ${day === 17 ? 'text-[#6B3BF6] bg-purple-100 px-2 py-0.5 rounded-full' : 'text-slate-700'}`}>
+                        Aug {day}
+                      </span>
+                      {dayInterviews.length > 0 && (
+                        <span className="w-2 h-2 rounded-full bg-[#6B3BF6] animate-pulse" />
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5 overflow-y-auto max-h-20">
+                      {dayInterviews.length === 0 ? (
+                        <span className="text-[10px] text-slate-300 font-medium italic block pt-2">No interviews</span>
+                      ) : (
+                        dayInterviews.map(item => (
+                          <div
+                            key={item.id}
+                            onClick={() => {
+                              setIsCalendarModalOpen(false)
+                              setSelectedSchedule(item)
+                            }}
+                            className={`p-1.5 rounded-xl border text-[10px] font-extrabold cursor-pointer transition-all hover:scale-102 shadow-2xs space-y-0.5 ${
+                              item.status === 'Upcoming' || item.status === 'Scheduled'
+                                ? 'bg-purple-100/90 text-purple-900 border-purple-200 hover:bg-purple-200'
+                                : item.status === 'In Progress'
+                                ? 'bg-amber-100/90 text-amber-900 border-amber-200 hover:bg-amber-200'
+                                : 'bg-emerald-100/90 text-emerald-900 border-emerald-200 hover:bg-emerald-200'
+                            }`}
+                            title={`Click to view/edit ${item.candidateName}'s interview`}
+                          >
+                            <div className="truncate text-slate-900">{item.candidateName}</div>
+                            <div className="text-[9px] font-semibold text-purple-700 flex items-center justify-between">
+                              <span>{item.company}</span>
+                              <span className="opacity-80">{item.round}</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Modal Footer Legend */}
+            <div className="flex flex-wrap items-center justify-between pt-3 border-t border-slate-100 text-xs">
+              <div className="flex items-center gap-4">
+                <span className="text-slate-500 font-bold">Interview Status States:</span>
+                <span className="flex items-center gap-1 text-[#6B3BF6] font-extrabold">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#6B3BF6]" /> Upcoming / Scheduled
+                </span>
+                <span className="flex items-center gap-1 text-amber-700 font-extrabold">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-600" /> In Progress (Result Pending)
+                </span>
+                <span className="flex items-center gap-1 text-emerald-700 font-extrabold">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" /> Completed
+                </span>
+              </div>
+
+              <button
+                onClick={() => setIsCalendarModalOpen(false)}
+                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-extrabold transition-all cursor-pointer"
+              >
+                Close Calendar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* TOAST */}
       {toastMsg && (

@@ -1,4 +1,55 @@
-import { Admin, Lead, Recruiter, Requirement, Interview, Submission, Role, Candidate } from '../types'
+import { Admin, Lead, Recruiter, Requirement, Interview, Submission, Role, Candidate, ActivityLogItem } from '../types'
+
+export const INITIAL_ACTIVITY_LOGS: ActivityLogItem[] = [
+  {
+    id: 'LOG-1001',
+    timestamp: 'Today at 02:45 PM',
+    userName: 'Harish Gadipally',
+    userEmail: 'harish.g@metaforgeit.com',
+    userRole: 'lead',
+    userAvatar: 'H',
+    action: 'Assigned Requirement REQ-2026-08-12-001 to Marcus Chen',
+    category: 'Requirements',
+    targetEntity: 'Requirement REQ-2026-08-12-001',
+    targetId: 'REQ-2026-08-12-001',
+    clientName: 'Accenture',
+    ipAddress: '192.168.1.45',
+    status: 'Success',
+    details: 'Assigned requirement REQ-2026-08-12-001 for Accenture to team member Marcus Chen with high priority SLA.',
+  },
+  {
+    id: 'LOG-1002',
+    timestamp: 'Today at 01:15 PM',
+    userName: 'Marcus Chen',
+    userEmail: 'm.chen@talentflow.io',
+    userRole: 'recruiter',
+    userAvatar: 'M',
+    action: 'Requested Revoke Permission for REQ-003 (DevOps Lead Engineer)',
+    category: 'Requirements',
+    targetEntity: 'Requirement REQ-003',
+    targetId: 'REQ-003',
+    clientName: 'JP Morgan',
+    ipAddress: '192.168.1.88',
+    status: 'Warning',
+    details: 'Revoke Reason: Client JD requirements pending clarification & candidate salary expectation mismatch. Sent to Team Lead Sarah Kim for approval.',
+  },
+  {
+    id: 'LOG-1003',
+    timestamp: 'Yesterday at 04:15 PM',
+    userName: 'David Park',
+    userEmail: 'd.park@talentflow.io',
+    userRole: 'admin',
+    userAvatar: 'D',
+    action: 'Revoked Requirement REQ-2026-08-06-004 & Reverted to Unassigned',
+    category: 'Requirements',
+    targetEntity: 'Requirement REQ-2026-08-06-004',
+    targetId: 'REQ-2026-08-06-004',
+    clientName: 'Metaforge (Internal)',
+    ipAddress: '192.168.1.22',
+    status: 'Success',
+    details: 'Revoked requirement REQ-2026-08-06-004 due to client hold and reverted to Unassigned state.',
+  },
+]
 
 export const INITIAL_REQUIREMENTS: Requirement[] = [
   {
@@ -187,6 +238,10 @@ export const INITIAL_REQUIREMENTS: Requirement[] = [
     rejections: 0,
     assignedLead: 'Tom Walsh',
     skills: ['Kubernetes', 'Docker', 'Terraform', 'CI/CD', 'GCP'],
+    revokeRequested: true,
+    revokeReason: 'Client JD requirements pending clarification & candidate salary expectation mismatch',
+    revokeRequestedBy: 'Marcus Chen',
+    revokeRequestedAt: 'Today at 01:15 PM',
   },
   {
     id: 'REQ-004',
@@ -266,7 +321,7 @@ export const INITIAL_RECRUITERS: Recruiter[] = [
   {
     id: 'R01',
     name: 'Marcus Chen',
-    lead: 'Sarah Kim',
+    lead: 'Harish Gadipally',
     admin: 'David Park',
     submissions: 34,
     interviews: 8,
@@ -285,11 +340,12 @@ export const INITIAL_RECRUITERS: Recruiter[] = [
     taskStatus: 'POSITIVE',
     submissionType: 'Direct Sourcing',
     primaryClient: 'Accenture',
+    tat: '1.8 Days',
   },
   {
     id: 'R02',
     name: 'Priya Sharma',
-    lead: 'Sarah Kim',
+    lead: 'Harish Gadipally',
     admin: 'David Park',
     submissions: 28,
     interviews: 6,
@@ -307,7 +363,8 @@ export const INITIAL_RECRUITERS: Recruiter[] = [
     weeklyTarget: 10,
     taskStatus: 'POSITIVE',
     submissionType: 'LinkedIn Recruiter',
-    primaryClient: 'KPMG',
+    primaryClient: 'Accenture',
+    tat: '2.1 Days',
   },
   {
     id: 'R03',
@@ -331,6 +388,7 @@ export const INITIAL_RECRUITERS: Recruiter[] = [
     taskStatus: 'POSITIVE',
     submissionType: 'Internal DB',
     primaryClient: 'Goldman Sachs',
+    tat: '1.5 Days',
   },
   {
     id: 'R04',
@@ -353,7 +411,8 @@ export const INITIAL_RECRUITERS: Recruiter[] = [
     weeklyTarget: 10,
     taskStatus: 'CRITICAL',
     submissionType: 'Agency Portal',
-    primaryClient: 'L&T',
+    primaryClient: 'Goldman Sachs',
+    tat: '2.4 Days',
   },
   {
     id: 'R05',
@@ -377,6 +436,7 @@ export const INITIAL_RECRUITERS: Recruiter[] = [
     taskStatus: 'POSITIVE',
     submissionType: 'Referral',
     primaryClient: 'Tesla',
+    tat: '1.6 Days',
   },
   {
     id: 'R06',
@@ -399,7 +459,8 @@ export const INITIAL_RECRUITERS: Recruiter[] = [
     weeklyTarget: 10,
     taskStatus: 'CRITICAL',
     submissionType: 'LinkedIn Recruiter',
-    primaryClient: 'Microsoft',
+    primaryClient: 'Tesla',
+    tat: '2.2 Days',
   },
   {
     id: 'R07',
@@ -422,7 +483,8 @@ export const INITIAL_RECRUITERS: Recruiter[] = [
     weeklyTarget: 10,
     taskStatus: 'CRITICAL',
     submissionType: 'Direct Sourcing',
-    primaryClient: 'KPMG',
+    primaryClient: 'Tesla',
+    tat: '3.0 Days',
   },
   {
     id: 'R08',
@@ -445,15 +507,16 @@ export const INITIAL_RECRUITERS: Recruiter[] = [
     weeklyTarget: 10,
     taskStatus: 'POSITIVE',
     submissionType: 'Referral',
-    primaryClient: 'L&T',
+    primaryClient: 'ITC',
+    tat: '1.7 Days',
   },
 ]
 
 export const INITIAL_LEADS: Lead[] = [
-  { id: 'L01', name: 'Sarah Kim', admin: 'David Park', recruiters: 2, submissions: 62, interviews: 14, placements: 5, email: 's.kim@talentflow.io' },
-  { id: 'L02', name: 'Tom Walsh', admin: 'David Park', recruiters: 2, submissions: 60, interviews: 15, placements: 5, email: 't.walsh@talentflow.io' },
-  { id: 'L03', name: 'Nina Brooks', admin: 'Lisa Ho', recruiters: 3, submissions: 74, interviews: 16, placements: 4, email: 'n.brooks@talentflow.io' },
-  { id: 'L04', name: 'Ray Diaz', admin: 'Lisa Ho', recruiters: 1, submissions: 30, interviews: 7, placements: 2, email: 'r.diaz@talentflow.io' },
+  { id: 'L01', name: 'Harish Gadipally', admin: 'David Park', recruiters: 2, submissions: 62, interviews: 14, placements: 5, email: 'harish.g@metaforgeit.com', clientAccount: 'Accenture', clientAccounts: ['Accenture'] },
+  { id: 'L02', name: 'Tom Walsh', admin: 'David Park', recruiters: 2, submissions: 60, interviews: 15, placements: 5, email: 't.walsh@talentflow.io', clientAccount: 'Goldman Sachs', clientAccounts: ['Goldman Sachs'] },
+  { id: 'L03', name: 'Nina Brooks', admin: 'Lisa Ho', recruiters: 3, submissions: 74, interviews: 16, placements: 4, email: 'n.brooks@talentflow.io', clientAccount: 'Tesla', clientAccounts: ['Tesla'] },
+  { id: 'L04', name: 'Ray Diaz', admin: 'Lisa Ho', recruiters: 1, submissions: 30, interviews: 7, placements: 2, email: 'r.diaz@talentflow.io', clientAccount: 'ITC', clientAccounts: ['ITC'] },
 ]
 
 export const INITIAL_ADMINS: Admin[] = [
@@ -463,29 +526,31 @@ export const INITIAL_ADMINS: Admin[] = [
 
 export const INITIAL_INTERVIEWS: Interview[] = [
   { id: 'INT-101', candidate: 'Alex Turner', position: 'Senior React Developer', client: 'Accenture', stage: 'Technical Round 2', date: 'Aug 6, 10:00 AM', recruiter: 'Marcus Chen', status: 'Scheduled', notes: 'Strong hands-on React architecture background.' },
-  { id: 'INT-102', candidate: 'Rania Khalil', position: 'Java Architect', client: 'Goldman Sachs', stage: 'HR Round', date: 'Aug 6, 2:00 PM', recruiter: 'James O\'Brien', status: 'Scheduled', notes: 'Past banking sector experience confirmed.' },
-  { id: 'INT-103', candidate: 'Ben Wallace', position: 'Python ML Engineer', client: 'Tesla', stage: 'Final Round', date: 'Aug 7, 11:00 AM', recruiter: 'Carlos Rivera', status: 'Confirmed', notes: 'Machine learning portfolio review completed.' },
+  { id: 'INT-102', candidate: 'Rania Khalil', position: 'Java Architect', client: 'Goldman Sachs', stage: 'HR Round', date: 'Aug 6, 2:00 PM', recruiter: 'James O\'Brien', status: 'Passed', notes: 'Past banking sector experience confirmed.' },
+  { id: 'INT-103', candidate: 'Ben Wallace', position: 'Python ML Engineer', client: 'Tesla', stage: 'Final Round', date: 'Aug 7, 11:00 AM', recruiter: 'Carlos Rivera', status: 'Passed', notes: 'Machine learning portfolio review completed.' },
   { id: 'INT-104', candidate: 'Soo-Jin Lee', position: 'DevOps Lead Engineer', client: 'JP Morgan', stage: 'Screening', date: 'Aug 7, 3:30 PM', recruiter: 'Priya Sharma', status: 'Scheduled', notes: 'Initial screening call.' },
-  { id: 'INT-105', candidate: 'David Osei', position: 'Senior React Developer', client: 'Accenture', stage: 'Technical Round 1', date: 'Aug 8, 9:00 AM', recruiter: 'Marcus Chen', status: 'Confirmed', notes: 'Focus on TypeScript and state management.' },
+  { id: 'INT-105', candidate: 'David Osei', position: 'Senior React Developer', client: 'Accenture', stage: 'Technical Round 1', date: 'Aug 8, 9:00 AM', recruiter: 'Marcus Chen', status: 'Passed', notes: 'Focus on TypeScript and state management.' },
   { id: 'INT-106', candidate: 'Fatima Al-Hassan', position: 'Senior Data Scientist', client: 'Microsoft', stage: 'Manager Round', date: 'Aug 8, 1:00 PM', recruiter: 'Elena Volkov', status: 'Pending', notes: 'Waiting for client manager confirmation.' },
 ]
 
 export const INITIAL_SUBMISSIONS: Submission[] = [
   { id: 'SUB-201', candidate: 'Alex Turner', req: 'REQ-001', client: 'Accenture', date: 'Aug 5, 2026', stage: 'Interview Scheduled', match: '94%', recruiter: 'Marcus Chen', email: 'alex.turner@dev.com', phone: '+1 555-0192', experience: '8 years' },
   { id: 'SUB-202', candidate: 'Sarah Nguyen', req: 'REQ-001', client: 'Accenture', date: 'Aug 5, 2026', stage: 'Submitted', match: '87%', recruiter: 'Marcus Chen', email: 'sarah.n@techmail.io', phone: '+1 555-0184', experience: '6 years' },
-  { id: 'SUB-203', candidate: 'Omar Hassan', req: 'REQ-006', client: 'Tesla', date: 'Aug 4, 2026', stage: 'Client Review', match: '89%', recruiter: 'Marcus Chen', email: 'ohassan@mltech.ai', phone: '+1 555-0144', experience: '7 years' },
-  { id: 'SUB-204', candidate: 'Lily Zhao', req: 'REQ-002', client: 'Goldman Sachs', date: 'Aug 4, 2026', stage: 'Rejected', match: '74%', recruiter: 'Marcus Chen', email: 'lzhao@fintech.net', phone: '+1 555-0112', experience: '5 years' },
-  { id: 'SUB-205', candidate: 'David Osei', req: 'REQ-001', client: 'Accenture', date: 'Aug 3, 2026', stage: 'Interview Scheduled', match: '91%', recruiter: 'Marcus Chen', email: 'david.osei@code.org', phone: '+1 555-0199', experience: '9 years' },
-  { id: 'SUB-206', candidate: 'Rania Khalil', req: 'REQ-002', client: 'Goldman Sachs', date: 'Aug 3, 2026', stage: 'Interview Scheduled', match: '96%', recruiter: 'James O\'Brien', email: 'rkhalil@java.com', phone: '+1 555-0231', experience: '11 years' },
-  { id: 'SUB-207', candidate: 'Ben Wallace', req: 'REQ-006', client: 'Tesla', date: 'Aug 2, 2026', stage: 'Placed', match: '98%', recruiter: 'Carlos Rivera', email: 'ben.w@ai.com', phone: '+1 555-0412', experience: '10 years' },
+  { id: 'SUB-203', candidate: 'Harini Varma', req: 'REQ-001', client: 'Accenture', date: 'Aug 6, 2026', stage: 'Client Review', match: '95%', recruiter: 'Harish Gadipally', email: 'harini.varma@tech.org', phone: '+91 98765 11223', experience: '9 years' },
+  { id: 'SUB-204', candidate: 'Vikramaditya Sen', req: 'REQ-001', client: 'Accenture', date: 'Aug 6, 2026', stage: 'Interview Scheduled', match: '92%', recruiter: 'Harish Gadipally', email: 'vikram.sen@metaforgeit.com', phone: '+91 98765 44332', experience: '10 years' },
+  { id: 'SUB-205', candidate: 'Soo-Jin Lee', req: 'REQ-001', client: 'Accenture', date: 'Aug 4, 2026', stage: 'Submitted', match: '90%', recruiter: 'Priya Sharma', email: 'soojin.l@tech.kr', phone: '+1 555-0199', experience: '7 years' },
+  { id: 'SUB-206', candidate: 'Omar Hassan', req: 'REQ-006', client: 'Tesla', date: 'Aug 4, 2026', stage: 'Client Review', match: '89%', recruiter: 'Marcus Chen', email: 'ohassan@mltech.ai', phone: '+1 555-0144', experience: '7 years' },
+  { id: 'SUB-207', candidate: 'Rania Khalil', req: 'REQ-002', client: 'Goldman Sachs', date: 'Aug 3, 2026', stage: 'Interview Scheduled', match: '96%', recruiter: 'James O\'Brien', email: 'rkhalil@java.com', phone: '+1 555-0231', experience: '11 years' },
+  { id: 'SUB-208', candidate: 'Ben Wallace', req: 'REQ-006', client: 'Tesla', date: 'Aug 2, 2026', stage: 'Placed', match: '98%', recruiter: 'Carlos Rivera', email: 'ben.w@ai.com', phone: '+1 555-0412', experience: '10 years' },
 ]
 
 export const DEMO_ACCOUNTS: Record<Role, { email: string; name: string; password: string; title: string }> = {
   superadmin: { email: 'r.haines@talentflow.io', name: 'Robert Haines', password: 'Admin@2026', title: 'Platform Managing Director' },
   admin: { email: 'd.park@talentflow.io', name: 'David Park', password: 'Admin@2026', title: 'VP of Recruiting Operations' },
-  lead: { email: 's.kim@talentflow.io', name: 'Sarah Kim', password: 'Lead@2026', title: 'Senior Recruiting Lead' },
+  lead: { email: 'harish.g@metaforgeit.com', name: 'Harish Gadipally', password: 'Lead@2026', title: 'Senior Recruiting Lead' },
   recruiter: { email: 'm.chen@talentflow.io', name: 'Marcus Chen', password: 'Rec@2026', title: 'Lead Technical Recruiter' },
-  client: { email: 'j.cooper@accenture.com', name: 'Jane Cooper', password: 'Client@2026', title: 'Hiring Manager' },
+  devteam: { email: 'dev.team@talentflow.io', name: 'Dev Team Engineer', password: 'Dev@2026', title: 'Senior Systems Engineer / Core Platform' },
+  client: { email: 'client@accenture.com', name: 'Client Account Lead', password: 'Client@2026', title: 'Hiring Manager / Client Portal' },
 }
 
 export const ROLE_META: Record<Role, { label: string; desc: string; color: string; bg: string; border: string }> = {
@@ -493,7 +558,8 @@ export const ROLE_META: Record<Role, { label: string; desc: string; color: strin
   admin: { label: 'Admin', desc: 'Oversee regional leads & recruiter teams', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
   lead: { label: 'Team Lead', desc: 'Track team performance & assigned reqs', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
   recruiter: { label: 'Recruiter', desc: 'Candidate submissions & interview management', color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200' },
-  client: { label: 'Client', desc: 'Review candidates, interviews, and hiring progress', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
+  devteam: { label: 'Dev Team', desc: 'Full Super Admin control, platform metrics, and administrative privileges', color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
+  client: { label: 'Client', desc: 'Client portal for requirements and candidate review', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
 }
 
 export const INITIAL_CANDIDATES: Candidate[] = [

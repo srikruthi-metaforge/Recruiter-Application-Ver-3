@@ -1,4 +1,4 @@
-export type Role = 'superadmin' | 'admin' | 'lead' | 'recruiter' | 'client'
+export type Role = 'superadmin' | 'admin' | 'lead' | 'recruiter' | 'devteam' | 'client'
 
 export type AuthScreen = 'role-select' | 'role-login' | 'forgot' | 'app'
 
@@ -28,6 +28,27 @@ export interface Requirement {
   assignmentStatus?: 'Unassigned' | 'Assigned' | 'In Progress' | 'Closed'
   selections?: number
   rejections?: number
+  revokeRequested?: boolean
+  revokeReason?: string
+  revokeRequestedBy?: string
+  revokeRequestedAt?: string
+}
+
+export interface ActivityLogItem {
+  id: string
+  timestamp: string
+  userName: string
+  userEmail: string
+  userRole: Role
+  userAvatar: string
+  action: string
+  category: 'Submissions' | 'Requirements' | 'User Management' | 'Client Management' | 'Interviews' | 'System & Access'
+  targetEntity: string
+  targetId?: string
+  clientName?: string
+  ipAddress: string
+  status: 'Success' | 'Warning' | 'Security Alert'
+  details?: string
 }
 
 export interface Recruiter {
@@ -54,6 +75,7 @@ export interface Recruiter {
   taskStatus: 'POSITIVE' | 'CRITICAL'
   submissionType: 'Direct Sourcing' | 'LinkedIn Recruiter' | 'Agency Portal' | 'Referral' | 'Internal DB'
   primaryClient: string
+  tat?: string // Turn Around Time
 }
 
 export interface Lead {
@@ -65,6 +87,8 @@ export interface Lead {
   interviews: number
   placements: number
   email?: string
+  clientAccount?: string
+  clientAccounts?: string[]
 }
 
 export interface Admin {

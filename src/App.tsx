@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { AuthScreen, Interview, InterviewStatus, Recruiter, Role, Submission, Requirement } from './types'
+import { AuthScreen, Interview, InterviewStatus, Recruiter, Role, Submission, Requirement, ActivityLogItem } from './types'
 import {
   INITIAL_ADMINS,
   INITIAL_INTERVIEWS,
@@ -7,6 +7,7 @@ import {
   INITIAL_RECRUITERS,
   INITIAL_REQUIREMENTS,
   INITIAL_SUBMISSIONS,
+  INITIAL_ACTIVITY_LOGS,
   DEMO_ACCOUNTS,
 } from './data/mockData'
 import { brand } from './theme'
@@ -14,11 +15,9 @@ import { brand } from './theme'
 import { Sidebar } from './components/layout/Sidebar'
 import { PageContainer } from './components/layout/PageContainer'
 
-import { SuperAdminDashboard } from './components/dashboards/SuperAdminDashboard'
-import { AdminDashboard } from './components/dashboards/AdminDashboard'
 import { LeadDashboard } from './components/dashboards/LeadDashboard'
 import { RecruiterDashboard } from './components/dashboards/RecruiterDashboard'
-import { ClientDashboard } from './components/dashboards/ClientDashboard'
+import { DevTeamDashboard } from './components/dashboards/DevTeamDashboard'
 import { ModulePage } from './components/pages/ModulePage'
 
 import { RoleSelectPage } from './components/auth/RoleSelectPage'
@@ -50,7 +49,17 @@ export default function App() {
   })
 
   const [loginRole, setLoginRole] = useState<Role>(role)
-  const [activeNav, setActiveNav] = useState('Dashboard')
+  const [activeNav, setActiveNav] = useState<string>(() => {
+    try {
+      const savedNav = localStorage.getItem('metaforge_active_nav')
+      if (savedNav && savedNav !== 'Dashboard') return savedNav
+      if (savedNav === 'Dashboard' && (role === 'lead' || role === 'superadmin' || role === 'admin' || role === 'devteam')) {
+        return 'Requirements'
+      }
+      if (savedNav) return savedNav
+    } catch {}
+    return (role === 'superadmin' || role === 'devteam' || role === 'admin' || role === 'lead') ? 'Requirements' : 'Dashboard'
+  })
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   const [requirements, setRequirements] = useState<Requirement[]>(INITIAL_REQUIREMENTS)
@@ -59,6 +68,11 @@ export default function App() {
   const [recruiters, setRecruiters] = useState<Recruiter[]>(INITIAL_RECRUITERS)
   const [leads] = useState(INITIAL_LEADS)
   const [admins] = useState(INITIAL_ADMINS)
+  const [activityLogs, setActivityLogs] = useState<ActivityLogItem[]>(INITIAL_ACTIVITY_LOGS)
+
+  const handleAddActivityLog = (newLog: ActivityLogItem) => {
+    setActivityLogs(prev => [newLog, ...prev])
+  }
 
   const [isNewReqOpen, setIsNewReqOpen] = useState(false)
   const [isSubmitCandidateOpen, setIsSubmitCandidateOpen] = useState(false)
@@ -74,14 +88,32 @@ export default function App() {
     try {
       localStorage.removeItem('metaforge_session_active')
       localStorage.removeItem('metaforge_user_role')
+      localStorage.removeItem('metaforge_active_nav')
+      localStorage.removeItem('metaforge_reports_active_view')
+      localStorage.removeItem('metaforge_candidate_view_mode')
     } catch (e) {
       // ignore
     }
     setScreen('role-select')
-    setActiveNav('Dashboard')
+    setActiveNav('Requirements')
   }
 
-  const handleNavSelect = (nav: string) => setActiveNav(nav)
+  const handleNavSelect = (nav: string) => {
+    if (nav === 'Candidates' || nav === 'Candidate Search') {
+      setSelectedReqIdForSubmit(null)
+    }
+    setActiveNav(nav)
+    try {
+      localStorage.setItem('metaforge_active_nav', nav)
+    } catch (e) {}
+  }
+
+  const handleOpenSubmitCandidateFromDashboard = (reqId?: string) => {
+    setSelectedReqIdForSubmit(reqId || null)
+    if (role !== 'recruiter') {
+      handleNavSelect('Candidates')
+    }
+  }
 
   const handleAddRequirement = (newReq: Requirement) => {
     setRequirements([newReq, ...requirements])
@@ -107,7 +139,7 @@ export default function App() {
 
   const handleOpenSubmitForReq = (reqId?: string) => {
     setSelectedReqIdForSubmit(reqId || null)
-    setIsSubmitCandidateOpen(true)
+    handleNavSelect('Candidates')
   }
 
   const handleOpenFeedbackForInterview = (iv: Interview) => {
@@ -137,17 +169,15 @@ export default function App() {
         role={loginRole}
         onLogin={r => {
           setRole(r)
+          const defaultNav = (r === 'superadmin' || r === 'devteam' || r === 'admin' || r === 'lead') ? 'Requirements' : 'Dashboard'
           try {
             localStorage.setItem('metaforge_session_active', 'true')
             localStorage.setItem('metaforge_user_role', r)
+            localStorage.setItem('metaforge_active_nav', defaultNav)
           } catch (e) {
             // ignore
           }
-          if (r === 'superadmin' || r === 'admin') {
-            setActiveNav('Requirements')
-          } else {
-            setActiveNav('Dashboard')
-          }
+          setActiveNav(defaultNav)
           setScreen('app')
         }}
         onBack={() => setScreen('role-select')}
@@ -166,42 +196,32 @@ export default function App() {
   }
 
   const renderContent = () => {
-    if (activeNav === 'Dashboard') {
+    const effectiveNav = (role === 'superadmin' || role === 'devteam' || role === 'admin') && activeNav === 'Dashboard' ? 'Requirements' : activeNav
+
+    if (effectiveNav === 'Dashboard') {
       switch (role) {
-        case 'superadmin':
-        case 'admin':
-          // Dashboard removed for Super Admin and Admin - fall back to Requirements
+        case 'devteam':
           return (
-            <ModulePage
-              pageKey="Requirements"
-              role={role}
-              requirements={requirements}
-              submissions={submissions}
-              interviews={interviews}
+            <DevTeamDashboard
+              admins={admins}
+              leads={leads}
               recruiters={recruiters}
-              onOpenSubmit={handleOpenSubmitForReq}
-              onOpenFeedback={handleOpenFeedbackForInterview}
-              onOpenCandidate={handleOpenCandidateDetail}
+              requirements={requirements}
+              interviews={interviews}
               onUpdateRequirements={setRequirements}
+              onOpenSubmit={handleOpenSubmitForReq}
             />
           )
         case 'lead':
-          return (
-            <LeadDashboard
-              recruiters={recruiters}
-              requirements={requirements}
-              interviews={interviews}
-            />
-          )
-        case 'client':
-          return <ClientDashboard />
+        case 'recruiter':
         default:
           return (
             <RecruiterDashboard
               submissions={submissions}
               interviews={interviews}
               requirements={requirements}
-              onOpenSubmitCandidate={handleOpenSubmitForReq}
+              onOpenSubmitCandidate={handleOpenSubmitCandidateFromDashboard}
+              onOpenCandidateRepo={handleOpenSubmitCandidateFromDashboard}
               onOpenFeedbackModal={handleOpenFeedbackForInterview}
               onOpenCandidateDetail={handleOpenCandidateDetail}
             />
@@ -217,10 +237,15 @@ export default function App() {
         submissions={submissions}
         interviews={interviews}
         recruiters={recruiters}
+        selectedReqId={selectedReqIdForSubmit}
         onOpenSubmit={role !== 'client' ? handleOpenSubmitForReq : undefined}
         onOpenFeedback={handleOpenFeedbackForInterview}
         onOpenCandidate={handleOpenCandidateDetail}
         onUpdateRequirements={setRequirements}
+        onSelectRequirement={setSelectedReqIdForSubmit}
+        activityLogs={activityLogs}
+        onAddActivityLog={handleAddActivityLog}
+        onNavigateToDashboard={() => setActiveNav('Dashboard')}
       />
     )
   }

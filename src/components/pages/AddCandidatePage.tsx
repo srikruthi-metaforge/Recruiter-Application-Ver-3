@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Candidate } from '../../types'
+import { Candidate, Requirement } from '../../types'
 import { PageHeader } from '../layout/PageHeader'
 import {
   Users,
@@ -14,11 +14,15 @@ import {
 } from 'lucide-react'
 
 interface AddCandidatePageProps {
+  requirements?: Requirement[]
+  selectedReqId?: string | null
   onOpenRepository: () => void
   onAddCandidate?: (candidate: Candidate) => void
 }
 
 export function AddCandidatePage({
+  requirements = [],
+  selectedReqId = null,
   onOpenRepository,
   onAddCandidate,
 }: AddCandidatePageProps) {

@@ -13,6 +13,7 @@ import {
   Building2,
   Users,
   Shield,
+  ShieldCheck,
   Sparkles,
   Plug,
   Settings,
@@ -23,6 +24,7 @@ import {
   TrendingUp,
   Bell,
   Bot,
+  Terminal,
 } from 'lucide-react'
 import { Role } from '../../types'
 import { ROLE_NAV } from '../../config/navigation'
@@ -37,11 +39,59 @@ interface SidebarProps {
   onToggleCollapse?: () => void
 }
 
+const ROLE_DASHBOARD_INFO: Record<
+  Role,
+  {
+    dashboardName: string
+    roleLabel: string
+    icon: React.ElementType
+    accentGradient: string
+  }
+> = {
+  superadmin: {
+    dashboardName: 'Super Admin Dashboard',
+    roleLabel: 'Super Admin',
+    icon: Shield,
+    accentGradient: 'from-purple-600 to-indigo-600',
+  },
+  admin: {
+    dashboardName: 'Admin Dashboard',
+    roleLabel: 'Admin',
+    icon: ShieldCheck,
+    accentGradient: 'from-blue-600 to-indigo-600',
+  },
+  lead: {
+    dashboardName: 'Team Lead Dashboard',
+    roleLabel: 'Team Lead',
+    icon: Users,
+    accentGradient: 'from-cyan-600 to-blue-600',
+  },
+  recruiter: {
+    dashboardName: 'Recruiter Dashboard',
+    roleLabel: 'Recruiter',
+    icon: User,
+    accentGradient: 'from-emerald-600 to-teal-600',
+  },
+  client: {
+    dashboardName: 'Client Dashboard',
+    roleLabel: 'Client Portal',
+    icon: Building2,
+    accentGradient: 'from-amber-600 to-orange-600',
+  },
+  devteam: {
+    dashboardName: 'Dev Team Dashboard',
+    roleLabel: 'Dev Team',
+    icon: Terminal,
+    accentGradient: 'from-violet-600 to-indigo-600',
+  },
+}
+
 const ICONS: Record<string, React.ElementType> = {
   Dashboard: FileText,
   Requirements: ClipboardList,
   Candidates: UserPlus,
   Submissions: Send,
+  'Submission to Client': Send,
   Interviews: Calendar,
   Organization: Building2,
   Users: Users,
@@ -68,10 +118,11 @@ const ICONS: Record<string, React.ElementType> = {
 }
 
 const NAV_LABELS: Record<string, string> = {
-  Dashboard: 'My Work',
+  Dashboard: 'My Workspace',
   Requirements: 'Requirements',
   Candidates: 'Add Candidate',
-  Submissions: 'Submissions',
+  Submissions: 'Total Submissions',
+  'Submission to Client': 'Total Submissions',
   Interviews: 'Interview Tracking',
   Reports: 'Reports',
 }
@@ -94,6 +145,8 @@ export function Sidebar({
 
   const sections = ROLE_NAV[role]
   const mainNavItems = sections.flatMap(s => s.items)
+  const roleInfo = ROLE_DASHBOARD_INFO[role] || ROLE_DASHBOARD_INFO.recruiter
+  const RoleIcon = roleInfo.icon
 
   return (
     <aside
@@ -133,20 +186,55 @@ export function Sidebar({
         )}
       </div>
 
+      {/* Role / Dashboard Name Indicator */}
+      <div className="px-3 pt-3 pb-2 flex-shrink-0 border-b border-white/[0.06]">
+        {!isCollapsed ? (
+          <div className="px-3 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center gap-3">
+            <div
+              className={`w-8 h-8 rounded-lg bg-gradient-to-br ${roleInfo.accentGradient} flex items-center justify-center text-white shrink-0 shadow-md`}
+            >
+              <RoleIcon className="w-4 h-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">
+                  {roleInfo.roleLabel}
+                </span>
+              </div>
+              <p className="text-xs font-bold text-white tracking-tight truncate leading-snug">
+                {roleInfo.dashboardName}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="relative group flex justify-center py-1">
+            <div
+              className={`w-9 h-9 rounded-xl bg-gradient-to-br ${roleInfo.accentGradient} flex items-center justify-center text-white shadow-md cursor-default`}
+            >
+              <RoleIcon className="w-4 h-4" />
+            </div>
+            <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2.5 py-1.5 bg-slate-900 text-white text-xs rounded-md shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 border border-slate-700 font-semibold">
+              {roleInfo.dashboardName}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Primary navigation */}
-      <nav className="flex-1 py-4 px-3 space-y-1.5 overflow-y-auto sidebar-scroll">
+      <nav className="flex-1 py-3 px-3 space-y-2 overflow-y-auto sidebar-scroll">
         {mainNavItems.map(item => {
           const Icon = ICONS[item.key] || LayoutDashboard
           const isActive = activeNav === item.key
-          const label = NAV_LABELS[item.key] || item.label
+          const label = item.label
 
           return (
             <div key={item.key} className="relative group">
               <button
                 onClick={() => onNavSelect?.(item.key)}
-                className={`w-full flex items-center gap-3 rounded-xl transition-all duration-200 ${isCollapsed ? 'justify-center py-3' : 'px-3 py-2.5'
+                className={`w-full flex items-center gap-3 rounded-xl transition-all duration-200 ${isCollapsed ? 'justify-center py-2' : 'px-3 py-2'
                   } ${isActive
-                    ? 'text-white font-semibold shadow-lg shadow-[#6B3BF6]/25'
+                    ? 'text-white font-bold shadow-md shadow-[#6B3BF6]/20'
                     : 'text-slate-300 hover:text-white hover:bg-white/[0.06] font-medium'
                   }`}
                 style={
@@ -156,12 +244,12 @@ export function Sidebar({
                 }
               >
                 <div
-                  className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${isActive ? 'bg-white/20' : 'bg-white/[0.08] group-hover:bg-white/12'
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isActive ? 'bg-white/20' : 'bg-white/[0.08] group-hover:bg-white/12'
                     }`}
                 >
-                  <Icon className="w-[18px] h-[18px] text-white" strokeWidth={2} />
+                  <Icon className="w-4 h-4 text-white" strokeWidth={2} />
                 </div>
-                {!isCollapsed && <span className="text-[13px] tracking-tight truncate">{label}</span>}
+                {!isCollapsed && <span className="text-sm font-semibold tracking-tight truncate">{label}</span>}
               </button>
               {isCollapsed && (
                 <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2.5 py-1.5 bg-slate-900 text-white text-xs rounded-md shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 border border-slate-700">
@@ -174,13 +262,13 @@ export function Sidebar({
       </nav>
 
       {/* Footer — My Profile + Logout */}
-      <div className="p-3 border-t border-white/[0.06] space-y-1 flex-shrink-0 mt-auto">
+      <div className="p-3 border-t border-white/[0.06] space-y-2 flex-shrink-0 mt-auto">
         <div className="relative group">
           <button
             onClick={() => onNavSelect?.('My Profile')}
-            className={`w-full flex items-center gap-3 rounded-xl transition-all ${isCollapsed ? 'justify-center py-3' : 'px-3 py-2.5'
+            className={`w-full flex items-center gap-3 rounded-xl transition-all ${isCollapsed ? 'justify-center py-2' : 'px-3 py-2'
               } ${activeNav === 'My Profile' || activeNav === 'Profile'
-                ? 'text-white font-semibold'
+                ? 'text-white font-bold shadow-md shadow-[#6B3BF6]/20'
                 : 'text-slate-300 hover:text-white hover:bg-white/[0.06] font-medium'
               }`}
             style={
@@ -189,10 +277,10 @@ export function Sidebar({
                 : undefined
             }
           >
-            <div className="w-9 h-9 rounded-lg bg-white/[0.08] flex items-center justify-center shrink-0">
-              <User className="w-[18px] h-[18px] text-white" strokeWidth={2} />
+            <div className="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center shrink-0">
+              <User className="w-4 h-4 text-white" strokeWidth={2} />
             </div>
-            {!isCollapsed && <span className="text-[13px] font-medium">My Profile</span>}
+            {!isCollapsed && <span className="text-sm font-semibold">My Profile</span>}
           </button>
         </div>
 
@@ -200,13 +288,13 @@ export function Sidebar({
           <div className="relative group">
             <button
               onClick={onLogout}
-              className={`w-full flex items-center gap-3 rounded-xl text-slate-400 hover:text-rose-300 hover:bg-rose-500/10 transition-all ${isCollapsed ? 'justify-center py-3' : 'px-3 py-2.5'
+              className={`w-full flex items-center gap-3 rounded-xl text-slate-400 hover:text-rose-300 hover:bg-rose-500/10 transition-all ${isCollapsed ? 'justify-center py-2' : 'px-3 py-2'
                 }`}
             >
-              <div className="w-9 h-9 rounded-lg bg-white/[0.06] flex items-center justify-center shrink-0 group-hover:bg-rose-500/15">
-                <LogOut className="w-[18px] h-[18px]" strokeWidth={2} />
+              <div className="w-8 h-8 rounded-lg bg-white/[0.06] flex items-center justify-center shrink-0 group-hover:bg-rose-500/15">
+                <LogOut className="w-4 h-4" strokeWidth={2} />
               </div>
-              {!isCollapsed && <span className="text-[13px] font-medium">Logout</span>}
+              {!isCollapsed && <span className="text-sm font-semibold">Logout</span>}
             </button>
           </div>
         )}

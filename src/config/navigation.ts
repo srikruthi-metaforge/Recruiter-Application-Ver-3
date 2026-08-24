@@ -24,8 +24,8 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Overview',
       items: [
         { key: 'Requirements', label: 'Requirements' },
-        { key: 'Candidates', label: 'Add Candidates / Repository' },
-        { key: 'Submissions', label: 'All Submissions' },
+        { key: 'Candidates', label: 'Add Candidates' },
+        { key: 'Submissions', label: 'Submissions' },
       ],
     },
     {
@@ -39,13 +39,16 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Operations',
       items: [
         { key: 'Clients', label: 'Clients' },
-        { key: 'Interviews', label: 'Interviews' },
+        { key: 'Recruiters', label: 'Recruiters' },
+        { key: 'Teams', label: 'Teams' },
+        { key: 'Interviews', label: 'Interview Scheduler' },
       ],
     },
     {
       title: 'Intelligence',
       items: [
         { key: 'Reports', label: 'Reports' },
+        { key: 'Activity Logs', label: 'Activity Logs' },
       ],
     },
     {
@@ -61,8 +64,8 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Overview',
       items: [
         { key: 'Requirements', label: 'Requirements' },
-        { key: 'Candidates', label: 'Add Candidates / Repository' },
-        { key: 'Submissions', label: 'All Submissions' },
+        { key: 'Candidates', label: 'Add Candidates' },
+        { key: 'Submissions', label: 'Submissions' },
       ],
     },
     {
@@ -78,8 +81,6 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Tools',
       items: [
         { key: 'Reports', label: 'Reports' },
-        { key: 'Calendar', label: 'Calendar' },
-        { key: 'Email Center', label: 'Email Center' },
         { key: 'Activity Logs', label: 'Activity Logs' },
       ],
     },
@@ -88,26 +89,12 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
     {
       title: 'Overview',
       items: [
-        { key: 'Dashboard', label: 'Dashboard' },
-        { key: 'Requirements', label: 'Assigned Requirements' },
-        { key: 'Candidates', label: 'Add Candidates / Repository' },
-        { key: 'Submissions', label: 'All Submissions' },
-      ],
-    },
-    {
-      title: 'Team',
-      items: [
-        { key: 'My Team', label: 'My Team' },
+        { key: 'Requirements', label: 'Requirements' },
+        { key: 'Dashboard', label: 'My Workspace' },
+        { key: 'Candidates', label: 'Add Candidates' },
+        { key: 'Submissions', label: 'Total Submissions' },
         { key: 'Interviews', label: 'Interview Tracker' },
-      ],
-    },
-    {
-      title: 'Performance',
-      items: [
-        { key: 'Performance', label: 'Recruiter Performance' },
-        { key: 'Targets', label: 'Target Tracking' },
         { key: 'Reports', label: 'Daily Reports' },
-        { key: 'Calendar', label: 'Team Calendar' },
       ],
     },
   ],
@@ -115,34 +102,62 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
     {
       title: 'Main',
       items: [
-        { key: 'Dashboard', label: 'My Work' },
+        { key: 'Dashboard', label: 'My Workspace' },
         { key: 'Requirements', label: 'Requirements' },
-        { key: 'Candidates', label: 'Add Candidate' },
-        { key: 'Submissions', label: 'Submissions' },
+        { key: 'Candidates', label: 'Add Candidates' },
+        { key: 'Submissions', label: 'Total Submissions' },
         { key: 'Interviews', label: 'Interview Tracking' },
         { key: 'Reports', label: 'Reports' },
+      ],
+    },
+  ],
+  devteam: [
+    {
+      title: 'Overview',
+      items: [
+        { key: 'Requirements', label: 'Requirements' },
+        { key: 'Candidates', label: 'Add Candidates' },
+        { key: 'Submissions', label: 'Submissions' },
+      ],
+    },
+    {
+      title: 'Organization',
+      items: [
+        { key: 'Users', label: 'User Management' },
+        { key: 'Roles', label: 'Roles & Permissions' },
+      ],
+    },
+    {
+      title: 'Operations',
+      items: [
+        { key: 'Clients', label: 'Clients' },
+        { key: 'Recruiters', label: 'Recruiters' },
+        { key: 'Teams', label: 'Teams' },
+        { key: 'Interviews', label: 'Interview Scheduler' },
+      ],
+    },
+    {
+      title: 'Intelligence',
+      items: [
+        { key: 'Reports', label: 'Reports' },
+        { key: 'Activity Logs', label: 'Activity Logs' },
+      ],
+    },
+    {
+      title: 'System',
+      items: [
+        { key: 'Settings', label: 'Settings' },
+        { key: 'Audit Logs', label: 'Audit Logs' },
       ],
     },
   ],
   client: [
     {
       title: 'Overview',
-      items: [{ key: 'Dashboard', label: 'Dashboard' }],
-    },
-    {
-      title: 'Hiring',
       items: [
         { key: 'Requirements', label: 'My Requirements' },
         { key: 'Submissions', label: 'Candidate Submissions' },
         { key: 'Interviews', label: 'Interview Feedback' },
-      ],
-    },
-    {
-      title: 'Business',
-      items: [
-        { key: 'Analytics', label: 'Hiring Progress' },
-        { key: 'Invoices', label: 'Invoices' },
-        { key: 'Contacts', label: 'Company Contacts' },
       ],
     },
   ],
@@ -178,6 +193,16 @@ export const PAGE_META: Record<string, PageMeta> = {
       ['TalentFlow HQ', 'Head Office', 'New York', '120', 'Active'],
       ['India Delivery Center', 'Branch', 'Hyderabad', '85', 'Active'],
       ['Tech Recruiting Dept', 'Department', 'Remote', '42', 'Active'],
+    ],
+  },
+  'My Team': {
+    title: 'My Team',
+    description: 'Overview of team members and working client account assignments.',
+    actions: ['View Performance', 'Assign Requirements'],
+    columns: ['Recruiter Name', 'Role', 'Working Client Accounts', 'Active Reqs', 'Submissions', 'Actions'],
+    sampleRows: [
+      ['Marcus Chen', 'Senior Recruiter', 'Accenture, Goldman Sachs', '7', '62', 'View Analytics'],
+      ['Priya Sharma', 'IT Recruiter', 'Accenture, Infosys', '5', '46', 'View Analytics'],
     ],
   },
   Users: {
@@ -308,15 +333,6 @@ export const PAGE_META: Record<string, PageMeta> = {
     description: 'Daily operational activity across your region.',
     columns: ['Time', 'User', 'Activity', 'Details'],
     sampleRows: [['14:30', 'Marcus Chen', 'Submitted candidate', 'REQ-001 · Alex Turner']],
-  },
-  'My Team': {
-    title: 'My Team',
-    description: 'Recruiters under your supervision and daily targets.',
-    columns: ['Recruiter', 'Daily Target', 'Today', 'Weekly %', 'Score'],
-    sampleRows: [
-      ['Marcus Chen', '5', '4', '100%', 'A'],
-      ['Priya Sharma', '5', '3', '90%', 'B+'],
-    ],
   },
   Performance: {
     title: 'Recruiter Performance',

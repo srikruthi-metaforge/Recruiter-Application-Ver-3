@@ -14,9 +14,9 @@ export function MyProfilePage({ role }: MyProfilePageProps) {
     title: 'Senior Recruiting Lead',
   }
 
-  // Local state for profile details matching attached screenshot (defaults to Harish Gadipally)
-  const [name, setName] = useState('Harish Gadipally')
-  const [email, setEmail] = useState('harish.g@metaforgeit.com')
+  // Local state for profile details dynamically initialized from DEMO_ACCOUNTS
+  const [name, setName] = useState(defaultAccount.name)
+  const [email, setEmail] = useState(defaultAccount.email)
   const [isEditing, setIsEditing] = useState(false)
 
   const [editName, setEditName] = useState(name)
@@ -44,8 +44,8 @@ export function MyProfilePage({ role }: MyProfilePageProps) {
         ? 'Admin'
         : role === 'lead'
           ? 'Lead'
-          : role === 'client'
-            ? 'Client'
+          : role === 'devteam'
+            ? 'Dev Team'
             : 'Recruiter'
 
   return (
