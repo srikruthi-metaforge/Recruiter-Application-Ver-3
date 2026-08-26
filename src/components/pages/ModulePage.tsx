@@ -19,6 +19,7 @@ import { ActivityLogsPage } from './ActivityLogsPage'
 import { TeamsPage } from './TeamsPage'
 import { MyTeamPage } from './MyTeamPage'
 import { RecruitersPage } from './RecruitersPage'
+import { TeamsRecruitersPage } from './TeamsRecruitersPage'
 import { INITIAL_CANDIDATES } from '../../data/mockData'
 
 interface ModulePageProps {
@@ -90,7 +91,7 @@ export function ModulePage({
   }
 
   if (pageKey === 'Roles' || pageKey === 'Roles & Permissions') {
-    return <RolesPermissionsPage role={role} />
+    return <UserManagementPage role={role} initialTab="role_definitions" />
   }
 
   if (pageKey === 'Clients' || pageKey === 'Client Management') {
@@ -101,16 +102,12 @@ export function ModulePage({
     return <UserManagementPage role={role} />
   }
 
-  if (pageKey === 'Recruiters') {
-    return <RecruitersPage role={role} />
+  if (pageKey === 'Recruiters' || pageKey === 'Teams' || pageKey === 'Teams & Recruiters') {
+    return <TeamsRecruitersPage role={role} />
   }
 
   if (pageKey === 'Activity Logs' || pageKey === 'Audit Logs') {
     return <ActivityLogsPage role={role} logs={activityLogs} />
-  }
-
-  if (pageKey === 'Teams') {
-    return <TeamsPage role={role} />
   }
 
   if (pageKey === 'My Team') {

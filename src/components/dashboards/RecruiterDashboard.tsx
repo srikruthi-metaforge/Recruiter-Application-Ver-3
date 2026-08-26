@@ -335,6 +335,25 @@ export function RecruiterDashboard({
     return sub.stage.toLowerCase() === recentSubmissionsFilter.toLowerCase()
   })
 
+  if (inlineReqId) {
+    return (
+      <div className="w-full pb-12 font-sans animate-in fade-in duration-200">
+        <CandidateRepositoryPage
+          selectedReqId={inlineReqId}
+          role="recruiter"
+          requirements={requirements}
+          onBackToDashboard={() => {
+            setInlineReqId(null)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }}
+          onOpenAddForm={() => {
+            showToast('Use candidate upload form to add new candidate profiles.')
+          }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8 w-full pb-12 font-sans">
       {/* Header */}
@@ -550,74 +569,6 @@ export function RecruiterDashboard({
             itemLabel="requirements"
           />
         </div>
-
-        {/* ======================================================================== */}
-        {/* INLINE CANDIDATE REPOSITORY & SUBMISSION WORKFLOW (DIRECTLY ON MY WORK)   */}
-        {/* ======================================================================== */}
-        {inlineReqId && (
-          <div
-            id="inline-candidate-repo-section"
-            className="pt-6 border-t-2 border-dashed border-purple-300/80 space-y-5 animate-in fade-in slide-in-from-top-4 duration-300 mt-6"
-          >
-            {/* Section Banner Header */}
-            <div className="bg-gradient-to-r from-purple-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-5 px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl border border-purple-700/30">
-              <div className="flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-300 font-extrabold shrink-0 shadow-2xs">
-                  <Briefcase className="w-5 h-5 text-amber-300" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-sm font-extrabold text-white tracking-tight">INLINE WORKFLOW: CANDIDATE REPOSITORY & SUBMISSION</h3>
-                    <span className="px-3 py-0.5 rounded-full text-xs font-black bg-amber-400 text-slate-950 font-mono shadow-2xs">
-                      {inlineReqId}
-                    </span>
-                  </div>
-                  <p className="text-xs text-purple-200 mt-0.5">
-                    Select candidates for requirement <strong className="text-white font-mono">{inlineReqId}</strong> and complete submission to client directly inside My Work without page navigation.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setInlineReqId(null)
-                    window.scrollTo({ top: 0, behavior: 'smooth' })
-                  }}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-2xs"
-                >
-                  <X className="w-4 h-4 text-white" />
-                  <span>Collapse Workflow</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                  className="p-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl transition-all cursor-pointer shadow-2xs"
-                  title="Scroll back to top of My Work"
-                >
-                  <ArrowUp className="w-4 h-4 text-white" />
-                </button>
-              </div>
-            </div>
-
-            {/* Candidate Repository Component rendered inline inside My Work */}
-            <div className="bg-slate-50/60 rounded-3xl border border-slate-200/90 p-4 sm:p-6 shadow-xs">
-              <CandidateRepositoryPage
-                selectedReqId={inlineReqId}
-                role="recruiter"
-                requirements={requirements}
-                onBackToDashboard={() => {
-                  setInlineReqId(null)
-                  window.scrollTo({ top: 0, behavior: 'smooth' })
-                }}
-                onOpenAddForm={() => {
-                  showToast('Use candidate upload form to add new candidate profiles.')
-                }}
-              />
-            </div>
-          </div>
-        )}
       </section>
 
       {/* My Recent Submissions Section (Kept at bottom of My Work page) */}

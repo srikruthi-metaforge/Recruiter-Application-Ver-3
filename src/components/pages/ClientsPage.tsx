@@ -217,6 +217,35 @@ interface ClientsPageProps {
   role?: Role
 }
 
+export const getClientStats = (client: ClientRecord, period: 'All Time' | 'This Week' | 'This Month' | 'This Year') => {
+  if (period === 'This Week') {
+    return {
+      reqs: Math.max(1, Math.round(client.activeReqs * 0.25)),
+      submissions: Math.max(2, Math.round(client.totalSubmissions * 0.22)),
+      placements: Math.max(1, Math.round(client.totalPlacements * 0.20)),
+    }
+  }
+  if (period === 'This Month') {
+    return {
+      reqs: Math.max(2, Math.round(client.activeReqs * 0.65)),
+      submissions: Math.max(5, Math.round(client.totalSubmissions * 0.60)),
+      placements: Math.max(2, Math.round(client.totalPlacements * 0.58)),
+    }
+  }
+  if (period === 'This Year') {
+    return {
+      reqs: Math.max(3, Math.round(client.activeReqs * 0.90)),
+      submissions: Math.max(8, Math.round(client.totalSubmissions * 0.88)),
+      placements: Math.max(3, Math.round(client.totalPlacements * 0.85)),
+    }
+  }
+  return {
+    reqs: client.activeReqs,
+    submissions: client.totalSubmissions,
+    placements: client.totalPlacements,
+  }
+}
+
 export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
   const [clients, setClients] = useState<ClientRecord[]>(INITIAL_CLIENTS)
   const [viewMode, setViewMode] = useState<'list' | 'add' | 'view_agreement'>('list')
@@ -226,6 +255,7 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [domainFilter, setDomainFilter] = useState('All Domains')
+  const [periodFilter, setPeriodFilter] = useState<'All Time' | 'This Week' | 'This Month' | 'This Year'>('All Time')
 
   // Dedicated Add Client Page Form State
   const [newClientName, setNewClientName] = useState('')
@@ -337,10 +367,16 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
         pocPhone={selectedClientForGapAnalysis.pocPhone}
         teamLead={selectedClientForGapAnalysis.teamLead}
         role={role}
+        initialDateRange={periodFilter}
         onBack={() => setSelectedClientForGapAnalysis(null)}
       />
     )
   }
+
+  // Calculate totals for current periodFilter
+  const totalPeriodReqs = filteredClients.reduce((acc, c) => acc + getClientStats(c, periodFilter).reqs, 0)
+  const totalPeriodSubmissions = filteredClients.reduce((acc, c) => acc + getClientStats(c, periodFilter).submissions, 0)
+  const totalPeriodPlacements = filteredClients.reduce((acc, c) => acc + getClientStats(c, periodFilter).placements, 0)
 
   // -------------------------------------------------------------
   // DEDICATED FULL-PAGE VIEW: VIEW MASTER SERVICES AGREEMENT (MSA)
@@ -865,7 +901,7 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
       </div>
 
       {/* 2. SUMMARY KPI METRIC CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
@@ -883,13 +919,13 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
         <div className="bg-white rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              Total Active Requirements
+              Reqs ({periodFilter})
             </span>
-            <p className="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">
-              {clients.reduce((acc, c) => acc + c.activeReqs, 0)}
+            <p className="text-2xl font-extrabold text-blue-600 mt-1 tabular-nums">
+              {totalPeriodReqs}
             </p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-[#6B3BF6]">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
             <Building2 className="w-5 h-5" />
           </div>
         </div>
@@ -897,17 +933,33 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
         <div className="bg-white rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              Average Commercial Fee
+              Submissions ({periodFilter})
             </span>
-            <p className="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">10.3% CTC</p>
+            <p className="text-2xl font-extrabold text-purple-600 mt-1 tabular-nums">
+              {totalPeriodSubmissions}
+            </p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-[#6B3BF6]">
+            <FileText className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+              Placements ({periodFilter})
+            </span>
+            <p className="text-2xl font-extrabold text-emerald-600 mt-1 tabular-nums">
+              {totalPeriodPlacements}
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
             <Award className="w-5 h-5" />
           </div>
         </div>
       </div>
 
-      {/* 3. SEARCH & DOMAIN FILTER BAR */}
+      {/* 3. SEARCH & DOMAIN & REQUIREMENTS PERIOD FILTER BAR */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -920,19 +972,36 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
           />
         </div>
 
-        <div className="w-full sm:w-56">
-          <select
-            value={domainFilter}
-            onChange={e => setDomainFilter(e.target.value)}
-            className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
-          >
-            <option value="All Domains">All Industry Domains</option>
-            <option value="Software & Cloud Services">Software & Cloud Services</option>
-            <option value="Hardware & Automotive Engineering">Hardware & Automotive Engineering</option>
-            <option value="Enterprise Security & IT">Enterprise Security & IT</option>
-            <option value="Enterprise SAP & ERP">Enterprise SAP & ERP</option>
-            <option value="AI, Data & Analytics">AI, Data & Analytics</option>
-          </select>
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          {/* Requirements Time Period Filter (Week / Month / Year / All Time) */}
+          <div className="relative w-full sm:w-52">
+            <select
+              value={periodFilter}
+              onChange={e => setPeriodFilter(e.target.value as any)}
+              className="w-full appearance-none pl-3.5 pr-8 py-2 text-xs border border-purple-200 bg-purple-50/70 rounded-xl font-extrabold text-[#6B3BF6] focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
+            >
+              <option value="All Time">Requirements: All Time</option>
+              <option value="This Week">Requirements: This Week</option>
+              <option value="This Month">Requirements: This Month</option>
+              <option value="This Year">Requirements: This Year</option>
+            </select>
+            <ChevronDown className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6B3BF6] pointer-events-none" />
+          </div>
+
+          <div className="w-full sm:w-52">
+            <select
+              value={domainFilter}
+              onChange={e => setDomainFilter(e.target.value)}
+              className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
+            >
+              <option value="All Domains">All Industry Domains</option>
+              <option value="Software & Cloud Services">Software & Cloud Services</option>
+              <option value="Hardware & Automotive Engineering">Hardware & Automotive Engineering</option>
+              <option value="Enterprise Security & IT">Enterprise Security & IT</option>
+              <option value="Enterprise SAP & ERP">Enterprise SAP & ERP</option>
+              <option value="AI, Data & Analytics">AI, Data & Analytics</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -1069,15 +1138,21 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
                   {/* Column 4: Requirements Count */}
                   <td className="py-4 px-4 whitespace-nowrap text-center">
                     <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-blue-50 text-blue-800 border border-blue-200 tabular-nums">
-                      {client.activeReqs} Requirements
+                      {getClientStats(client, periodFilter).reqs} Reqs
                     </span>
+                    {periodFilter !== 'All Time' && (
+                      <div className="text-[10px] text-purple-700 font-extrabold mt-0.5">({periodFilter})</div>
+                    )}
                   </td>
 
                   {/* Column 5: Submissions Count */}
                   <td className="py-4 px-4 whitespace-nowrap text-center">
                     <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-purple-50 text-purple-900 border border-purple-200 tabular-nums">
-                      {client.totalSubmissions} Submissions
+                      {getClientStats(client, periodFilter).submissions} Subs
                     </span>
+                    {periodFilter !== 'All Time' && (
+                      <div className="text-[10px] text-purple-700 font-extrabold mt-0.5">({periodFilter})</div>
+                    )}
                   </td>
 
                   {/* Column 6: POC & Commercials */}

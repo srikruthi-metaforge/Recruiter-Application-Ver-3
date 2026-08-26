@@ -51,6 +51,7 @@ export interface ClientGapAnalysisProps {
   pocPhone?: string
   teamLead?: string
   role?: Role
+  initialDateRange?: string
   onBack: () => void
   onSelectRequirement?: (reqId: string) => void
 }
@@ -211,6 +212,19 @@ export function getClientGapAnalysisDataset(clientName: string = 'Accenture', cl
         })
       }
 
+      // Create dates distributed across week, month, year, and past year
+      const datePool = [
+        '2026-08-25', // This Week
+        '2026-08-23', // This Week
+        '2026-08-14', // This Month
+        '2026-08-05', // This Month
+        '2026-06-18', // This Year
+        '2026-04-10', // This Year
+        '2026-02-14', // This Year
+        '2025-11-20', // All Time (Prior year)
+      ]
+      const createdDate = datePool[(i + dIdx) % datePool.length]
+
       dataset.push({
         id: `REQ-2026-${clientCode}-${reqCounter++}`,
         title,
@@ -219,7 +233,7 @@ export function getClientGapAnalysisDataset(clientName: string = 'Accenture', cl
         submissions: submissionsVal,
         spoc: spocName,
         status: isZeroSub ? 'Open' : submissionsVal > 10 ? 'Closed' : 'In Progress',
-        createdDate: `2026-08-0${(i % 8) + 1}`,
+        createdDate,
         hasMissingDomain: isMissingDomain,
         hasNonNumericPositions: isNonNumericPos,
         interviews: interviewsList,
@@ -238,11 +252,12 @@ export function ClientDeliveryGapAnalysisPage({
   pocPhone = '+91 98765 11223',
   teamLead = 'Harish Gadipally',
   role = 'superadmin',
+  initialDateRange = 'All Time',
   onBack,
   onSelectRequirement,
 }: ClientGapAnalysisProps) {
   // Filters State
-  const [dateRange, setDateRange] = useState('All Time')
+  const [dateRange, setDateRange] = useState(initialDateRange || 'All Time')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDomainFilter, setSelectedDomainFilter] = useState('All Domains')
   const [selectedSpocFilter, setSelectedSpocFilter] = useState('All SPOCs')
@@ -271,6 +286,18 @@ export function ClientDeliveryGapAnalysisPage({
         const matchSpoc = req.spoc.toLowerCase().includes(q)
         if (!matchTitle && !matchId && !matchSpoc) return false
       }
+
+      // Time Period Filter (Week / Month / Year / All Time)
+      if (dateRange !== 'All Time' && dateRange !== 'All') {
+        if (dateRange === 'This Week') {
+          if (req.createdDate && req.createdDate < '2026-08-22') return false
+        } else if (dateRange === 'This Month') {
+          if (req.createdDate && !req.createdDate.includes('2026-08')) return false
+        } else if (dateRange === 'This Year') {
+          if (req.createdDate && !req.createdDate.includes('2026')) return false
+        }
+      }
+
       if (selectedDomainFilter !== 'All Domains' && req.domain !== selectedDomainFilter) {
         return false
       }
@@ -300,6 +327,7 @@ export function ClientDeliveryGapAnalysisPage({
   }, [
     rawClientRequirements,
     searchQuery,
+    dateRange,
     selectedDomainFilter,
     selectedSpocFilter,
     selectedReqStatus,
@@ -571,7 +599,21 @@ export function ClientDeliveryGapAnalysisPage({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 text-xs">
+          {/* Time Period Filter (Week / Month / Year / All Time) */}
+          <div>
+            <select
+              value={dateRange}
+              onChange={e => setDateRange(e.target.value)}
+              className="w-full px-3 py-2 bg-purple-50/90 border border-purple-200 rounded-xl font-extrabold text-[#6B3BF6] focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
+            >
+              <option value="All Time">All Time</option>
+              <option value="This Week">This Week</option>
+              <option value="This Month">This Month</option>
+              <option value="This Year">This Year</option>
+            </select>
+          </div>
+
           {/* Keyword Search */}
           <div className="relative">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />

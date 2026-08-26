@@ -360,7 +360,7 @@ export function CandidateRepositoryPage({
 
   const [selectedCandidatesForSubmit, setSelectedCandidatesForSubmit] = useState<CandidateRepoItem[]>([])
 
-  // Mask toggling for phone/email in table view with 5-second session timeout
+  // Mask toggling for phone/email in table view with 20-second session timeout
   const [unmaskedIds, setUnmaskedIds] = useState<Set<string>>(new Set())
   const [unmaskedTimers, setUnmaskedTimers] = useState<{ [id: string]: number }>({})
 
@@ -403,13 +403,13 @@ export function CandidateRepositoryPage({
         return next
       })
     } else {
-      // Unmask with 5-second session timeout
+      // Unmask with 20-second session timeout
       clearCandidateTimers(id)
 
       setUnmaskedIds(prev => new Set(prev).add(id))
-      setUnmaskedTimers(prev => ({ ...prev, [id]: 5 }))
+      setUnmaskedTimers(prev => ({ ...prev, [id]: 20 }))
 
-      // Countdown timer interval (updates badge seconds: 5, 4, 3, 2, 1)
+      // Countdown timer interval (updates badge seconds: 20, 19, 18...)
       intervalRefs.current[id] = setInterval(() => {
         setUnmaskedTimers(prev => {
           const currentVal = prev[id] ?? 0
@@ -422,7 +422,7 @@ export function CandidateRepositoryPage({
         })
       }, 1000)
 
-      // Auto re-mask after 5 seconds
+      // Auto re-mask after 20 seconds
       timerRefs.current[id] = setTimeout(() => {
         clearCandidateTimers(id)
         setUnmaskedIds(prev => {
@@ -435,7 +435,7 @@ export function CandidateRepositoryPage({
           delete next[id]
           return next
         })
-      }, 5000)
+      }, 20000)
     }
   }
 
@@ -804,6 +804,39 @@ export function CandidateRepositoryPage({
   }
 
   // -------------------------------------------------------------
+  // DEDICATED FULL-PAGE SUBMISSION TO CLIENT VIEW
+  // -------------------------------------------------------------
+  if (viewMode === 'submit_to_lead') {
+    return (
+      <div id="candidate-repo-next-page-section" className="space-y-6 w-full pb-24 font-sans text-slate-800 animate-in fade-in duration-200">
+        {/* SubmitToLeadPage Component */}
+        <div className="bg-slate-50/60 rounded-3xl border border-slate-200/90 p-4 sm:p-6 shadow-xs">
+          <SubmitToLeadPage
+            selectedCandidates={selectedCandidatesForSubmit}
+            requirement={activeRequirement}
+            role={role}
+            onBack={() => {
+              setViewMode('list')
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+            onSubmitSuccess={() => {
+              setViewMode('list')
+              setSelectedCandidatesForSubmit([])
+              showToast('Successfully submitted candidate to lead & client loop!')
+              if (onBackToDashboard) {
+                onBackToDashboard()
+              } else {
+                setActiveReqId(null)
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }
+            }}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  // -------------------------------------------------------------
   // RENDER CANDIDATE REPOSITORY TABLE VIEW (WITH NO CHECKBOXES & WHOLE CANDIDATE INFO)
   // -------------------------------------------------------------
   return (
@@ -1041,12 +1074,12 @@ export function CandidateRepositoryPage({
                                 ? 'bg-amber-50 border-amber-300 text-amber-700 shadow-2xs'
                                 : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-100'
                             }`}
-                            title={isUnmasked ? 'Click to re-mask contact info immediately' : 'Click to view unmasked contact info for 5 seconds'}
+                            title={isUnmasked ? 'Click to re-mask contact info immediately' : 'Click to view unmasked contact info for 20 seconds'}
                           >
                             {isUnmasked ? (
                               <>
                                 <EyeOff className="w-3 h-3 text-amber-600" />
-                                <span className="text-[9px] font-black text-amber-700 tabular-nums">{unmaskedTimers[item.id] ?? 5}s</span>
+                                <span className="text-[9px] font-black text-amber-700 tabular-nums">{unmaskedTimers[item.id] ?? 20}s</span>
                               </>
                             ) : (
                               <Eye className="w-3 h-3" />
@@ -1138,78 +1171,6 @@ export function CandidateRepositoryPage({
         </div>
       )}
 
-      {/* 5. NEXT PAGE: SUBMIT TO LEAD & CLIENT LOOP (RENDERED DIRECTLY UNDER CANDIDATE REPOSITORY) */}
-      {viewMode === 'submit_to_lead' && (
-        <div
-          id="candidate-repo-next-page-section"
-          className="pt-8 border-t-4 border-dashed border-[#6B3BF6]/40 space-y-6 animate-in fade-in slide-in-from-top-4 duration-300 mt-10"
-        >
-          {/* Header Banner for Inline Next Page */}
-          <div className="bg-gradient-to-r from-purple-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-5 px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl border border-purple-700/30">
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-300 font-extrabold shrink-0 shadow-2xs">
-                <Send className="w-5 h-5 text-amber-300" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-sm font-extrabold text-white tracking-tight uppercase">
-                    NEXT PAGE: CANDIDATE SUBMISSION TO LEAD & CLIENT LOOP
-                  </h3>
-                  {activeRequirement && (
-                    <span className="px-3 py-0.5 rounded-full text-xs font-black bg-amber-400 text-slate-950 font-mono shadow-2xs">
-                      {activeRequirement.id}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-purple-200 mt-0.5">
-                  Candidate Repository remains visible on screen above. Complete submission details below for <strong className="text-white font-mono">{activeRequirement?.id || 'Selected Requirement'}</strong>.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5 shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  setViewMode('list')
-                  const el = document.getElementById('candidate-repo-top')
-                  if (el) el.scrollIntoView({ behavior: 'smooth' })
-                }}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-2xs"
-              >
-                <X className="w-4 h-4 text-white" />
-                <span>Hide Next Page</span>
-              </button>
-            </div>
-          </div>
-
-          {/* SubmitToLeadPage Component rendered inline directly under Candidate Repository */}
-          <div className="bg-slate-50/60 rounded-3xl border border-slate-200/90 p-4 sm:p-6 shadow-xs">
-            <SubmitToLeadPage
-              selectedCandidates={selectedCandidatesForSubmit}
-              requirement={activeRequirement}
-              role={role}
-              onBack={() => {
-                setViewMode('list')
-                const el = document.getElementById('candidate-repo-top')
-                if (el) el.scrollIntoView({ behavior: 'smooth' })
-              }}
-              onSubmitSuccess={() => {
-                setViewMode('list')
-                setSelectedCandidatesForSubmit([])
-                showToast('Successfully submitted candidate to lead & client loop!')
-                if (onBackToDashboard) {
-                  onBackToDashboard()
-                } else {
-                  setActiveReqId(null)
-                  window.scrollTo({ top: 0, behavior: 'smooth' })
-                }
-              }}
-            />
-          </div>
-        </div>
-      )}
-
       {/* 5. CANDIDATE WHOLE INFORMATION DETAIL MODAL (MODAL SHOWING ALL CANDIDATE DETAILS) */}
       {viewingCandidateDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
@@ -1262,17 +1223,17 @@ export function CandidateRepositoryPage({
                         ? 'bg-amber-50 border-amber-300 text-amber-700 shadow-2xs'
                         : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                     }`}
-                    title={unmaskedIds.has(viewingCandidateDetail.id) ? 'Click to re-mask contact info immediately' : 'Click to reveal contact info for 5 seconds'}
+                    title={unmaskedIds.has(viewingCandidateDetail.id) ? 'Click to re-mask contact info immediately' : 'Click to reveal contact info for 20 seconds'}
                   >
                     {unmaskedIds.has(viewingCandidateDetail.id) ? (
                       <>
                         <EyeOff className="w-3.5 h-3.5 text-amber-600" />
-                        <span>Re-mask ({unmaskedTimers[viewingCandidateDetail.id] ?? 5}s)</span>
+                        <span>Re-mask ({unmaskedTimers[viewingCandidateDetail.id] ?? 20}s)</span>
                       </>
                     ) : (
                       <>
                         <Eye className="w-3.5 h-3.5 text-slate-500" />
-                        <span>Reveal Contact (5s)</span>
+                        <span>Reveal Contact (20s)</span>
                       </>
                     )}
                   </button>

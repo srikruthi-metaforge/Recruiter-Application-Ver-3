@@ -86,22 +86,22 @@ export function SignInPage({ onLogin, onForgot, onSignup, onBack, onRolePortals 
       aside={<DemoCredentialsPanel onPick={(e, p) => { setEmail(e); setPassword(p); setErrors({}) }} />}
     >
       <AuthCard>
-        <div className="flex items-center justify-between mb-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-50 text-blue-700 text-xs font-bold font-mono tracking-wide">
-            <ShieldCheck className="w-4 h-4" />
+        <div className="flex items-center justify-between mb-4">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 text-blue-700 text-[11px] font-bold font-mono tracking-wide">
+            <ShieldCheck className="w-3.5 h-3.5" />
             MRAP Console
           </div>
-          <span className="text-xs font-mono text-slate-400">Secure Sign In</span>
+          <span className="text-[11px] font-mono text-slate-400">Secure Sign In</span>
         </div>
 
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2 font-sans">
+        <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight mb-1 font-sans">
           Welcome back
         </h2>
-        <p className="text-sm text-slate-500 mb-8 font-normal leading-relaxed">
+        <p className="text-xs text-slate-500 mb-5 font-normal leading-relaxed">
           Enter your work credentials to access your MetaForge recruitment workspace.
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <TextField
             label="Work Email Address"
             type="email"
@@ -142,12 +142,12 @@ export function SignInPage({ onLogin, onForgot, onSignup, onBack, onRolePortals 
 
           {errors.general && <AuthAlert tone="error">{errors.general}</AuthAlert>}
 
-          <label className="flex items-center gap-2.5 cursor-pointer w-max">
+          <label className="flex items-center gap-2 cursor-pointer w-max">
             <input
               type="checkbox"
               checked={remember}
               onChange={e => setRemember(e.target.checked)}
-              className="rounded border-slate-300 accent-blue-600 w-4 h-4 cursor-pointer"
+              className="rounded border-slate-300 accent-blue-600 w-3.5 h-3.5 cursor-pointer"
             />
             <span className="text-xs text-slate-600 font-medium">Remember me on this device</span>
           </label>
@@ -157,15 +157,15 @@ export function SignInPage({ onLogin, onForgot, onSignup, onBack, onRolePortals 
           </SubmitButton>
         </form>
 
-        <div className="mt-7 pt-6 border-t border-slate-200/80 space-y-3">
+        <div className="mt-5 pt-4 border-t border-slate-200/80 space-y-2.5">
           <button
             type="button"
             onClick={onRolePortals}
-            className="w-full h-12 border border-slate-300 bg-white text-slate-700 rounded-xl text-xs font-mono font-semibold hover:bg-slate-50 hover:border-slate-400 transition-all cursor-pointer"
+            className="w-full h-10 border border-slate-300 bg-white text-slate-700 rounded-xl text-xs font-mono font-semibold hover:bg-slate-50 hover:border-slate-400 transition-all cursor-pointer"
           >
             Sign in through a role portal instead →
           </button>
-          <p className="text-center text-xs sm:text-sm text-slate-500 font-normal">
+          <p className="text-center text-xs text-slate-500 font-normal">
             Don&apos;t have workspace access?{' '}
             <button type="button" onClick={onSignup} className="text-blue-600 font-semibold hover:underline cursor-pointer">
               Request an account →
@@ -182,17 +182,17 @@ function DemoCredentialsPanel({ onPick }: { onPick: (email: string, password: st
   const roles: Role[] = ['superadmin', 'admin', 'lead', 'recruiter']
 
   return (
-    <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-5 shadow-xl">
-      <div className="flex items-center justify-between mb-3.5">
+    <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-3.5 shadow-xl">
+      <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 font-bold flex items-center gap-1.5">
-          <KeyRound className="w-3.5 h-3.5 text-blue-400" /> Demo Credentials
+          <KeyRound className="w-3 h-3 text-blue-400" /> Demo Credentials
         </span>
-        <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+        <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
           Ready to Sign In
         </span>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="grid grid-cols-2 gap-2">
         {roles.map(r => {
           const acc = DEMO_ACCOUNTS[r]
           return (
@@ -200,15 +200,15 @@ function DemoCredentialsPanel({ onPick }: { onPick: (email: string, password: st
               key={r}
               type="button"
               onClick={() => onPick(acc.email, acc.password)}
-              className="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.09] border border-white/5 hover:border-blue-500/30 transition-all text-left cursor-pointer group"
+              className="flex flex-col justify-center px-2.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.09] border border-white/5 hover:border-blue-500/30 transition-all text-left cursor-pointer group"
             >
-              <span className="min-w-0">
-                <span className="block text-xs font-semibold text-white">{roleTheme[r].label}</span>
-                <span className="block text-[10px] font-mono text-blue-300 truncate">{acc.email}</span>
-              </span>
-              <span className="text-[10px] font-mono text-slate-500 group-hover:text-blue-300 flex-shrink-0">
-                Fill →
-              </span>
+              <div className="flex items-center justify-between gap-1 w-full">
+                <span className="text-[11px] font-bold text-white truncate">{roleTheme[r].label}</span>
+                <span className="text-[9px] font-mono text-slate-500 group-hover:text-blue-300">
+                  Fill →
+                </span>
+              </div>
+              <span className="text-[9px] font-mono text-blue-300 truncate w-full">{acc.email}</span>
             </button>
           )
         })}

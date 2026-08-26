@@ -32,15 +32,13 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Organization',
       items: [
         { key: 'Users', label: 'User Management' },
-        { key: 'Roles', label: 'Roles & Permissions' },
       ],
     },
     {
       title: 'Operations',
       items: [
         { key: 'Clients', label: 'Clients' },
-        { key: 'Recruiters', label: 'Recruiters' },
-        { key: 'Teams', label: 'Teams' },
+        { key: 'Teams & Recruiters', label: 'Teams & Recruiters' },
         { key: 'Interviews', label: 'Interview Scheduler' },
       ],
     },
@@ -54,7 +52,6 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
     {
       title: 'System',
       items: [
-        { key: 'Settings', label: 'Settings' },
         { key: 'Audit Logs', label: 'Audit Logs' },
       ],
     },
@@ -72,8 +69,7 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Operations',
       items: [
         { key: 'Clients', label: 'Clients' },
-        { key: 'Recruiters', label: 'Recruiters' },
-        { key: 'Teams', label: 'Teams' },
+        { key: 'Teams & Recruiters', label: 'Teams & Recruiters' },
         { key: 'Interviews', label: 'Interview Scheduler' },
       ],
     },
@@ -124,15 +120,13 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Organization',
       items: [
         { key: 'Users', label: 'User Management' },
-        { key: 'Roles', label: 'Roles & Permissions' },
       ],
     },
     {
       title: 'Operations',
       items: [
         { key: 'Clients', label: 'Clients' },
-        { key: 'Recruiters', label: 'Recruiters' },
-        { key: 'Teams', label: 'Teams' },
+        { key: 'Teams & Recruiters', label: 'Teams & Recruiters' },
         { key: 'Interviews', label: 'Interview Scheduler' },
       ],
     },
@@ -146,7 +140,6 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
     {
       title: 'System',
       items: [
-        { key: 'Settings', label: 'Settings' },
         { key: 'Audit Logs', label: 'Audit Logs' },
       ],
     },

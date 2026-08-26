@@ -327,6 +327,8 @@ export function InterviewTrackingPage({
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState('')
   const [dateFilter, setDateFilter] = useState<'today' | 'this_week' | 'this_month' | 'custom_range'>('this_month')
+  const [clientFilter, setClientFilter] = useState('All Clients')
+  const [roundFilter, setRoundFilter] = useState('All Rounds')
 
   // Tables State
   const [scheduleList, setScheduleList] = useState<ScheduleRowItem[]>(DEFAULT_SCHEDULE_ROWS)
@@ -493,7 +495,7 @@ export function InterviewTrackingPage({
     })
   }, [scopeScheduleList])
 
-  // Filter Schedule Rows according to selected statusToggle
+  // Filter Schedule Rows according to selected statusToggle, searchQuery, clientFilter, and roundFilter
   const filteredScheduleList = useMemo(() => {
     return evaluatedScheduleList.filter(row => {
       if (searchQuery.trim()) {
@@ -503,6 +505,14 @@ export function InterviewTrackingPage({
         const matchComp = row.company.toLowerCase().includes(q)
         const matchRound = row.round.toLowerCase().includes(q)
         if (!matchName && !matchPos && !matchComp && !matchRound) return false
+      }
+
+      if (clientFilter !== 'All Clients' && row.company !== clientFilter) {
+        return false
+      }
+
+      if (roundFilter !== 'All Rounds' && !row.round.toLowerCase().includes(roundFilter.toLowerCase())) {
+        return false
       }
 
       if (statusToggle === 'upcoming') {
@@ -516,7 +526,7 @@ export function InterviewTrackingPage({
       }
       return true
     })
-  }, [evaluatedScheduleList, searchQuery, statusToggle])
+  }, [evaluatedScheduleList, searchQuery, statusToggle, clientFilter, roundFilter])
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
@@ -653,90 +663,193 @@ export function InterviewTrackingPage({
         </div>
       </div>
 
-      {/* 2. TOGGLE SWITCHER & SEARCH BAR (DEFAULT: UPCOMING INTERVIEWS) */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {/* Left Toggles (UPCOMING IS DEFAULT) */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 text-xs font-bold">
-          <button
-            onClick={() => setStatusToggle('upcoming')}
-            className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
-              statusToggle === 'upcoming'
-                ? 'bg-[#6B3BF6] text-white shadow-md font-extrabold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-            }`}
-          >
-            <Clock className="w-4 h-4" />
-            <span>Upcoming Interviews</span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                statusToggle === 'upcoming' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-900'
-              }`}
-            >
-              {evaluatedScheduleList.filter(s => (s.status as string) === 'Upcoming' || (s.status as string) === 'Scheduled').length}
+      {/* 2. UPFRONT SUMMARY KPI METRIC CARDS (SHOWING TOTAL INTERVIEWS & STAGE BREAKDOWN) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+              Total Interviews
             </span>
-          </button>
-
-          <button
-            onClick={() => setStatusToggle('in_progress')}
-            className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
-              statusToggle === 'in_progress'
-                ? 'bg-amber-600 text-white shadow-md font-extrabold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-            }`}
-          >
-            <Activity className="w-4 h-4" />
-            <span>In Progress</span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                statusToggle === 'in_progress' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-900'
-              }`}
-            >
-              {evaluatedScheduleList.filter(s => s.status === 'In Progress').length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setStatusToggle('completed')}
-            className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
-              statusToggle === 'completed'
-                ? 'bg-emerald-600 text-white shadow-md font-extrabold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-            }`}
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Completed</span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                statusToggle === 'completed' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-900'
-              }`}
-            >
-              {evaluatedScheduleList.filter(s => s.status === 'Completed').length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setStatusToggle('all')}
-            className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
-              statusToggle === 'all'
-                ? 'bg-slate-900 text-white shadow-md font-extrabold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>All ({evaluatedScheduleList.length})</span>
-          </button>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">
+              {evaluatedScheduleList.length}
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-[#6B3BF6]">
+            <CalendarIcon className="w-5 h-5" />
+          </div>
         </div>
 
-        {/* Right Search Input */}
-        <div className="relative w-full md:w-72">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Search candidate or position..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6B3BF6] text-slate-800"
-          />
+        <div className="bg-white rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+              Upcoming Interviews
+            </span>
+            <p className="text-2xl font-extrabold text-blue-600 mt-1 tabular-nums">
+              {evaluatedScheduleList.filter(s => (s.status as string) === 'Upcoming' || (s.status as string) === 'Scheduled').length}
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+            <Clock className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+              In Progress Sessions
+            </span>
+            <p className="text-2xl font-extrabold text-amber-600 mt-1 tabular-nums">
+              {evaluatedScheduleList.filter(s => s.status === 'In Progress').length}
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+            <Activity className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+              Completed & Offers
+            </span>
+            <p className="text-2xl font-extrabold text-emerald-600 mt-1 tabular-nums">
+              {evaluatedScheduleList.filter(s => s.status === 'Completed').length}
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* 3. FRONT CONTROLS & FILTER BAR (MOVED TO FRONT) */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs space-y-3">
+        {/* ROW 1: STATUS TOGGLE PILLS */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 text-xs font-bold w-full sm:w-auto">
+            <button
+              onClick={() => {
+                setStatusToggle('all')
+                setCurrentPage(1)
+              }}
+              className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                statusToggle === 'all'
+                  ? 'bg-slate-900 text-white shadow-md font-extrabold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>All Interviews ({evaluatedScheduleList.length})</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setStatusToggle('upcoming')
+                setCurrentPage(1)
+              }}
+              className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                statusToggle === 'upcoming'
+                  ? 'bg-[#6B3BF6] text-white shadow-md font-extrabold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
+            >
+              <Clock className="w-4 h-4" />
+              <span>Upcoming</span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                  statusToggle === 'upcoming' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-900'
+                }`}
+              >
+                {evaluatedScheduleList.filter(s => (s.status as string) === 'Upcoming' || (s.status as string) === 'Scheduled').length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => {
+                setStatusToggle('in_progress')
+                setCurrentPage(1)
+              }}
+              className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                statusToggle === 'in_progress'
+                  ? 'bg-amber-600 text-white shadow-md font-extrabold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
+            >
+              <Activity className="w-4 h-4" />
+              <span>In Progress</span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                  statusToggle === 'in_progress' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-900'
+                }`}
+              >
+                {evaluatedScheduleList.filter(s => s.status === 'In Progress').length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => {
+                setStatusToggle('completed')
+                setCurrentPage(1)
+              }}
+              className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                statusToggle === 'completed'
+                  ? 'bg-emerald-600 text-white shadow-md font-extrabold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Completed</span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                  statusToggle === 'completed' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-900'
+                }`}
+              >
+                {evaluatedScheduleList.filter(s => s.status === 'Completed').length}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* ROW 2: SEARCH & UPFRONT FILTER DROPDOWNS */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search candidate name, position, round..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6B3BF6] text-xs font-medium text-slate-800"
+            />
+          </div>
+
+          <div>
+            <select
+              value={clientFilter}
+              onChange={e => setClientFilter(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
+            >
+              <option value="All Clients">All Client Partners</option>
+              <option value="Accenture">Accenture</option>
+              <option value="Goldman Sachs">Goldman Sachs</option>
+              <option value="Tesla">Tesla</option>
+              <option value="Deloitte">Deloitte</option>
+              <option value="LTTS / L&T">LTTS / L&T</option>
+            </select>
+          </div>
+
+          <div>
+            <select
+              value={roundFilter}
+              onChange={e => setRoundFilter(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
+            >
+              <option value="All Rounds">All Interview Rounds</option>
+              <option value="L1">L1 Technical</option>
+              <option value="L2">L2 Technical</option>
+              <option value="Final">Final HR / Executive</option>
+            </select>
+          </div>
         </div>
       </div>
 
