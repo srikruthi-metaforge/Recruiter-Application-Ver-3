@@ -2152,73 +2152,7 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
             </div>
           )}
 
-          {/* RECRUITER REQUIREMENT SUBMISSIONS DASHBOARD(S) */}
-          {role === 'lead' ? (
-            <div className="space-y-5">
-              {/* TOGGLE BAR FOR TEAM LEAD MODULE: INDIVIDUAL SUBMISSIONS VS TEAM MEMBERS SUBMISSIONS */}
-              <div className="bg-[#F8FAFC] p-2 rounded-2xl border border-slate-200/90 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => setLeadDashboardTab('individual')}
-                    className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
-                      leadDashboardTab === 'individual'
-                        ? 'bg-[#6B3BF6] text-white shadow-md'
-                        : 'bg-white text-slate-700 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50'
-                    }`}
-                  >
-                    <User className="w-4 h-4" />
-                    <span>Team Lead Individual Submissions</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setLeadDashboardTab('team_members')}
-                    className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-2 ${
-                      leadDashboardTab === 'team_members'
-                        ? 'bg-[#6B3BF6] text-white shadow-md'
-                        : 'bg-white text-slate-700 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50'
-                    }`}
-                  >
-                    <Users className="w-4 h-4" />
-                    <span>Team Members Submissions</span>
-                  </button>
-                </div>
-
-                <div className="text-xs text-slate-600 font-extrabold px-3.5 py-1.5 bg-white rounded-xl border border-slate-200/90 shadow-2xs">
-                  {leadDashboardTab === 'individual'
-                    ? 'Showing Harish Gadipally (Team Lead Individual)'
-                    : 'Showing Overall Recruiters (Excludes Lead Performance)'}
-                </div>
-              </div>
-
-              {leadDashboardTab === 'individual' ? (
-                /* DASHBOARD 1: TEAM LEAD INDIVIDUAL PERFORMANCE */
-                renderSubmissionsDashboardCard({
-                  type: 'lead_self',
-                  title: 'Team Lead Individual Submissions Dashboard',
-                  subtitle: 'Showing requirement submissions, received date/time, first submission date/time, and TAT turnaround SLA for Harish Gadipally (Team Lead Individual).',
-                  leadName: 'Harish Gadipally',
-                })
-              ) : (
-                /* DASHBOARD 2: OVERALL TEAM RECRUITERS PERFORMANCE (EXCLUDES LEAD INDIVIDUAL DATA) */
-                renderSubmissionsDashboardCard({
-                  type: 'team_members_only',
-                  title: 'Team Recruiters Overall Submissions Dashboard',
-                  subtitle: 'Requirement-wise breakdown of recruiter submissions, requirement received timestamp, first submission date/time, and calculated TAT for team members (Excludes Lead Individual Data).',
-                  leadName: 'Harish Gadipally',
-                })
-              )}
-            </div>
-          ) : (
-            renderSubmissionsDashboardCard({
-              type: (role as string) === 'recruiter' ? 'recruiter_self' : 'overall_company',
-              title: (role as string) === 'recruiter' ? 'Requirement Submissions Dashboard' : 'Overall Requirement Submissions Dashboard',
-              subtitle: (role as string) === 'recruiter'
-                ? `Showing requirement submissions, received date/time, first submission date/time, and TAT turnaround SLA for ${myPersonalProfile.name}.`
-                : 'Requirement-wise breakdown of recruiter submissions, number of positions, client name, timestamp, and first submission date & time.',
-            })
-          )}
+          {/* MAIN UNIFIED PERFORMANCE & SUBMISSIONS DASHBOARD CARD */}
 
 
 
@@ -2239,21 +2173,6 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                   <span>Recruiter Performance</span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#6B3BF6]/10 text-[#6B3BF6]">
                     {recruitersPerformanceList.length}
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => setActiveSubTab('dashboard')}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
-                    activeSubTab === 'dashboard'
-                      ? 'bg-purple-50 text-[#6B3BF6] border border-purple-200 shadow-2xs font-bold'
-                      : 'text-slate-500 hover:bg-slate-50'
-                  }`}
-                >
-                  <PieIcon className="w-4 h-4 text-[#6B3BF6]" />
-                  <span>Req Submissions Dashboard</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#6B3BF6]/10 text-[#6B3BF6]">
-                    {RECRUITER_REQ_SUBMISSION_DASHBOARD_DATA.length}
                   </span>
                 </button>
 
@@ -2347,6 +2266,7 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                         <th className="py-3.5 px-4">TOTAL SUBMISSIONS</th>
                         <th className="py-3.5 px-4">SUBMITTED TO (CLIENT)</th>
                         <th className="py-3.5 px-4">TOTAL INTERVIEWS</th>
+                        <th className="py-3.5 px-4">AVG SLA TAT</th>
                         <th className="py-3.5 px-4">STATUS</th>
                       </tr>
                     </thead>
@@ -2358,112 +2278,122 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                         const clientBreakdownList = getRecruiterClientBreakdown(r).map(b => b.client)
                         const displayClients = clientBreakdownList.length > 0 ? clientBreakdownList : [primaryClientName]
                         const isTeamLead = r.role.toLowerCase().includes('lead') || r.name.includes('(Team Lead)')
-                        const showTeamGroupHeader = index === 0 || paginatedRecruiters[index - 1].teamLead !== r.teamLead
+
+                        const tatValue =
+                          (r as any).avgTatDays !== undefined
+                            ? `${(r as any).avgTatDays} Days`
+                            : (r as any).tat
+                            ? (r as any).tat
+                            : r.name.toLowerCase().includes('harish')
+                            ? '1.2 Days'
+                            : r.name.toLowerCase().includes('marcus')
+                            ? '1.5 Days'
+                            : r.name.toLowerCase().includes('priya')
+                            ? '1.8 Days'
+                            : r.name.toLowerCase().includes('suresh')
+                            ? '2.1 Days'
+                            : r.name.toLowerCase().includes('sathvika')
+                            ? '1.4 Days'
+                            : r.name.toLowerCase().includes('arvind')
+                            ? '1.6 Days'
+                            : r.name.toLowerCase().includes('lakshmi')
+                            ? '0.6 Days'
+                            : r.name.toLowerCase().includes('charlie')
+                            ? '3.3 Days'
+                            : '1.8 Days'
 
                         return (
-                          <React.Fragment key={r.id}>
-                            {/* Team Pod Header Banner */}
-                            {showTeamGroupHeader && (
-                              <tr className="bg-slate-100/90 text-xs font-bold text-slate-800 border-y border-slate-200">
-                                <td colSpan={9} className="py-2 px-4 bg-[#6B3BF6]/5 border-l-4 border-l-[#6B3BF6]">
-                                  <div className="flex items-center gap-2">
-                                    <Crown className="w-4 h-4 text-[#6B3BF6]" />
-                                    <span className="font-extrabold text-slate-900 uppercase tracking-wider text-[11px]">
-                                      {r.team || 'RECRUITMENT POD'} — TEAM LEAD: {r.teamLead}
-                                    </span>
-                                  </div>
-                                </td>
-                              </tr>
-                            )}
+                          <tr
+                            key={r.id}
+                            onClick={() => setSelectedRecruiter(r)}
+                            className="hover:bg-purple-50/40 transition-colors cursor-pointer group"
+                          >
+                            <td className="py-3.5 px-4 text-center font-extrabold text-slate-500 tabular-nums">
+                              {rankNumber}
+                            </td>
 
-                            <tr
-                              onClick={() => setSelectedRecruiter(r)}
-                              className="hover:bg-purple-50/40 transition-colors cursor-pointer group"
-                            >
-                              <td className="py-3.5 px-4 text-center font-bold text-slate-400">
-                                {isTeamLead ? '👑' : rankNumber}
-                              </td>
-
-                              {/* RECRUITER / MEMBER */}
-                              <td className="py-3.5 px-4">
-                                <div className={`flex items-center gap-2.5 ${!isTeamLead ? 'pl-3' : ''}`}>
-                                  <div className="w-8 h-8 rounded-full bg-purple-100 text-[#6B3BF6] font-bold flex items-center justify-center text-xs shrink-0 border border-purple-200">
-                                    {r.avatar}
-                                  </div>
-                                  <div>
-                                    <div className="font-bold text-slate-900 group-hover:text-[#6B3BF6] transition-colors flex items-center gap-1.5">
-                                      {!isTeamLead && <span className="text-slate-400 font-normal">↳</span>}
-                                      <span>{r.name}</span>
-                                      {isTeamLead ? (
-                                        <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
-                                          <Crown className="w-2.5 h-2.5" />
-                                          <span>Team Lead</span>
-                                        </span>
-                                      ) : (
-                                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                                          Team Member
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div className="text-[10px] text-slate-500 font-medium">{r.role} • {r.team}</div>
-                                  </div>
+                            {/* RECRUITER / MEMBER */}
+                            <td className="py-3.5 px-4">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-full bg-purple-100 text-[#6B3BF6] font-bold flex items-center justify-center text-xs shrink-0 border border-purple-200">
+                                  {r.avatar}
                                 </div>
-                              </td>
-
-                              {/* TEAM LEAD & ASSIGNED CLIENT */}
-                              <td className="py-3.5 px-4 whitespace-nowrap">
-                                <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1">
-                                  {isTeamLead ? (
-                                    <span>👑 Team Lead (Self)</span>
-                                  ) : (
-                                    <span>Reports to: {leadName}</span>
-                                  )}
+                                <div>
+                                  <div className="font-bold text-slate-900 group-hover:text-[#6B3BF6] transition-colors flex items-center gap-1.5">
+                                    <span>{r.name}</span>
+                                    {isTeamLead && (
+                                      <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-purple-100 text-[#6B3BF6] border border-purple-200 inline-flex items-center gap-1">
+                                        <Crown className="w-2.5 h-2.5" />
+                                        <span>Team Lead</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-[10px] text-slate-500 font-medium">{r.role} • {r.team}</div>
                                 </div>
-                                <div className="text-[10px] text-purple-700 font-extrabold flex items-center gap-1 mt-0.5">
-                                  <Building2 className="w-3 h-3 text-purple-600 inline" />
-                                  <span>{primaryClientName}</span>
-                                </div>
-                              </td>
+                              </div>
+                            </td>
 
-                              {/* REQUIREMENTS COUNT */}
-                              <td className="py-3.5 px-4">
-                                <span className="font-extrabold text-blue-600 underline hover:text-blue-800 tabular-nums">
-                                  {r.requirementsCount} Reqs
-                                </span>
-                              </td>
+                            {/* TEAM LEAD & ASSIGNED CLIENT */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <div className="font-bold text-slate-700 text-xs">
+                                {isTeamLead ? (
+                                  <span className="font-extrabold text-purple-900">Team Lead: {r.name}</span>
+                                ) : (
+                                  <span>Team Lead: {leadName}</span>
+                                )}
+                              </div>
+                              <div className="text-[10px] text-purple-700 font-extrabold flex items-center gap-1 mt-0.5">
+                                <Building2 className="w-3 h-3 text-purple-600 inline" />
+                                <span>{primaryClientName}</span>
+                              </div>
+                            </td>
 
-                              {/* TOTAL POSITIONS */}
-                              <td className="py-3.5 px-4">
-                                <span className="font-extrabold text-indigo-700 tabular-nums">
-                                  {r.requirementsCount ? r.requirementsCount * 3 : 12} Positions
-                                </span>
-                              </td>
+                            {/* REQUIREMENTS COUNT */}
+                            <td className="py-3.5 px-4">
+                              <span className="font-extrabold text-blue-600 underline hover:text-blue-800 tabular-nums">
+                                {r.requirementsCount} Reqs
+                              </span>
+                            </td>
 
-                              {/* TOTAL SUBMISSIONS */}
-                              <td className="py-3.5 px-4">
-                                <span className="font-extrabold text-purple-700 underline hover:text-purple-900 tabular-nums">
-                                  {r.submissionsCount} Submissions
-                                </span>
-                              </td>
+                            {/* TOTAL POSITIONS */}
+                            <td className="py-3.5 px-4">
+                              <span className="font-extrabold text-indigo-700 tabular-nums">
+                                {r.requirementsCount ? r.requirementsCount * 3 : 12} Positions
+                              </span>
+                            </td>
 
-                              {/* SUBMITTED TO (CLIENT) */}
-                              <td className="py-3.5 px-4" onClick={e => e.stopPropagation()}>
-                                <SubmittedClientsPillCell clients={displayClients} />
-                              </td>
+                            {/* TOTAL SUBMISSIONS */}
+                            <td className="py-3.5 px-4">
+                              <span className="font-extrabold text-purple-700 underline hover:text-purple-900 tabular-nums">
+                                {r.submissionsCount} Submissions
+                              </span>
+                            </td>
 
-                              {/* TOTAL INTERVIEWS */}
-                              <td className="py-3.5 px-4 font-extrabold text-slate-800 tabular-nums">
-                                {r.interviewsCount || 0} Interviews
-                              </td>
+                            {/* SUBMITTED TO (CLIENT) */}
+                            <td className="py-3.5 px-4" onClick={e => e.stopPropagation()}>
+                              <SubmittedClientsPillCell clients={displayClients} />
+                            </td>
 
-                              {/* STATUS */}
-                              <td className="py-3.5 px-4">
-                                <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                  ● {r.status}
-                                </span>
-                              </td>
-                            </tr>
-                          </React.Fragment>
+                            {/* TOTAL INTERVIEWS */}
+                            <td className="py-3.5 px-4 font-extrabold text-slate-800 tabular-nums">
+                              {r.interviewsCount || 0} Interviews
+                            </td>
+
+                            {/* AVG SLA TAT */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-mono font-extrabold bg-[#EEF2FF] text-[#5B51D8] border border-[#C7D2FE] shadow-2xs">
+                                <Zap className="w-3 h-3 text-[#5B51D8]" />
+                                <span>{tatValue}</span>
+                              </span>
+                            </td>
+
+                            {/* STATUS */}
+                            <td className="py-3.5 px-4">
+                              <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                ● {r.status}
+                              </span>
+                            </td>
+                          </tr>
                         )
                       })}
                     </tbody>
@@ -2553,36 +2483,6 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                     </tbody>
                   </table>
                 </div>
-              </div>
-            )}
-
-            {/* Requirement-Wise Submissions Dashboard Tab */}
-            {activeSubTab === 'dashboard' && (
-              <div className="animate-in fade-in duration-150 space-y-8">
-                {role === 'lead' ? (
-                  <>
-                    {renderSubmissionsDashboardCard({
-                      type: 'lead_self',
-                      title: 'Team Lead Individual Submissions Dashboard',
-                      subtitle: 'Showing requirement submissions, received date/time, first submission date/time, and TAT turnaround SLA for Harish Gadipally (Team Lead Individual).',
-                      leadName: 'Harish Gadipally',
-                    })}
-                    {renderSubmissionsDashboardCard({
-                      type: 'team_members_only',
-                      title: 'Team Recruiters Overall Submissions Dashboard',
-                      subtitle: 'Requirement-wise breakdown of recruiter submissions, requirement received timestamp, first submission date/time, and calculated TAT for team members (Excludes Lead Individual Data).',
-                      leadName: 'Harish Gadipally',
-                    })}
-                  </>
-                ) : (
-                  renderSubmissionsDashboardCard({
-                    type: (role as string) === 'recruiter' ? 'recruiter_self' : 'overall_company',
-                    title: (role as string) === 'recruiter' ? 'Requirement Submissions Dashboard' : 'Overall Requirement Submissions Dashboard',
-                    subtitle: (role as string) === 'recruiter'
-                      ? `Showing requirement submissions, received date/time, first submission date/time, and TAT turnaround SLA for ${myPersonalProfile.name}.`
-                      : 'Requirement-wise breakdown of recruiter submissions, number of positions, client name, timestamp, and first submission date & time.',
-                  })
-                )}
               </div>
             )}
 

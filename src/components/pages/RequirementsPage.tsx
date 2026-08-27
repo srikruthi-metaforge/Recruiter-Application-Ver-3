@@ -558,7 +558,7 @@ export function RequirementsPage({
     return localRequirements.filter(r => r.revokeRequested)
   }, [localRequirements])
 
-  if (isCreatingDemand) {
+  if (isCreatingDemand && role !== 'admin') {
     return (
       <CreateJobDemandForm
         userRole={roleLabel}
@@ -745,7 +745,7 @@ export function RequirementsPage({
         interviews={interviews}
         activeCardFilter={activeCardFilter}
         onSelectFilter={setActiveCardFilter}
-        onCreateNewJobDemand={() => setIsCreatingDemand(true)}
+        onCreateNewJobDemand={role === 'admin' ? undefined : () => setIsCreatingDemand(true)}
         title="Requirements Dashboard"
         badgeLabel={roleLabel}
         hideCards={role === 'recruiter' || role === 'lead'}

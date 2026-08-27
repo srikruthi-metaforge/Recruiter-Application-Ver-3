@@ -248,6 +248,7 @@ export const getClientStats = (client: ClientRecord, period: 'All Time' | 'This 
 
 export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
   const [clients, setClients] = useState<ClientRecord[]>(INITIAL_CLIENTS)
+  const canAddClient = role !== 'admin'
   const [viewMode, setViewMode] = useState<'list' | 'add' | 'view_agreement'>('list')
   const [selectedClientForAgreement, setSelectedClientForAgreement] = useState<ClientRecord | null>(null)
   const [selectedClientForGapAnalysis, setSelectedClientForGapAnalysis] = useState<ClientRecord | null>(null)
@@ -888,16 +889,18 @@ export function ClientsPage({ role = 'superadmin' }: ClientsPageProps) {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* BUTTON SWITCHES TO DEDICATED FULL-PAGE ADD CLIENT VIEW */}
-          <button
-            onClick={() => setViewMode('add')}
-            className="px-4 py-2.5 bg-[#6B3BF6] hover:bg-[#5833E0] text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-98"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ Add New Client</span>
-          </button>
-        </div>
+        {canAddClient && (
+          <div className="flex items-center gap-3">
+            {/* BUTTON SWITCHES TO DEDICATED FULL-PAGE ADD CLIENT VIEW */}
+            <button
+              onClick={() => setViewMode('add')}
+              className="px-4 py-2.5 bg-[#6B3BF6] hover:bg-[#5833E0] text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-98"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Add New Client</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 2. SUMMARY KPI METRIC CARDS */}

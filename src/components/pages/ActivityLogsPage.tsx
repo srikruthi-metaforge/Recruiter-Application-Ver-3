@@ -390,14 +390,14 @@ export function ActivityLogsPage({ role = 'superadmin', logs }: ActivityLogsPage
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">System Activity & Audit Logs</h1>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">System Audit Logs</h1>
             <span className="px-3 py-1 bg-purple-50 text-[#6B3BF6] text-xs font-extrabold rounded-full border border-purple-200 flex items-center gap-1.5 shadow-2xs">
               <Activity className="w-3.5 h-3.5 text-[#6B3BF6]" />
-              <span>Real-Time User Action Stream</span>
+              <span>Immutable Audit Trail</span>
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Complete audit trail of user actions performed by Team Leads, Recruiters, Admins, and Super Admins
+            Official system audit trail of all operational events, requirement assignments, candidate submissions, and security actions
           </p>
         </div>
 

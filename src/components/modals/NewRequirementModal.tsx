@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { X, Briefcase, Plus, Sparkles, DollarSign } from 'lucide-react'
+import { X, Briefcase, Plus, Sparkles, DollarSign, Bookmark } from 'lucide-react'
 import { Priority, Requirement } from '../../types'
+import { saveDraftItem } from '../../data/savedDraftsStore'
 
 interface NewRequirementModalProps {
   isOpen: boolean
@@ -167,8 +168,25 @@ export function NewRequirementModal({ isOpen, onClose, onAdd }: NewRequirementMo
               Cancel
             </button>
             <button
+              type="button"
+              onClick={() => {
+                saveDraftItem({
+                  type: 'requirement',
+                  title: title || 'Draft Requirement',
+                  subtitle: `Client: ${client || 'Internal'} • Priority: ${priority} • Budget: ${budget}`,
+                  createdBy: 'Harish Gadipally',
+                  status: 'Saved for Later',
+                  data: { title, client, priority, openings, budget, dueDate, skillsStr },
+                })
+                onClose()
+              }}
+              className="px-4 h-10 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 font-sans cursor-pointer active:scale-98"
+            >
+              <Bookmark className="w-4 h-4 text-amber-600" /> Save for Later
+            </button>
+            <button
               type="submit"
-              className="px-5 h-10 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all flex items-center gap-2 font-sans"
+              className="px-5 h-10 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all flex items-center gap-2 font-sans cursor-pointer active:scale-98"
             >
               <Plus className="w-4 h-4" /> Publish Requirement
             </button>

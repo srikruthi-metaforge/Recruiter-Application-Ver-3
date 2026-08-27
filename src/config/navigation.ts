@@ -46,7 +46,6 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Intelligence',
       items: [
         { key: 'Reports', label: 'Reports' },
-        { key: 'Activity Logs', label: 'Activity Logs' },
       ],
     },
     {
@@ -74,10 +73,10 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       ],
     },
     {
-      title: 'Tools',
+      title: 'Tools & System',
       items: [
         { key: 'Reports', label: 'Reports' },
-        { key: 'Activity Logs', label: 'Activity Logs' },
+        { key: 'Audit Logs', label: 'Audit Logs' },
       ],
     },
   ],
@@ -134,7 +133,6 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Intelligence',
       items: [
         { key: 'Reports', label: 'Reports' },
-        { key: 'Activity Logs', label: 'Activity Logs' },
       ],
     },
     {

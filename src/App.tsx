@@ -151,10 +151,43 @@ export default function App() {
           : rec
       )
     )
+    handleAddActivityLog({
+      id: `LOG-${Date.now()}`,
+      timestamp: 'Just now',
+      userName: newSub.recruiter || currentUser.name,
+      userEmail: currentUser.email,
+      userRole: role,
+      userAvatar: (newSub.recruiter || currentUser.name).charAt(0).toUpperCase(),
+      action: `Submitted candidate ${newSub.candidate} for ${newSub.req}`,
+      category: 'Submissions',
+      targetEntity: `Candidate ${newSub.candidate}`,
+      targetId: newSub.id,
+      clientName: newSub.client,
+      ipAddress: '192.168.1.45',
+      status: 'Success',
+      details: `Submitted candidate profile to client ${newSub.client}`,
+    })
   }
 
   const handleSaveInterviewFeedback = (interviewId: string, status: InterviewStatus, notes: string) => {
     setInterviews(prev => prev.map(iv => (iv.id === interviewId ? { ...iv, status, notes } : iv)))
+    const targetIv = interviews.find(i => i.id === interviewId)
+    handleAddActivityLog({
+      id: `LOG-${Date.now()}`,
+      timestamp: 'Just now',
+      userName: currentUser.name,
+      userEmail: currentUser.email,
+      userRole: role,
+      userAvatar: currentUser.name.charAt(0).toUpperCase(),
+      action: `Recorded interview feedback (${status}) for ${targetIv?.candidateName || 'Candidate'}`,
+      category: 'Interviews',
+      targetEntity: `Interview ${interviewId}`,
+      targetId: interviewId,
+      clientName: targetIv?.clientName || 'Client',
+      ipAddress: '192.168.1.45',
+      status: 'Success',
+      details: notes || `Interview status updated to ${status}`,
+    })
   }
 
   const handleOpenSubmitForReq = (reqId?: string) => {
@@ -261,10 +294,14 @@ export default function App() {
               submissions={submissions}
               interviews={interviews}
               requirements={requirements}
+              activityLogs={activityLogs}
+              currentUserName={currentUser.name}
+              currentUserEmail={currentUser.email}
               onOpenSubmitCandidate={handleOpenSubmitCandidateFromDashboard}
               onOpenCandidateRepo={handleOpenSubmitCandidateFromDashboard}
               onOpenFeedbackModal={handleOpenFeedbackForInterview}
               onOpenCandidateDetail={handleOpenCandidateDetail}
+              onAddActivityLog={handleAddActivityLog}
             />
           )
       }
