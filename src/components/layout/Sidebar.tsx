@@ -1,34 +1,9 @@
 import React, { useState } from 'react'
-import {
-  FileText,
-  ClipboardList,
-  UserPlus,
-  Send,
-  Calendar,
-  BarChart3,
-  User,
-  LogOut,
-  Menu,
-  LayoutDashboard,
-  Building2,
-  Users,
-  Shield,
-  ShieldCheck,
-  Sparkles,
-  Plug,
-  Settings,
-  Mail,
-  Activity,
-  Search,
-  Target,
-  TrendingUp,
-  Bell,
-  Bot,
-  Terminal,
-} from 'lucide-react'
+import { Menu, LayoutDashboard, User, LogOut } from 'lucide-react'
 import { Role } from '../../types'
 import { ROLE_NAV } from '../../config/navigation'
 import { MetaforgeLogo } from '../common/MetaforgeLogo'
+import { ROLE_DASHBOARD_INFO, ICONS } from './sidebarConfig'
 
 interface SidebarProps {
   role: Role
@@ -37,94 +12,6 @@ interface SidebarProps {
   onNavSelect?: (nav: string) => void
   collapsed?: boolean
   onToggleCollapse?: () => void
-}
-
-const ROLE_DASHBOARD_INFO: Record<
-  Role,
-  {
-    dashboardName: string
-    roleLabel: string
-    icon: React.ElementType
-    accentGradient: string
-  }
-> = {
-  superadmin: {
-    dashboardName: 'Super Admin Dashboard',
-    roleLabel: 'Super Admin',
-    icon: Shield,
-    accentGradient: 'from-purple-600 to-indigo-600',
-  },
-  admin: {
-    dashboardName: 'Admin Dashboard',
-    roleLabel: 'Admin',
-    icon: ShieldCheck,
-    accentGradient: 'from-blue-600 to-indigo-600',
-  },
-  lead: {
-    dashboardName: 'Team Lead Dashboard',
-    roleLabel: 'Team Lead',
-    icon: Users,
-    accentGradient: 'from-cyan-600 to-blue-600',
-  },
-  recruiter: {
-    dashboardName: 'Recruiter Dashboard',
-    roleLabel: 'Recruiter',
-    icon: User,
-    accentGradient: 'from-emerald-600 to-teal-600',
-  },
-  client: {
-    dashboardName: 'Client Dashboard',
-    roleLabel: 'Client Portal',
-    icon: Building2,
-    accentGradient: 'from-amber-600 to-orange-600',
-  },
-  devteam: {
-    dashboardName: 'Dev Team Dashboard',
-    roleLabel: 'Dev Team',
-    icon: Terminal,
-    accentGradient: 'from-violet-600 to-indigo-600',
-  },
-}
-
-const ICONS: Record<string, React.ElementType> = {
-  Dashboard: FileText,
-  Requirements: ClipboardList,
-  Candidates: UserPlus,
-  Submissions: Send,
-  'Submission to Client': Send,
-  Interviews: Calendar,
-  Organization: Building2,
-  Users: Users,
-  Roles: Shield,
-  Clients: Building2,
-  'AI Center': Sparkles,
-  Reports: BarChart3,
-  Integrations: Plug,
-  Settings: Settings,
-  'Audit Logs': FileText,
-  Recruiters: Users,
-  Teams: Users,
-  Calendar: Calendar,
-  'Email Center': Mail,
-  'Activity Logs': Activity,
-  'My Team': Users,
-  Performance: TrendingUp,
-  Targets: Target,
-  'Candidate Search': Search,
-  Analytics: BarChart3,
-  Notifications: Bell,
-  'AI Assistant': Bot,
-  Profile: User,
-}
-
-const NAV_LABELS: Record<string, string> = {
-  Dashboard: 'My Workspace',
-  Requirements: 'Requirements',
-  Candidates: 'Add Candidate',
-  Submissions: 'Total Submissions',
-  'Submission to Client': 'Total Submissions',
-  Interviews: 'Interview Tracking',
-  Reports: 'Reports',
 }
 
 export function Sidebar({
@@ -157,56 +44,38 @@ export function Sidebar({
         boxShadow: '4px 0 24px rgba(0,0,0,0.12)',
       }}
     >
-      {/* Header — metaforge logo + hamburger button */}
       <div className="h-[72px] flex items-center justify-between px-4 flex-shrink-0 border-b border-white/[0.06]">
         {!isCollapsed ? (
           <>
             <MetaforgeLogo variant="light" size="xl" />
-            <button
-              onClick={handleToggle}
-              className="text-slate-300 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
-              aria-label="Toggle menu"
-            >
+            <button onClick={handleToggle} className="text-slate-300 hover:text-white p-1.5 rounded-lg hover:bg-white/10 cursor-pointer" aria-label="Toggle menu">
               <Menu className="w-5 h-5" />
             </button>
           </>
         ) : (
-          <button
-            onClick={handleToggle}
-            className="w-full flex items-center justify-center text-slate-300 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
-            aria-label="Expand menu"
-          >
+          <button onClick={handleToggle} className="w-full flex items-center justify-center text-slate-300 hover:text-white p-2 rounded-lg hover:bg-white/10 cursor-pointer" aria-label="Expand menu">
             <Menu className="w-5 h-5" />
           </button>
         )}
       </div>
 
-      {/* Role / Dashboard Name Indicator */}
       <div className="px-3 pt-3 pb-2 flex-shrink-0 border-b border-white/[0.06]">
         {!isCollapsed ? (
           <div className="px-3 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center gap-3">
-            <div
-              className={`w-8 h-8 rounded-lg bg-gradient-to-br ${roleInfo.accentGradient} flex items-center justify-center text-white shrink-0 shadow-md`}
-            >
+            <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${roleInfo.accentGradient} flex items-center justify-center text-white shrink-0 shadow-md`}>
               <RoleIcon className="w-4 h-4" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">
-                  {roleInfo.roleLabel}
-                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 truncate">{roleInfo.roleLabel}</span>
               </div>
-              <p className="text-xs font-bold text-white tracking-tight truncate leading-snug">
-                {roleInfo.dashboardName}
-              </p>
+              <p className="text-xs font-bold text-white tracking-tight truncate leading-snug">{roleInfo.dashboardName}</p>
             </div>
           </div>
         ) : (
           <div className="relative group flex justify-center py-1">
-            <div
-              className={`w-9 h-9 rounded-xl bg-gradient-to-br ${roleInfo.accentGradient} flex items-center justify-center text-white shadow-md cursor-default`}
-            >
+            <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${roleInfo.accentGradient} flex items-center justify-center text-white shadow-md cursor-default`}>
               <RoleIcon className="w-4 h-4" />
             </div>
             <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2.5 py-1.5 bg-slate-900 text-white text-xs rounded-md shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 border border-slate-700 font-semibold">
@@ -216,7 +85,6 @@ export function Sidebar({
         )}
       </div>
 
-      {/* Primary navigation */}
       <nav className="flex-1 py-3 px-3 space-y-2 overflow-y-auto sidebar-scroll">
         {mainNavItems.map(item => {
           const Icon = ICONS[item.key] || LayoutDashboard
@@ -228,20 +96,10 @@ export function Sidebar({
               <button
                 onClick={() => onNavSelect?.(item.key)}
                 className={`w-full flex items-center gap-3 rounded-xl transition-all duration-200 ${isCollapsed ? 'justify-center py-2' : 'px-3 py-2'
-                  } ${isActive
-                    ? 'text-white font-bold shadow-md shadow-[#6B3BF6]/20'
-                    : 'text-slate-300 hover:text-white hover:bg-white/[0.06] font-medium'
-                  }`}
-                style={
-                  isActive
-                    ? { background: 'linear-gradient(90deg, #6B3BF6 0%, #5833E0 100%)' }
-                    : undefined
-                }
+                  } ${isActive ? 'text-white font-bold shadow-md shadow-[#6B3BF6]/20' : 'text-slate-300 hover:text-white hover:bg-white/[0.06] font-medium'}`}
+                style={isActive ? { background: 'linear-gradient(90deg, #6B3BF6 0%, #5833E0 100%)' } : undefined}
               >
-                <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isActive ? 'bg-white/20' : 'bg-white/[0.08] group-hover:bg-white/12'
-                    }`}
-                >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isActive ? 'bg-white/20' : 'bg-white/[0.08] group-hover:bg-white/12'}`}>
                   <Icon className="w-4 h-4 text-white" strokeWidth={2} />
                 </div>
                 {!isCollapsed && <span className="text-sm font-semibold tracking-tight truncate">{label}</span>}
@@ -256,21 +114,13 @@ export function Sidebar({
         })}
       </nav>
 
-      {/* Footer — My Profile + Logout */}
       <div className="p-3 border-t border-white/[0.06] space-y-2 flex-shrink-0 mt-auto">
         <div className="relative group">
           <button
             onClick={() => onNavSelect?.('My Profile')}
             className={`w-full flex items-center gap-3 rounded-xl transition-all ${isCollapsed ? 'justify-center py-2' : 'px-3 py-2'
-              } ${activeNav === 'My Profile' || activeNav === 'Profile'
-                ? 'text-white font-bold shadow-md shadow-[#6B3BF6]/20'
-                : 'text-slate-300 hover:text-white hover:bg-white/[0.06] font-medium'
-              }`}
-            style={
-              activeNav === 'My Profile' || activeNav === 'Profile'
-                ? { background: 'linear-gradient(90deg, #6B3BF6 0%, #5833E0 100%)' }
-                : undefined
-            }
+              } ${activeNav === 'My Profile' || activeNav === 'Profile' ? 'text-white font-bold shadow-md shadow-[#6B3BF6]/20' : 'text-slate-300 hover:text-white hover:bg-white/[0.06] font-medium'}`}
+            style={activeNav === 'My Profile' || activeNav === 'Profile' ? { background: 'linear-gradient(90deg, #6B3BF6 0%, #5833E0 100%)' } : undefined}
           >
             <div className="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center shrink-0">
               <User className="w-4 h-4 text-white" strokeWidth={2} />
@@ -281,11 +131,7 @@ export function Sidebar({
 
         {onLogout && (
           <div className="relative group">
-            <button
-              onClick={onLogout}
-              className={`w-full flex items-center gap-3 rounded-xl text-slate-400 hover:text-rose-300 hover:bg-rose-500/10 transition-all ${isCollapsed ? 'justify-center py-2' : 'px-3 py-2'
-                }`}
-            >
+            <button onClick={onLogout} className={`w-full flex items-center gap-3 rounded-xl text-slate-400 hover:text-rose-300 hover:bg-rose-500/10 transition-all ${isCollapsed ? 'justify-center py-2' : 'px-3 py-2'}`}>
               <div className="w-8 h-8 rounded-lg bg-white/[0.06] flex items-center justify-center shrink-0 group-hover:bg-rose-500/15">
                 <LogOut className="w-4 h-4" strokeWidth={2} />
               </div>

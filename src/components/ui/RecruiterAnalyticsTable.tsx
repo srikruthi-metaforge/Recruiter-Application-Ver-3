@@ -1,275 +1,76 @@
-import React, { useState } from 'react'
-import { Filter, Calendar, Building2, Search, ArrowUpDown, AlertCircle, CheckCircle2, User, Layers } from 'lucide-react'
-import { Recruiter } from '../../types'
-import { ProgressBar } from './ProgressBar'
+import React, { useState, useMemo } from 'react'
+import { Search, Sliders, Trophy } from 'lucide-react'
+import { RecruiterAnalyticsData, RecruiterAnalyticsRow } from './RecruiterAnalyticsRow'
+import { RecruiterDetailAnalyticsModal } from '../modals/RecruiterDetailAnalyticsModal'
 
-interface RecruiterAnalyticsTableProps {
-  recruiters: Recruiter[]
-  title?: string
-  subtitle?: string
-}
+export type { RecruiterAnalyticsData }
 
-export function RecruiterAnalyticsTable({
-  recruiters,
-  title = 'Recruiter-Wise Performance Analytics',
-  subtitle = 'Comprehensive breakdown of requirements, interview stages (L1, L2, Custom, Final), weekly tasks, and client accounts',
-}: RecruiterAnalyticsTableProps) {
-  const [timeframe, setTimeframe] = useState<'Weekly' | 'Monthly' | 'Custom'>('Monthly')
-  const [selectedClient, setSelectedClient] = useState<string>('All')
-  const [selectedStatus, setSelectedStatus] = useState<string>('All')
-  const [selectedType, setSelectedType] = useState<string>('All')
+const MOCK_ANALYTICS_DATA: RecruiterAnalyticsData[] = [
+  { id: 'R01', name: 'Marcus Chen', lead: 'Harish Gadipally', admin: 'David Park', email: 'm.chen@talentflow.io', avatar: 'M', requirementsCount: 5, submissionsCount: 34, l1Interviews: 8, l2Interviews: 5, customInterviews: 3, finalInterviews: 2, placements: 2, weeklyProgress: 100, weeklyTarget: 10, taskStatus: 'POSITIVE', submissionType: 'Direct Sourcing', primaryClient: 'Accenture', tat: '1.8 Days' },
+  { id: 'R02', name: 'Priya Sharma', lead: 'Harish Gadipally', admin: 'David Park', email: 'p.sharma@talentflow.io', avatar: 'P', requirementsCount: 4, submissionsCount: 28, l1Interviews: 6, l2Interviews: 4, customInterviews: 2, finalInterviews: 3, placements: 3, weeklyProgress: 90, weeklyTarget: 10, taskStatus: 'POSITIVE', submissionType: 'LinkedIn Recruiter', primaryClient: 'Accenture', tat: '2.1 Days' },
+  { id: 'R03', name: 'James O\'Brien', lead: 'Tom Walsh', admin: 'David Park', email: 'j.obrien@talentflow.io', avatar: 'J', requirementsCount: 6, submissionsCount: 41, l1Interviews: 11, l2Interviews: 7, customInterviews: 4, finalInterviews: 4, placements: 4, weeklyProgress: 100, weeklyTarget: 10, taskStatus: 'POSITIVE', submissionType: 'Internal DB', primaryClient: 'Goldman Sachs', tat: '1.5 Days' },
+  { id: 'R04', name: 'Aisha Patel', lead: 'Tom Walsh', admin: 'David Park', email: 'a.patel@talentflow.io', avatar: 'A', requirementsCount: 3, submissionsCount: 19, l1Interviews: 4, l2Interviews: 2, customInterviews: 1, finalInterviews: 1, placements: 1, weeklyProgress: 50, weeklyTarget: 10, taskStatus: 'CRITICAL', submissionType: 'Agency Portal', primaryClient: 'Goldman Sachs', tat: '2.4 Days' },
+  { id: 'R05', name: 'Carlos Rivera', lead: 'Nina Brooks', admin: 'Lisa Ho', email: 'c.rivera@talentflow.io', avatar: 'C', requirementsCount: 5, submissionsCount: 37, l1Interviews: 9, l2Interviews: 6, customInterviews: 4, finalInterviews: 3, placements: 3, weeklyProgress: 100, weeklyTarget: 10, taskStatus: 'POSITIVE', submissionType: 'Referral', primaryClient: 'Tesla', tat: '1.6 Days' },
+]
+
+export function RecruiterAnalyticsTable() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedRecruiterModal, setSelectedRecruiterModal] = useState<RecruiterAnalyticsData | null>(null)
 
-  // Client options list (highlighting KPMG, Accenture, L&T, etc.)
-  const CLIENT_OPTIONS = ['All', 'KPMG', 'Accenture', 'L&T', 'Goldman Sachs', 'Tesla', 'Microsoft']
-
-  // Filter recruiters based on dropdown selections
-  const filteredRecruiters = recruiters.filter(r => {
-    const matchesSearch =
-      r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.lead.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.admin.toLowerCase().includes(searchQuery.toLowerCase())
-
-    const matchesClient = selectedClient === 'All' || r.primaryClient === selectedClient
-    const matchesStatus = selectedStatus === 'All' || r.taskStatus === selectedStatus
-    const matchesType = selectedType === 'All' || r.submissionType === selectedType
-
-    return matchesSearch && matchesClient && matchesStatus && matchesType
-  })
+  const filteredData = useMemo(() => {
+    if (!searchQuery.trim()) return MOCK_ANALYTICS_DATA
+    const q = searchQuery.toLowerCase()
+    return MOCK_ANALYTICS_DATA.filter(r => r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q))
+  }, [searchQuery])
 
   return (
-    <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs space-y-5">
-      {/* Header & Filter Controls Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-        <div>
-          <h3 className="text-base font-bold text-slate-900 font-sans tracking-tight flex items-center gap-2">
-            <Layers className="w-4 h-4 text-blue-600" /> {title}
-          </h3>
-          <p className="text-xs text-slate-500 font-mono mt-0.5">{subtitle}</p>
+    <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-4 font-sans">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-[#6B3BF6]">
+            <Trophy className="w-4 h-4" />
+          </div>
+          <div>
+            <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">Recruiter Granular Throughput Analytics</h2>
+            <p className="text-xs text-slate-500">Comprehensive audit of requirements assigned, submissions, interview stages, placements, and TAT</p>
+          </div>
         </div>
 
-        {/* Filter Dropdowns Strip */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Timeframe Dropdown */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-mono">
-            <Calendar className="w-3.5 h-3.5 text-slate-500" />
-            <span className="text-slate-400">Period:</span>
-            <select
-              value={timeframe}
-              onChange={e => setTimeframe(e.target.value as any)}
-              className="bg-transparent text-slate-900 font-bold focus:outline-none font-mono cursor-pointer"
-            >
-              <option value="Weekly">Weekly</option>
-              <option value="Monthly">Monthly</option>
-              <option value="Custom">Custom Range</option>
-            </select>
-          </div>
-
-          {/* Client Performance Filter Dropdown (KPMG, Accenture, L&T, etc.) */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-mono">
-            <Building2 className="w-3.5 h-3.5 text-blue-600" />
-            <span className="text-slate-400">Client:</span>
-            <select
-              value={selectedClient}
-              onChange={e => setSelectedClient(e.target.value)}
-              className="bg-transparent text-slate-900 font-bold focus:outline-none font-mono cursor-pointer"
-            >
-              {CLIENT_OPTIONS.map(c => (
-                <option key={c} value={c}>
-                  {c === 'All' ? 'All Clients' : c}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Status Condition Filter */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-mono">
-            <span className="text-slate-400">Status:</span>
-            <select
-              value={selectedStatus}
-              onChange={e => setSelectedStatus(e.target.value)}
-              className="bg-transparent text-slate-900 font-bold focus:outline-none font-mono cursor-pointer"
-            >
-              <option value="All">All Statuses</option>
-              <option value="POSITIVE">🟢 POSITIVE (Task Met)</option>
-              <option value="CRITICAL">🔴 CRITICAL (Lagging)</option>
-            </select>
-          </div>
-
-          {/* Submission Type Filter */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-mono">
-            <span className="text-slate-400">Sourcing:</span>
-            <select
-              value={selectedType}
-              onChange={e => setSelectedType(e.target.value)}
-              className="bg-transparent text-slate-900 font-bold focus:outline-none font-mono cursor-pointer"
-            >
-              <option value="All">All Sourcing Types</option>
-              <option value="Direct Sourcing">Direct Sourcing</option>
-              <option value="LinkedIn Recruiter">LinkedIn Recruiter</option>
-              <option value="Internal DB">Internal DB</option>
-              <option value="Agency Portal">Agency Portal</option>
-              <option value="Referral">Referral</option>
-            </select>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Filter recruiters…" className="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#6B3BF6]" />
           </div>
         </div>
       </div>
 
-      {/* Recruiter Wise Performance Data Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs text-left">
+      <div className="border border-slate-200 rounded-2xl overflow-x-auto shadow-2xs">
+        <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="border-b border-slate-200/80 bg-slate-50/70 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
-              <th className="py-3.5 px-4">Recruiter Info</th>
-              <th className="py-3.5 px-4 text-center">Total Reqs</th>
-              <th className="py-3.5 px-4 text-center">Total Subs</th>
-              <th className="py-3.5 px-4">Interviews Stage Breakdown (L1 / L2 / Custom / Final)</th>
-              <th className="py-3.5 px-4 w-44">Weekly Task & Progress</th>
-              <th className="py-3.5 px-4 text-center">Task Status</th>
-              <th className="py-3.5 px-4">Submission Sourcing Type</th>
-              <th className="py-3.5 px-4">Primary Client Account</th>
+            <tr className="bg-[#1E3A8A] text-white text-[10px] font-bold uppercase tracking-wider">
+              <th className="py-2.5 px-4">Recruiter</th>
+              <th className="py-2.5 px-3 text-center">Reqs</th>
+              <th className="py-2.5 px-3 text-center">Submissions</th>
+              <th className="py-2.5 px-3 text-center bg-purple-900/60">L1</th>
+              <th className="py-2.5 px-3 text-center bg-purple-900/60">L2</th>
+              <th className="py-2.5 px-3 text-center bg-purple-900/60">Custom</th>
+              <th className="py-2.5 px-3 text-center bg-purple-900/60">Final</th>
+              <th className="py-2.5 px-3 text-center bg-emerald-900/60">Placed</th>
+              <th className="py-2.5 px-3 text-center">TAT</th>
+              <th className="py-2.5 px-3 text-center">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
-            {filteredRecruiters.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="py-12 text-center text-xs font-mono text-slate-400">
-                  No recruiter performance data found matching current filter criteria.
-                </td>
-              </tr>
-            ) : (
-              filteredRecruiters.map(r => {
-                const totalInt = r.interviews || (r.l1Interviews + r.l2Interviews + r.customInterviews + r.finalInterviews)
-                const isPositive = r.taskStatus === 'POSITIVE'
-
-                return (
-                  <tr key={r.id} className="hover:bg-slate-50/70 transition-colors">
-                    {/* Recruiter Name & Email */}
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold font-mono shadow-xs ${
-                            isPositive ? 'bg-indigo-600' : 'bg-rose-500'
-                          }`}
-                        >
-                          {r.name
-                            .split(' ')
-                            .map(n => n[0])
-                            .join('')}
-                        </div>
-                        <div>
-                          <p className="font-bold text-slate-900 font-sans text-sm">{r.name}</p>
-                          <p className="text-[10px] font-mono text-slate-400">
-                            Lead: {r.lead} · Admin: {r.admin}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Total Requirements */}
-                    <td className="py-3.5 px-4 text-center">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-slate-100 text-slate-800 border border-slate-200">
-                        {r.requirementsCount || 4} Reqs
-                      </span>
-                    </td>
-
-                    {/* Total Submissions */}
-                    <td className="py-3.5 px-4 text-center">
-                      <p className="text-sm font-bold font-mono text-blue-600">{r.submissions}</p>
-                      <p className="text-[9px] font-mono text-slate-400">+{r.today} today</p>
-                    </td>
-
-                    {/* Total Interviews Breakdown (L1, L2, Custom, Final) */}
-                    <td className="py-3.5 px-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold font-mono text-slate-900">{totalInt} Total Interviews</span>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-1 font-mono text-[10px]">
-                          <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-semibold" title="Level 1 Technical">
-                            L1: {r.l1Interviews}
-                          </span>
-                          <span className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold" title="Level 2 Technical">
-                            L2: {r.l2Interviews}
-                          </span>
-                          <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 font-semibold" title="Custom Client Round">
-                            Custom: {r.customInterviews}
-                          </span>
-                          <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold" title="Final HR / Manager Round">
-                            Final: {r.finalInterviews}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Daily Task & Weekly Progress */}
-                    <td className="py-3.5 px-4">
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-[10px] font-mono">
-                          <span className="text-slate-500">Weekly Quota</span>
-                          <span className="font-bold text-slate-900">{r.weeklyProgress}%</span>
-                        </div>
-                        <ProgressBar
-                          value={r.weeklyProgress}
-                          max={100}
-                          color={isPositive ? '#10B981' : '#F43F5E'}
-                          height="h-2"
-                        />
-                      </div>
-                    </td>
-
-                    {/* Task Status Condition Badge (POSITIVE in Green vs CRITICAL in Red) */}
-                    <td className="py-3.5 px-4 text-center">
-                      {isPositive ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-2xs">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> POSITIVE
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono font-extrabold bg-rose-50 text-rose-700 border border-rose-300 shadow-2xs">
-                          <AlertCircle className="w-3 h-3 text-rose-600" /> CRITICAL
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Submission Sourcing Type */}
-                    <td className="py-3.5 px-4 font-mono text-xs">
-                      <span className="inline-block px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-semibold">
-                        {r.submissionType}
-                      </span>
-                    </td>
-
-                    {/* Primary Client Performance Account (KPMG, Accenture, L&T, etc.) */}
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-1.5">
-                        <Building2 className="w-3.5 h-3.5 text-blue-600" />
-                        <div>
-                          <p className="font-bold text-slate-900 font-sans text-xs">{r.primaryClient}</p>
-                          <p className="text-[10px] font-mono text-emerald-600 font-semibold">
-                            {r.placements} Placements
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })
-            )}
+          <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+            {filteredData.map(row => (
+              <RecruiterAnalyticsRow key={row.id} row={row} onSelect={setSelectedRecruiterModal} />
+            ))}
           </tbody>
         </table>
       </div>
 
-      {/* Footer Metadata */}
-      <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-mono text-slate-500">
-        <span>Showing {filteredRecruiters.length} recruiter metrics</span>
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1 text-emerald-600 font-bold">
-            🟢 POSITIVE: Task target condition met
-          </span>
-          <span className="flex items-center gap-1 text-rose-600 font-bold">
-            🔴 CRITICAL: Below weekly target threshold
-          </span>
-        </div>
-      </div>
+      {selectedRecruiterModal && (
+        <RecruiterDetailAnalyticsModal data={selectedRecruiterModal as any} onClose={() => setSelectedRecruiterModal(null)} />
+      )}
     </div>
   )
 }

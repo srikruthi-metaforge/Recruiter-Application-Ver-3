@@ -1,10 +1,8 @@
-import React, { useState } from 'react'
-import { Requirement, Submission, Interview, Recruiter, Candidate, ActivityLogItem } from '../../types'
+import React, { useState, useEffect } from 'react'
+import { Requirement, Submission, Interview, Recruiter, Candidate, ActivityLogItem, Role } from '../../types'
 import { PAGE_META, getPageTitle } from '../../config/navigation'
-import { Panel, DataTable, QuickActions, PriorityLegend } from '../wireframe/WireframeKit'
+import { Panel, DataTable, QuickActions } from '../wireframe/WireframeKit'
 import { PageHeader } from '../layout/PageHeader'
-import { Role } from '../../types'
-import { PremiumReportsAnalytics } from '../dashboards/PremiumReportsAnalytics'
 import { RequirementsPage } from './RequirementsPage'
 import { AddCandidatePage } from './AddCandidatePage'
 import { CandidateRepositoryPage } from './CandidateRepositoryPage'
@@ -12,15 +10,12 @@ import { SubmissionsPage } from './SubmissionsPage'
 import { MyProfilePage } from './MyProfilePage'
 import { InterviewTrackingPage } from './InterviewTrackingPage'
 import { ReportsPage } from './ReportsPage'
-import { RolesPermissionsPage } from './RolesPermissionsPage'
 import { ClientsPage } from './ClientsPage'
 import { UserManagementPage } from './UserManagementPage'
 import { ActivityLogsPage } from './ActivityLogsPage'
-import { TeamsPage } from './TeamsPage'
-import { MyTeamPage } from './MyTeamPage'
-import { RecruitersPage } from './RecruitersPage'
 import { TeamsRecruitersPage } from './TeamsRecruitersPage'
 import { HistoryPage } from './HistoryPage'
+import { MyTeamPage } from './MyTeamPage'
 import { INITIAL_CANDIDATES } from '../../data/mockData'
 
 interface ModulePageProps {
@@ -52,11 +47,9 @@ export function ModulePage({
   activityLogs = [],
   onOpenSubmit,
   onOpenFeedback,
-  onOpenCandidate,
   onUpdateRequirements,
   onSelectRequirement,
   onAddActivityLog,
-  onNavigateToDashboard,
 }: ModulePageProps) {
   const [candidatesList, setCandidatesList] = useState<Candidate[]>(INITIAL_CANDIDATES)
   const [candidateViewMode, setCandidateViewMode] = useState<'add' | 'repository'>(() => {
@@ -74,7 +67,7 @@ export function ModulePage({
     } catch {}
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedReqId) {
       setCandidateViewMode('repository')
       try {
@@ -83,43 +76,15 @@ export function ModulePage({
     }
   }, [selectedReqId, pageKey])
 
-  if (pageKey === 'My Profile' || pageKey === 'Profile') {
-    return <MyProfilePage role={role as any} />
-  }
-
-  if (pageKey === 'Reports' || pageKey === 'Reports & Analytics') {
-    return <ReportsPage role={role} />
-  }
-
-  if (pageKey === 'Roles' || pageKey === 'Roles & Permissions') {
-    return <UserManagementPage role={role} initialTab="role_definitions" />
-  }
-
-  if (pageKey === 'Clients' || pageKey === 'Client Management') {
-    return <ClientsPage role={role} />
-  }
-
-  if (pageKey === 'Users' || pageKey === 'User Management') {
-    return <UserManagementPage role={role} />
-  }
-
-  if (pageKey === 'Recruiters' || pageKey === 'Teams' || pageKey === 'Teams & Recruiters') {
-    return <TeamsRecruitersPage role={role} />
-  }
-
-  if (pageKey === 'Activity Logs' || pageKey === 'Audit Logs') {
-    return <ActivityLogsPage role={role} logs={activityLogs} />
-  }
-
-  if (pageKey === 'History' || pageKey === 'Recruiter History' || pageKey === 'Performance History') {
-    return <HistoryPage role={role} />
-  }
-
-  if (pageKey === 'My Team') {
-    return <MyTeamPage />
-  }
-
-  const meta = PAGE_META[pageKey]
+  if (pageKey === 'My Profile' || pageKey === 'Profile') return <MyProfilePage role={role as any} />
+  if (pageKey === 'Reports' || pageKey === 'Reports & Analytics') return <ReportsPage role={role} />
+  if (pageKey === 'Roles' || pageKey === 'Roles & Permissions') return <UserManagementPage role={role} initialTab="role_definitions" />
+  if (pageKey === 'Clients' || pageKey === 'Client Management') return <ClientsPage role={role} />
+  if (pageKey === 'Users' || pageKey === 'User Management') return <UserManagementPage role={role} />
+  if (pageKey === 'Recruiters' || pageKey === 'Teams' || pageKey === 'Teams & Recruiters') return <TeamsRecruitersPage role={role} />
+  if (pageKey === 'Activity Logs' || pageKey === 'Audit Logs') return <ActivityLogsPage role={role} logs={activityLogs} />
+  if (pageKey === 'History' || pageKey === 'Recruiter History' || pageKey === 'Performance History') return <HistoryPage role={role} />
+  if (pageKey === 'My Team') return <MyTeamPage />
 
   if (pageKey === 'Requirements') {
     return (
@@ -150,15 +115,12 @@ export function ModulePage({
         />
       )
     }
-
     return (
       <AddCandidatePage
         requirements={requirements}
         selectedReqId={selectedReqId}
         onOpenRepository={() => handleCandidateViewModeChange('repository')}
-        onAddCandidate={newCandidate => {
-          setCandidatesList([newCandidate, ...candidatesList])
-        }}
+        onAddCandidate={newCandidate => setCandidatesList([newCandidate, ...candidatesList])}
       />
     )
   }
@@ -176,23 +138,16 @@ export function ModulePage({
   }
 
   if (pageKey === 'Interviews' || pageKey === 'Interview Tracking') {
-    return (
-      <InterviewTrackingPage
-        role={role}
-        interviews={interviews}
-        onOpenFeedbackModal={onOpenFeedback}
-      />
-    )
+    return <InterviewTrackingPage role={role} interviews={interviews} onOpenFeedbackModal={onOpenFeedback} />
   }
 
+  const meta = PAGE_META[pageKey]
   if (!meta) {
     return (
       <div className="space-y-6 w-full pb-12 font-sans">
         <PageHeader title={getPageTitle(role, pageKey)} />
         <Panel title={pageKey}>
-          <p className="text-sm text-slate-600">
-            Module wireframe — content for {pageKey} will appear here.
-          </p>
+          <p className="text-sm text-slate-600">Module wireframe — content for {pageKey} will appear here.</p>
         </Panel>
       </div>
     )

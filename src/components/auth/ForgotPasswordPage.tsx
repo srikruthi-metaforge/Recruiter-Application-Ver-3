@@ -1,27 +1,21 @@
 import React, { useState } from 'react'
-import { Mail, Key, CheckCircle2, ArrowLeft } from 'lucide-react'
-import { AuthLayout } from './AuthLayout'
-import { DEMO_ACCOUNTS, ROLE_META } from '../../data/mockData'
-import { Role } from '../../types'
+import { ArrowRight, CheckCircle2, Mail } from 'lucide-react'
 
 interface ForgotPasswordPageProps {
+  initialEmail?: string
   onBack: () => void
-  onSent: () => void
+  onSent?: () => void
 }
 
-export function ForgotPasswordPage({ onBack, onSent }: ForgotPasswordPageProps) {
-  const [email, setEmail] = useState('')
+export function ForgotPasswordPage({ initialEmail, onBack }: ForgotPasswordPageProps) {
+  const [email, setEmail] = useState(initialEmail || '')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
 
-  const handleSubmit = (e?: React.FormEvent) => {
-    if (e) e.preventDefault()
-    if (!email) {
-      setError('Work email address is required')
-      return
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError('Enter a valid work email address')
       return
     }
@@ -36,96 +30,77 @@ export function ForgotPasswordPage({ onBack, onSent }: ForgotPasswordPageProps) 
 
   if (sent) {
     return (
-      <AuthLayout>
-        <div className="bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-10 lg:p-12 shadow-2xl shadow-slate-900/5">
-          <div className="w-14 h-14 bg-blue-50 border border-blue-200 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
-            <Mail className="w-7 h-7" />
+      <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4 font-sans">
+        <div className="bg-white border border-slate-200/90 rounded-3xl p-8 shadow-2xl max-w-md w-full text-center animate-in fade-in duration-200">
+          <div className="w-14 h-14 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-sm">
+            <CheckCircle2 className="w-7 h-7" />
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 font-sans tracking-tight mb-2">Check your inbox</h1>
-          <p className="text-sm text-slate-500 font-normal mb-6 leading-relaxed">
-            We sent password reset recovery instructions to <span className="text-slate-900 font-semibold">{email}</span>.
+          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-2">Instructions Sent!</h2>
+          <p className="text-xs text-slate-500 font-medium mb-6">
+            We sent password reset recovery instructions to <span className="font-bold text-slate-800">{email}</span>.
           </p>
-
           <button
+            type="button"
             onClick={onBack}
-            className="w-full h-12 sm:h-13 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full py-3.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold rounded-2xl text-sm shadow-md shadow-blue-500/20 transition-all cursor-pointer"
           >
-            ← Back to Sign In
+            ← Back to Login
           </button>
         </div>
-      </AuthLayout>
+      </div>
     )
   }
 
   return (
-    <AuthLayout>
-      <div className="bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-10 lg:p-12 shadow-2xl shadow-slate-900/5">
-        <button
-          onClick={onBack}
-          className="inline-flex items-center gap-2 text-xs font-mono font-semibold text-slate-500 hover:text-slate-900 mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" /> Back to sign in
-        </button>
-
-        <div className="w-14 h-14 bg-amber-50 border border-amber-200 text-amber-600 rounded-2xl flex items-center justify-center mb-6">
-          <Key className="w-7 h-7" />
-        </div>
-
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-sans tracking-tight mb-2">Reset password</h1>
-        <p className="text-sm text-slate-500 mb-8 font-normal leading-relaxed">
-          Enter your registered work email and we'll send password recovery instructions instantly.
+    <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 font-sans">
+      {/* CARD MATCHING USER SCREENSHOT 4 */}
+      <div className="bg-white border border-slate-200/90 rounded-3xl p-7 sm:p-9 shadow-2xl shadow-slate-900/5 max-w-md w-full animate-in fade-in duration-200">
+        {/* TITLE & DESCRIPTION */}
+        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight text-center">Forgot Password</h1>
+        <p className="text-xs text-slate-500 text-center mt-2 max-w-xs mx-auto leading-relaxed font-normal">
+          Enter your email and we&apos;ll send you instructions to reset your password.
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="block text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
-              Work Email Address
-            </label>
-            <div className="relative">
-              <Mail className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+        <form onSubmit={handleSubmit} className="space-y-4 mt-6" noValidate>
+          {/* EMAIL */}
+          <div>
+            <label className="text-xs font-bold text-slate-700 mb-1.5 block">Email</label>
+            <div className="bg-[#F8FAFC] border border-slate-200 rounded-2xl focus-within:border-blue-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-600/10 px-3.5 py-3 flex items-center gap-2.5 transition-all">
+              <Mail className="w-4 h-4 text-slate-400 shrink-0" />
               <input
                 type="email"
-                placeholder="you@company.com"
                 value={email}
                 onChange={e => {
                   setEmail(e.target.value)
                   setError('')
                 }}
-                className={`w-full h-12 sm:h-13 pl-12 pr-4 text-sm font-medium bg-slate-50/70 border rounded-xl focus:outline-none transition-all ${
-                  error ? 'border-rose-400 bg-rose-50/50 text-rose-900' : 'border-slate-300 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-600/10'
-                }`}
+                placeholder="you@example.com"
+                className="w-full bg-transparent text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none"
               />
             </div>
-            {error && <p className="text-xs font-mono text-rose-500 mt-1">{error}</p>}
+            {error && <p className="text-[11px] text-rose-500 font-medium mt-1">{error}</p>}
           </div>
 
-          {/* Quick Demo Helper */}
-          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-xs space-y-2">
-            <p className="font-mono text-[10px] text-slate-400 uppercase tracking-wider font-bold">Quick Demo Emails:</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-              {(Object.entries(DEMO_ACCOUNTS) as [Role, typeof DEMO_ACCOUNTS[Role]][]).map(([r, acc]) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setEmail(acc.email)}
-                  className="text-left text-xs font-mono text-blue-600 hover:text-blue-800 hover:underline truncate font-mono"
-                >
-                  {ROLE_META[r].label}: {acc.email}
-                </button>
-              ))}
-            </div>
-          </div>
-
+          {/* SUBMIT BUTTON */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-12 sm:h-13 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm transition-all shadow-lg shadow-blue-600/25 disabled:opacity-60 font-sans cursor-pointer"
+            className="w-full py-3.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold rounded-2xl text-sm shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer mt-6 disabled:opacity-60"
           >
-            {loading ? 'Sending Instructions...' : 'Send Password Reset Link'}
+            <span>{loading ? 'Sending Instructions...' : 'Send Reset Instructions'}</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
         </form>
+
+        {/* FOOTER */}
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-xs font-semibold text-slate-500 hover:text-slate-800 text-center mt-6 cursor-pointer block mx-auto transition-colors"
+        >
+          ← Back to Login
+        </button>
       </div>
-    </AuthLayout>
+    </div>
   )
 }
-

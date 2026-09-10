@@ -6,9 +6,10 @@ interface RevokeRequirementModalProps {
   isOpen: boolean
   onClose: () => void
   requirement: Requirement | null
-  userRole: Role
-  currentUserName: string
-  onSubmitRevoke: (reqId: string, reason: string, isDirectRevoke: boolean) => void
+  userRole?: Role
+  currentUserName?: string
+  onSubmitRevoke?: (reqId: string, reason: string, isDirectRevoke: boolean) => void
+  onConfirm?: (reqId: string, reason: string) => void
 }
 
 const PRESET_REASONS = [
@@ -24,9 +25,10 @@ export function RevokeRequirementModal({
   isOpen,
   onClose,
   requirement,
-  userRole,
-  currentUserName,
+  userRole = 'superadmin',
+  currentUserName = '',
   onSubmitRevoke,
+  onConfirm,
 }: RevokeRequirementModalProps) {
   const [selectedReason, setSelectedReason] = useState<string>(PRESET_REASONS[0])
   const [customNotes, setCustomNotes] = useState<string>('')
@@ -44,7 +46,11 @@ export function RevokeRequirementModal({
         ? `${selectedReason} - ${customNotes.trim()}`
         : selectedReason
 
-    onSubmitRevoke(requirement.id, fullReason, canDirectRevoke)
+    if (onConfirm) {
+      onConfirm(requirement.id, fullReason)
+    } else if (onSubmitRevoke) {
+      onSubmitRevoke(requirement.id, fullReason, canDirectRevoke)
+    }
     onClose()
     setCustomNotes('')
     setSelectedReason(PRESET_REASONS[0])

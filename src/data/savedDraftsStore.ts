@@ -6,6 +6,14 @@ export interface SavedDraftItem {
   savedAt: string
   createdBy: string
   status?: string
+  candidateName?: string
+  currentCompany?: string
+  contactNumber?: string
+  email?: string
+  experience?: string
+  skills?: string
+  technologies?: string
+  parsedFileName?: string
   data: any
 }
 

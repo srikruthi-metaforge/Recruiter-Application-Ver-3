@@ -89,8 +89,8 @@ export function formatDurationShort(seconds: number): string {
  */
 export function canViewScreenTime(
   currentUserRole: string,
-  currentUserName: string,
-  targetRecruiterName: string,
+  currentUserName: string = '',
+  targetRecruiterName: string = '',
   targetTeamLeadName?: string
 ): boolean {
   if (!currentUserName || !targetRecruiterName) return false

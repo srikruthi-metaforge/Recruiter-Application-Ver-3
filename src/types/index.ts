@@ -40,6 +40,7 @@ export interface Requirement {
   revokeReason?: string
   revokeRequestedBy?: string
   revokeRequestedAt?: string
+  revokeStatus?: 'Pending' | 'Approved' | 'Declined'
   sla?: string
 }
 
@@ -47,11 +48,13 @@ export interface ActivityLogItem {
   id: string
   timestamp: string
   userName: string
+  user?: string
   userEmail: string
   userRole: Role
+  role?: Role
   userAvatar: string
   action: string
-  category: 'Submissions' | 'Requirements' | 'User Management' | 'Client Management' | 'Interviews' | 'System & Access'
+  category: 'Submissions' | 'Requirements' | 'User Management' | 'Client Management' | 'Interviews' | 'System & Access' | 'Candidate Submission' | 'Requirement Management' | 'Candidate Upload' | 'Forward Loop Approval' | string
   targetEntity: string
   targetId?: string
   clientName?: string
@@ -81,8 +84,8 @@ export interface Recruiter {
   finalInterviews: number
   weeklyProgress: number
   weeklyTarget: number
-  taskStatus: 'POSITIVE' | 'CRITICAL'
-  submissionType: 'Direct Sourcing' | 'LinkedIn Recruiter' | 'Agency Portal' | 'Referral' | 'Internal DB'
+  taskStatus: 'POSITIVE' | 'CRITICAL' | 'ON_TRACK' | 'NEEDS_FOCUS' | 'EXCEEDING'
+  submissionType: 'Direct Sourcing' | 'LinkedIn Recruiter' | 'Agency Portal' | 'Referral' | 'Internal DB' | 'Database Search' | 'LinkedIn InMail'
   primaryClient: string
   tat?: string // Turn Around Time
 }
