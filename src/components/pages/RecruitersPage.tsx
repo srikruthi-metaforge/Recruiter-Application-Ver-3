@@ -20,9 +20,12 @@ import {
   Plus,
   X,
   User,
+  Lock,
 } from 'lucide-react'
 import { Role } from '../../types'
 import { PaginationFooter } from '../ui/PaginationFooter'
+import { DEMO_ACCOUNTS } from '../../data/mockData'
+import { getRecruiterScreenTime, formatDurationShort, canViewScreenTime } from '../../utils/screenTimeTracker'
 
 export interface RecruiterOverviewItem {
   id: string
@@ -512,6 +515,9 @@ export function RecruitersPage({ role = 'superadmin' }: RecruitersPageProps) {
               <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                 <th className="py-3.5 px-4">#</th>
                 <th className="py-3.5 px-4">RECRUITER NAME</th>
+                {role !== 'recruiter' && (
+                  <th className="py-3.5 px-4 text-center">SCREEN TIME (RECORDED)</th>
+                )}
                 <th className="py-3.5 px-4">TEAM LEAD</th>
                 <th className="py-3.5 px-4">ASSIGNED CLIENT(S)</th>
                 <th className="py-3.5 px-4 text-center">TOTAL REQUIREMENTS</th>
@@ -549,6 +555,38 @@ export function RecruitersPage({ role = 'superadmin' }: RecruitersPageProps) {
                         </div>
                       </div>
                     </td>
+
+                    {/* SCREEN TIME (RECORDED) */}
+                    {role !== 'recruiter' && (
+                      <td className="py-4 px-4 whitespace-nowrap text-center">
+                        {(() => {
+                          const currentUser = DEMO_ACCOUNTS[role] || { name: 'Current User' }
+                          const isAllowed = canViewScreenTime(role, currentUser.name, recruiter.name, recruiter.teamLead)
+                          if (!isAllowed) {
+                            return (
+                              <span
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-100 text-slate-400 border border-slate-200 text-[11px] font-bold"
+                                title="Screen time privacy: Only visible to self, team lead, and admin"
+                              >
+                                <Lock className="w-3 h-3 text-slate-400" />
+                                <span>Private</span>
+                              </span>
+                            )
+                          }
+                          const recST = getRecruiterScreenTime(recruiter.name)
+                          return (
+                            <div className="flex flex-col items-center">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-purple-50 text-[#6B3BF6] border border-purple-200 text-xs font-black">
+                                <Clock className="w-3 h-3 text-[#6B3BF6]" />
+                                <span>{formatDurationShort(recST.activeSeconds)}</span>
+                                <span className={`w-1.5 h-1.5 rounded-full ${recST.status === 'Active' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                              </span>
+                              <span className="text-[9px] text-slate-400 font-semibold mt-0.5">Recorded Usage</span>
+                            </div>
+                          )
+                        })()}
+                      </td>
+                    )}
 
                     {/* TEAM LEAD */}
                     <td className="py-4 px-4 whitespace-nowrap font-extrabold text-slate-800">

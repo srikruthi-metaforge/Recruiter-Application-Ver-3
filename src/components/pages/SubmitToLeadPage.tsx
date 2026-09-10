@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import {
   ArrowLeft,
   Check,
@@ -35,6 +35,7 @@ import {
   rejectForwardRequest,
   ForwardRequest,
 } from '../../data/forwardRequestsStore'
+import { checkDuplicateSubmission } from '../../data/submissionsStore'
 
 interface SubmitToLeadPageProps {
   selectedCandidates?: any[]
@@ -598,7 +599,35 @@ export function SubmitToLeadPage({
     showToast('New editable row added to submission tracker!')
   }
 
+  // Duplicate Check computation for attached candidates / tracker rows
+  const duplicateCheckResults = useMemo(() => {
+    if (!trackerRows || trackerRows.length === 0) return []
+    return trackerRows.map(row => {
+      const candidateName = row['Candidate Name'] || row['Full Name of the candidate'] || row['First Name']
+      const email = row['Email id'] || row['Mail ID'] || row['Email ID']
+      const phone = row['Contact Number'] || row['MOBILE NO'] || row['Candidate Mobile Number']
+      const candidateId = row['Sl No'] || row['RV ID']
+      return {
+        row,
+        candidateName: candidateName || 'Selected Candidate',
+        ...checkDuplicateSubmission(currentReqId, {
+          email,
+          phone,
+          candidateId,
+          name: candidateName,
+        }),
+      }
+    })
+  }, [trackerRows, currentReqId])
+
+  const hasDuplicateSubmission = duplicateCheckResults.some((r: any) => r.isDuplicate)
+  const firstDuplicate = duplicateCheckResults.find((r: any) => r.isDuplicate)
+
   const handleSubmitFinal = () => {
+    if (hasDuplicateSubmission && firstDuplicate) {
+      showToast(`⚠️ Duplicate Submission: Candidate "${firstDuplicate.candidateName}" has already been submitted for this requirement. Cannot submit!`)
+      return
+    }
     showToast(`Sent for Lead Review Email (${leadEmail}) — Recorded 1 submission successfully!`)
     if (onSubmitSuccess) {
       setTimeout(() => onSubmitSuccess(), 1200)
@@ -1286,17 +1315,67 @@ export function SubmitToLeadPage({
         </div>
       )}
 
+      {/* DUPLICATE SUBMISSION BANNER IN PAGE */}
+      {hasDuplicateSubmission && firstDuplicate && (
+        <div className="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 space-y-2 animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0" />
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-rose-900 text-xs uppercase tracking-wide bg-rose-600 text-white px-2 py-0.5 rounded-md">
+                Duplicate Submission
+              </span>
+              <span className="text-xs font-bold text-rose-800">Submission Blocked</span>
+            </div>
+          </div>
+          <p className="text-xs text-rose-950 font-medium leading-relaxed">
+            Candidate <strong>{firstDuplicate.candidateName}</strong> has already been submitted for this requirement (<strong>{currentReqId}</strong>) by another vendor/recruiter.
+          </p>
+          <div className="text-[11px] text-rose-900 bg-rose-100/80 p-2.5 rounded-xl border border-rose-200/80 flex flex-wrap gap-x-4 gap-y-1 font-semibold">
+            <span>Submitted By: <strong>{firstDuplicate.existingSubmission?.recruiter || 'External Vendor'}</strong></span>
+            <span>Date: <strong>{firstDuplicate.existingSubmission?.date}</strong></span>
+            <span>Status: <strong>{firstDuplicate.existingSubmission?.stage}</strong></span>
+            <span>Reason: <em>{firstDuplicate.matchReason}</em></span>
+          </div>
+        </div>
+      )}
+
       {/* 8. STICKY BOTTOM ACTION BAR */}
-      <div className="sticky bottom-4 z-30 bg-white/95 backdrop-blur-md border border-slate-200/90 py-3.5 px-6 rounded-2xl shadow-xl flex items-center justify-between gap-4 mt-6">
+      <div className={`sticky bottom-4 z-30 border backdrop-blur-md py-3.5 px-6 rounded-2xl shadow-xl flex items-center justify-between gap-4 mt-6 ${
+        hasDuplicateSubmission
+          ? 'bg-rose-50/95 border-rose-300'
+          : 'bg-white/95 border-slate-200/90'
+      }`}>
         <span className="text-xs font-bold text-slate-700">
-          Submit 1 candidate(s) to lead and forward in the client loop.
+          {hasDuplicateSubmission ? (
+            <span className="text-rose-700 flex items-center gap-1.5">
+              <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>Duplicate Candidate Submission — Cannot submit to Lead or Client.</span>
+            </span>
+          ) : (
+            <span>Submit candidate(s) to lead and forward in the client loop.</span>
+          )}
         </span>
 
         <button
           onClick={handleSubmitFinal}
-          className="px-6 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-extrabold text-xs rounded-xl shadow-lg transition-all cursor-pointer active:scale-98 shrink-0"
+          disabled={hasDuplicateSubmission}
+          className={`px-6 py-2.5 font-extrabold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 shrink-0 ${
+            hasDuplicateSubmission
+              ? 'bg-rose-300 text-rose-900 cursor-not-allowed border border-rose-300 shadow-none'
+              : 'bg-[#2563EB] hover:bg-[#1D4ED8] text-white cursor-pointer active:scale-98'
+          }`}
         >
-          Submit to Lead & Forward
+          {hasDuplicateSubmission ? (
+            <>
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>Duplicate Submission - Blocked</span>
+            </>
+          ) : (
+            <>
+              <Send className="w-3.5 h-3.5" />
+              <span>Submit to Lead & Forward</span>
+            </>
+          )}
         </button>
       </div>
 

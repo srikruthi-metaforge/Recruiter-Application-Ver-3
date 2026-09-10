@@ -65,6 +65,117 @@ export interface FinalDecisionRowItem {
   submittedBy?: string
 }
 
+export type RejectionStageType = 'Screening' | 'L1 Technical' | 'L2 Technical' | 'L3 / Manager' | 'Final HR Round'
+
+export interface RejectedCandidateRowItem {
+  id: string
+  candidateName: string
+  position: string
+  company: string
+  rejectedStage: RejectionStageType
+  rejectionReason: string
+  evaluatorNotes: string
+  evaluatedBy: string
+  submittedBy?: string
+  teamLead?: string
+  rejectionDate: string
+  requirementId: string
+  candidateId?: string
+}
+
+const DEFAULT_REJECTED_CANDIDATES: RejectedCandidateRowItem[] = [
+  {
+    id: 'rej-1',
+    candidateName: 'Suresh Kulkarni',
+    candidateId: 'CAND-18012',
+    position: 'PLM / PDM Lead Engineer',
+    company: 'Accenture',
+    rejectedStage: 'L1 Technical',
+    rejectionReason: 'Technical evaluation score below threshold (C++ & PLM architecture round)',
+    evaluatorNotes: 'Failed coding assessment on C++ memory management and CAD API integrations.',
+    evaluatedBy: 'Rajesh V. (Tech Panel L1)',
+    submittedBy: 'Suresh kulkarni',
+    teamLead: 'Harish Gadipally',
+    rejectionDate: 'Aug 16, 2026',
+    requirementId: 'REQ-2026-08-12-004',
+  },
+  {
+    id: 'rej-2',
+    candidateName: 'Abhijit Narke',
+    candidateId: 'CAND-18009',
+    position: 'Java Lead Engineer',
+    company: 'Goldman Sachs',
+    rejectedStage: 'Screening',
+    rejectionReason: 'Notice period exceeds 60 days budget limit',
+    evaluatorNotes: 'Candidate serving 90 days notice period; client requires immediate joiner within 30 days.',
+    evaluatedBy: 'Harish Gadipally (Lead)',
+    submittedBy: 'Lingoji Pavani',
+    teamLead: 'Tom Walsh',
+    rejectionDate: 'Aug 14, 2026',
+    requirementId: 'REQ-2026-08-06-005',
+  },
+  {
+    id: 'rej-3',
+    candidateName: 'Ben Wallace',
+    candidateId: 'CAND-18007',
+    position: 'Python ML Specialist',
+    company: 'Tesla',
+    rejectedStage: 'L3 / Manager',
+    rejectionReason: 'Salary expectation exceeds approved budget for Senior Band',
+    evaluatorNotes: 'Expected CTC is ₹38 LPA vs approved client band max of ₹28 LPA.',
+    evaluatedBy: 'Sarah Jenkins (Director of AI)',
+    submittedBy: 'Adirala sathvika',
+    teamLead: 'Nina Brooks',
+    rejectionDate: 'Aug 13, 2026',
+    requirementId: 'REQ-2026-08-07-007',
+  },
+  {
+    id: 'rej-4',
+    candidateName: 'Rahul Deshmukh',
+    candidateId: 'CAND-18005',
+    position: 'Senior React Developer',
+    company: 'Accenture',
+    rejectedStage: 'L2 Technical',
+    rejectionReason: 'State management & SSR architecture design score insufficient',
+    evaluatorNotes: 'Struggled with Next.js SSR hydration and Redux Toolkit state normalization live coding exercise.',
+    evaluatedBy: 'Amitabh Sen (Lead Architect)',
+    submittedBy: 'Marcus Chen',
+    teamLead: 'Harish Gadipally',
+    rejectionDate: 'Aug 11, 2026',
+    requirementId: 'REQ-2026-08-12-001',
+  },
+  {
+    id: 'rej-5',
+    candidateName: 'Neha Kulkarni',
+    candidateId: 'CAND-18003',
+    position: 'DevOps Lead Engineer',
+    company: 'JP Morgan',
+    rejectedStage: 'Final HR Round',
+    rejectionReason: 'Shift timing availability mismatch & competing offer conflict',
+    evaluatorNotes: 'Unavailable for mandatory US shift rotation schedule.',
+    evaluatedBy: 'Ananya Roy (HR Business Partner)',
+    submittedBy: 'Priya Sharma',
+    teamLead: 'Tom Walsh',
+    rejectionDate: 'Aug 09, 2026',
+    requirementId: 'REQ-2026-08-12-003',
+  },
+  {
+    id: 'rej-6',
+    candidateName: 'Vikramaditya Sen',
+    candidateId: 'CAND-18001',
+    position: 'Automotive Embedded Engineer',
+    company: 'Continental Automotive',
+    rejectedStage: 'Screening',
+    rejectionReason: 'Mandatory Catia V6 door closure design certification missing',
+    evaluatorNotes: 'Failed initial JD screening checklist for Catia V6 packaging skills.',
+    evaluatedBy: 'Marcus Chen (Recruiter)',
+    submittedBy: 'Marcus Chen',
+    teamLead: 'Harish Gadipally',
+    rejectionDate: 'Aug 08, 2026',
+    requirementId: 'REQ-2026-08-07-006',
+  },
+]
+
 const DEFAULT_SCHEDULE_ROWS: ScheduleRowItem[] = [
   {
     id: '0',
@@ -220,8 +331,12 @@ export interface OfferLetterRowItem {
   offerDate: string
   offeredCTC: string
   joiningDate?: string
-  status: 'Offer Released' | 'Accepted' | 'Declined' | 'Joined'
+  status: 'Offer Released' | 'Accepted' | 'Joined' | 'Not Joined' | 'Declined'
   declineReason?: string
+  notJoinedReason?: string
+  notJoinedNote?: string
+  notJoinedDate?: string
+  submittedBy?: string
 }
 
 const DEFAULT_OFFER_LETTERS: OfferLetterRowItem[] = [
@@ -235,6 +350,7 @@ const DEFAULT_OFFER_LETTERS: OfferLetterRowItem[] = [
     offeredCTC: '₹22,00,000 PA',
     joiningDate: 'Sep 01, 2026',
     status: 'Offer Released',
+    submittedBy: 'Marcus Chen',
   },
   {
     id: 'off-2',
@@ -246,6 +362,7 @@ const DEFAULT_OFFER_LETTERS: OfferLetterRowItem[] = [
     offeredCTC: '₹34,00,000 PA',
     joiningDate: 'Sep 15, 2026',
     status: 'Accepted',
+    submittedBy: 'Harish Gadipally',
   },
   {
     id: 'off-3',
@@ -257,6 +374,7 @@ const DEFAULT_OFFER_LETTERS: OfferLetterRowItem[] = [
     offeredCTC: '₹26,00,000 PA',
     joiningDate: 'Aug 25, 2026',
     status: 'Joined',
+    submittedBy: 'Priya Sharma',
   },
   {
     id: 'off-4',
@@ -266,8 +384,37 @@ const DEFAULT_OFFER_LETTERS: OfferLetterRowItem[] = [
     requirementId: 'REQ-2026-08-12-006',
     offerDate: 'Aug 12, 2026',
     offeredCTC: '₹28,00,000 PA',
-    declineReason: 'Competing offer with higher compensation',
-    status: 'Declined',
+    status: 'Not Joined',
+    notJoinedReason: 'Competing offer with higher compensation',
+    notJoinedNote: 'Candidate accepted competing offer from Microsoft with ₹34 LPA CTC (20% higher than approved client CTC).',
+    notJoinedDate: 'Aug 22, 2026',
+    submittedBy: 'Marcus Chen',
+  },
+  {
+    id: 'off-5',
+    candidateName: 'Rohan Patil',
+    position: 'Java Lead Architect',
+    client: 'Goldman Sachs',
+    requirementId: 'REQ-2026-08-06-005',
+    offerDate: 'Aug 10, 2026',
+    offeredCTC: '₹36,00,000 PA',
+    status: 'Not Joined',
+    notJoinedReason: 'Counter offer from current employer',
+    notJoinedNote: 'Employer promoted candidate to Technical Director with retention bonus and matching CTC; candidate withdrew joining commitment.',
+    notJoinedDate: 'Aug 20, 2026',
+    submittedBy: 'Lingoji Pavani',
+  },
+  {
+    id: 'off-6',
+    candidateName: 'Meera Deshmukh',
+    position: 'DevOps & Kubernetes Lead',
+    client: 'Deloitte',
+    requirementId: 'REQ-2026-08-07-009',
+    offerDate: 'Aug 05, 2026',
+    offeredCTC: '₹30,00,000 PA',
+    joiningDate: 'Aug 18, 2026',
+    status: 'Joined',
+    submittedBy: 'Harish Gadipally',
   },
 ]
 
@@ -321,19 +468,21 @@ export function InterviewTrackingPage({
   interviews,
   onOpenFeedbackModal,
 }: InterviewTrackingPageProps) {
-  // Toggle Switcher (Default: 'upcoming')
-  const [statusToggle, setStatusToggle] = useState<'upcoming' | 'in_progress' | 'completed' | 'all'>('upcoming')
+  // Toggle Switcher ('upcoming' | 'in_progress' | 'completed' | 'rejections' | 'all')
+  const [statusToggle, setStatusToggle] = useState<'upcoming' | 'in_progress' | 'completed' | 'rejections' | 'all'>('all')
 
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState('')
   const [dateFilter, setDateFilter] = useState<'today' | 'this_week' | 'this_month' | 'custom_range'>('this_month')
   const [clientFilter, setClientFilter] = useState('All Clients')
   const [roundFilter, setRoundFilter] = useState('All Rounds')
+  const [rejectionStageFilter, setRejectionStageFilter] = useState<string>('All Stages')
 
   // Tables State
   const [scheduleList, setScheduleList] = useState<ScheduleRowItem[]>(DEFAULT_SCHEDULE_ROWS)
   const [finalDecisions, setFinalDecisions] = useState<FinalDecisionRowItem[]>(DEFAULT_FINAL_DECISIONS)
   const [offerLetters, setOfferLetters] = useState<OfferLetterRowItem[]>(DEFAULT_OFFER_LETTERS)
+  const [rejectedList, setRejectedList] = useState<RejectedCandidateRowItem[]>(DEFAULT_REJECTED_CANDIDATES)
 
   // Modals & Requirement Overview State
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
@@ -343,8 +492,17 @@ export function InterviewTrackingPage({
   const [remindModalCandidate, setRemindModalCandidate] = useState<ScheduleRowItem | null>(null)
   const [rejectModalCandidate, setRejectModalCandidate] = useState<ScheduleRowItem | null>(null)
   const [selectedRejectionReason, setSelectedRejectionReason] = useState<string>('Technical evaluation score below threshold')
+  const [selectedRejectionStage, setSelectedRejectionStage] = useState<RejectionStageType>('L1 Technical')
   const [customRejectionNote, setCustomRejectionNote] = useState<string>('')
   const [selectedReqDetail, setSelectedReqDetail] = useState<Requirement | null>(null)
+  const [selectedRejectedCandidateModal, setSelectedRejectedCandidateModal] = useState<RejectedCandidateRowItem | null>(null)
+
+  // Onboarding & Offer Outcome State
+  const [offerOutcomeFilter, setOfferOutcomeFilter] = useState<'all' | 'joined' | 'not_joined' | 'pending'>('all')
+  const [notJoinedModalCandidate, setNotJoinedModalCandidate] = useState<OfferLetterRowItem | null>(null)
+  const [selectedNotJoinedReason, setSelectedNotJoinedReason] = useState<string>('Competing offer with higher compensation')
+  const [notJoinedCustomNote, setNotJoinedCustomNote] = useState<string>('')
+  const [viewNotJoinedDetailModal, setViewNotJoinedDetailModal] = useState<OfferLetterRowItem | null>(null)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
 
   const showToast = (msg: string) => {
@@ -426,11 +584,42 @@ export function InterviewTrackingPage({
   const scopeOfferLetters = useMemo(() => {
     if (role === 'recruiter') {
       return offerLetters.filter(o =>
-        (o as any).submittedBy ? (o as any).submittedBy.toLowerCase().includes('marcus') || (o as any).submittedBy.toLowerCase().includes('recruiter') : true
+        (o as any).submittedBy ? (o as any).submittedBy.toLowerCase().includes('marcus') || (o as any).submittedBy.toLowerCase().includes('recruiter') || (o as any).submittedBy.toLowerCase().includes('lingoji') : true
       )
     }
     return offerLetters
   }, [offerLetters, role])
+
+  // Filter offer letters by outcome filter & search query
+  const filteredOfferLetters = useMemo(() => {
+    return scopeOfferLetters.filter(item => {
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim()
+        const matchName = item.candidateName.toLowerCase().includes(q)
+        const matchPos = item.position.toLowerCase().includes(q)
+        const matchComp = item.client.toLowerCase().includes(q)
+        const matchNote = (item.notJoinedNote || '').toLowerCase().includes(q)
+        const matchReason = (item.notJoinedReason || item.declineReason || '').toLowerCase().includes(q)
+        if (!matchName && !matchPos && !matchComp && !matchNote && !matchReason) return false
+      }
+
+      if (clientFilter !== 'All Clients' && item.client !== clientFilter) {
+        return false
+      }
+
+      if (offerOutcomeFilter === 'joined') {
+        return item.status === 'Joined'
+      }
+      if (offerOutcomeFilter === 'not_joined') {
+        return item.status === 'Not Joined' || item.status === 'Declined'
+      }
+      if (offerOutcomeFilter === 'pending') {
+        return item.status === 'Offer Released' || item.status === 'Accepted'
+      }
+
+      return true
+    })
+  }, [scopeOfferLetters, searchQuery, clientFilter, offerOutcomeFilter])
 
   // Scope final decisions by role
   const scopeFinalDecisions = useMemo(() => {
@@ -556,6 +745,64 @@ export function InterviewTrackingPage({
     return 'bg-slate-100 text-slate-800 border-slate-200'
   }
 
+  // Scope rejected list by role
+  const scopeRejectedList = useMemo(() => {
+    if (role === 'recruiter') {
+      return rejectedList.filter(r =>
+        r.submittedBy ? r.submittedBy.toLowerCase().includes('marcus') || r.submittedBy.toLowerCase().includes('recruiter') || r.submittedBy.toLowerCase().includes('suresh') || r.submittedBy.toLowerCase().includes('lingoji') || r.submittedBy.toLowerCase().includes('adirala') : true
+      )
+    }
+    return rejectedList
+  }, [rejectedList, role])
+
+  const filteredRejectedList = useMemo(() => {
+    return scopeRejectedList.filter(item => {
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim()
+        const matchName = item.candidateName.toLowerCase().includes(q)
+        const matchPos = item.position.toLowerCase().includes(q)
+        const matchComp = item.company.toLowerCase().includes(q)
+        const matchStage = item.rejectedStage.toLowerCase().includes(q)
+        const matchReason = item.rejectionReason.toLowerCase().includes(q)
+        if (!matchName && !matchPos && !matchComp && !matchStage && !matchReason) return false
+      }
+
+      if (clientFilter !== 'All Clients' && item.company !== clientFilter) {
+        return false
+      }
+
+      if (rejectionStageFilter !== 'All Stages' && item.rejectedStage !== rejectionStageFilter) {
+        return false
+      }
+
+      return true
+    })
+  }, [scopeRejectedList, searchQuery, clientFilter, rejectionStageFilter])
+
+  const rejectedTotalPages = Math.ceil(filteredRejectedList.length / pageSize) || 1
+
+  const paginatedRejectedList = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredRejectedList.slice(start, start + pageSize)
+  }, [filteredRejectedList, currentPage, pageSize])
+
+  const getRejectionStageBadgeStyle = (stage: RejectionStageType) => {
+    switch (stage) {
+      case 'Screening':
+        return 'bg-amber-100 text-amber-900 border-amber-300 font-bold'
+      case 'L1 Technical':
+        return 'bg-purple-100 text-[#6B3BF6] border-purple-300 font-bold'
+      case 'L2 Technical':
+        return 'bg-blue-100 text-blue-900 border-blue-300 font-bold'
+      case 'L3 / Manager':
+        return 'bg-indigo-100 text-indigo-900 border-indigo-300 font-bold'
+      case 'Final HR Round':
+        return 'bg-rose-100 text-rose-900 border-rose-300 font-bold'
+      default:
+        return 'bg-slate-100 text-slate-800 border-slate-300 font-bold'
+    }
+  }
+
   // Move Upcoming Interview to In Progress
   const handleShiftToInProgress = (id: string, candidateName: string) => {
     setScheduleList(prev =>
@@ -587,6 +834,15 @@ export function InterviewTrackingPage({
   // Action in In Progress: Open Rejection Reason Modal
   const handleRejectInInterview = (row: ScheduleRowItem) => {
     setSelectedRejectionReason('Technical evaluation score below threshold')
+    let initialStage: RejectionStageType = 'L1 Technical'
+    const r = (row.round || '').toLowerCase()
+    if (r.includes('screening')) initialStage = 'Screening'
+    else if (r.includes('l1')) initialStage = 'L1 Technical'
+    else if (r.includes('l2')) initialStage = 'L2 Technical'
+    else if (r.includes('l3') || r.includes('manager')) initialStage = 'L3 / Manager'
+    else if (r.includes('final') || r.includes('hr')) initialStage = 'Final HR Round'
+
+    setSelectedRejectionStage(initialStage)
     setCustomRejectionNote('')
     setRejectModalCandidate(row)
   }
@@ -608,12 +864,30 @@ export function InterviewTrackingPage({
         requirementId: rejectModalCandidate.requirementId || 'REQ-2026-08-12-001',
         requirement: `${rejectModalCandidate.position} for ${rejectModalCandidate.company}`,
         decision: 'Rejected in Interview',
-        rejectionReason: finalReason,
+        rejectionReason: `${selectedRejectionStage}: ${finalReason}`,
         offerLetter: '—',
       },
       ...prev,
     ])
-    showToast(`Rejection recorded for ${rejectModalCandidate.candidateName} with reason: "${finalReason}"!`)
+
+    const newRejectedItem: RejectedCandidateRowItem = {
+      id: `rej-${Date.now()}`,
+      candidateName: rejectModalCandidate.candidateName,
+      candidateId: `CAND-${Math.floor(Math.random() * 9000 + 10000)}`,
+      position: rejectModalCandidate.position,
+      company: rejectModalCandidate.company,
+      rejectedStage: selectedRejectionStage,
+      rejectionReason: finalReason,
+      evaluatorNotes: customRejectionNote.trim() || `Candidate rejected during ${selectedRejectionStage} evaluation.`,
+      evaluatedBy: rejectModalCandidate.submittedBy || 'Tech Evaluation Panel',
+      submittedBy: rejectModalCandidate.submittedBy || 'Recruiter',
+      teamLead: rejectModalCandidate.teamLead || 'Harish Gadipally',
+      rejectionDate: 'Today',
+      requirementId: rejectModalCandidate.requirementId || 'REQ-2026-08-12-001',
+    }
+
+    setRejectedList(prev => [newRejectedItem, ...prev])
+    showToast(`Rejection recorded for ${rejectModalCandidate.candidateName} at stage [${selectedRejectionStage}]: "${finalReason}"!`)
     setRejectModalCandidate(null)
     setCustomRejectionNote('')
   }
@@ -628,6 +902,34 @@ export function InterviewTrackingPage({
       prev.map(item => (item.id === id ? { ...item, decision } : item))
     )
     showToast(`Final decision updated to ${decision}`)
+  }
+
+  const handleOpenNotJoinedModal = (candidate: OfferLetterRowItem) => {
+    setNotJoinedModalCandidate(candidate)
+    setSelectedNotJoinedReason(candidate.notJoinedReason || 'Competing offer with higher compensation')
+    setNotJoinedCustomNote(candidate.notJoinedNote || '')
+  }
+
+  const handleSaveNotJoinedRecord = () => {
+    if (!notJoinedModalCandidate) return
+
+    setOfferLetters(prev =>
+      prev.map(item =>
+        item.id === notJoinedModalCandidate.id
+          ? {
+              ...item,
+              status: 'Not Joined',
+              notJoinedReason: selectedNotJoinedReason,
+              notJoinedNote: notJoinedCustomNote.trim() || `Candidate backed out / did not join: ${selectedNotJoinedReason}`,
+              notJoinedDate: 'Today',
+            }
+          : item
+      )
+    )
+
+    showToast(`Non-joining record and note saved for candidate ${notJoinedModalCandidate.candidateName}!`)
+    setNotJoinedModalCandidate(null)
+    setNotJoinedCustomNote('')
   }
 
   if (selectedReqDetail) {
@@ -807,11 +1109,55 @@ export function InterviewTrackingPage({
                 {evaluatedScheduleList.filter(s => s.status === 'Completed').length}
               </span>
             </button>
+
+            <button
+              onClick={() => {
+                setStatusToggle('onboarding')
+                setCurrentPage(1)
+              }}
+              className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                statusToggle === 'onboarding'
+                  ? 'bg-[#6B3BF6] text-white shadow-md font-extrabold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
+            >
+              <UserCheck className="w-4 h-4" />
+              <span>Joined vs Not Joined</span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                  statusToggle === 'onboarding' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-900'
+                }`}
+              >
+                {scopeOfferLetters.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => {
+                setStatusToggle('rejections')
+                setCurrentPage(1)
+              }}
+              className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+                statusToggle === 'rejections'
+                  ? 'bg-rose-600 text-white shadow-md font-extrabold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
+            >
+              <UserX className="w-4 h-4" />
+              <span>Rejections Track</span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                  statusToggle === 'rejections' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-900'
+                }`}
+              >
+                {rejectedList.length}
+              </span>
+            </button>
           </div>
         </div>
 
         {/* ROW 2: SEARCH & UPFRONT FILTER DROPDOWNS */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -848,6 +1194,21 @@ export function InterviewTrackingPage({
               <option value="L1">L1 Technical</option>
               <option value="L2">L2 Technical</option>
               <option value="Final">Final HR / Executive</option>
+            </select>
+          </div>
+
+          <div>
+            <select
+              value={rejectionStageFilter}
+              onChange={e => setRejectionStageFilter(e.target.value)}
+              className="w-full px-3 py-2 bg-rose-50/70 border border-rose-200 rounded-xl font-extrabold text-rose-900 focus:outline-none focus:border-rose-500 cursor-pointer"
+            >
+              <option value="All Stages">Filter Rejection Stage: All</option>
+              <option value="Screening">Stage: Screening Rejections</option>
+              <option value="L1 Technical">Stage: L1 Technical Rejections</option>
+              <option value="L2 Technical">Stage: L2 Technical Rejections</option>
+              <option value="L3 / Manager">Stage: L3 / Manager Rejections</option>
+              <option value="Final HR Round">Stage: Final HR Round Rejections</option>
             </select>
           </div>
         </div>
@@ -887,433 +1248,815 @@ export function InterviewTrackingPage({
         </div>
       )}
 
-      {/* 3. CARD 1: INTERVIEW SCHEDULE TABLE */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden space-y-3 p-5">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h2 className="text-base font-extrabold text-slate-900 tracking-tight">
-            {statusToggle === 'upcoming'
-              ? 'Upcoming Interviews'
-              : statusToggle === 'in_progress'
-              ? 'In Progress Interviews'
-              : statusToggle === 'completed'
-              ? 'Completed Interviews'
-              : 'All Scheduled & Conducted Interviews'}
-          </h2>
-          <span className="text-xs text-slate-400 font-medium">
-            Showing {filteredScheduleList.length} of {combinedScheduleList.length} interviews
-          </span>
+      {statusToggle === 'onboarding' && (
+        <div className="p-3.5 bg-purple-50/70 border border-purple-200/80 rounded-xl flex items-center justify-between text-xs text-purple-950 font-medium">
+          <div className="flex items-center gap-2">
+            <UserCheck className="w-4 h-4 text-[#6B3BF6]" />
+            <span>
+              <strong>Joined vs Not Joined Onboarding Track:</strong> Filter and track candidate onboarding completion, candidates who joined, and candidates who backed out / did not join with detailed recruiter notes.
+            </span>
+          </div>
         </div>
+      )}
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/50">
-                {statusToggle === 'all' ? (
-                  <>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      CANDIDATE NAME
-                    </th>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      REQUIREMENT ID & ROLE
-                    </th>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      CLIENT
-                    </th>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      INTERVIEW ROUND
-                    </th>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      MODE & SCHEDULE
-                    </th>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      STATUS
-                    </th>
-                  </>
-                ) : statusToggle === 'upcoming' ? (
-                  <>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      NAME
-                    </th>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      REQUIREMENT ID + ROLE
-                    </th>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      CLIENT
-                    </th>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      ROUND
-                    </th>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      MODE
-                    </th>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      SCHEDULE ACTIONS
-                    </th>
-                  </>
-                ) : (
-                  <>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      NAME
-                    </th>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      REQUIREMENT ID + ROLE
-                    </th>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      CLIENT
-                    </th>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      ROUND
-                    </th>
-                    <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      MODE
-                    </th>
-                  </>
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
-              {paginatedScheduleList.length === 0 ? (
-                <tr>
-                  <td colSpan={statusToggle === 'in_progress' || statusToggle === 'completed' ? 5 : 6} className="py-10 text-center text-slate-400">
-                    No interviews in this section.
-                  </td>
-                </tr>
-              ) : (
-                paginatedScheduleList.map(row => (
-                  <tr key={row.id} className="hover:bg-purple-50/30 transition-colors">
-                    {statusToggle === 'all' ? (
-                      <>
-                        {/* 1. CANDIDATE NAME */}
-                        <td className="px-4 py-4 font-extrabold text-slate-900 flex items-center gap-2">
-                          <User className="w-4 h-4 text-slate-400" />
-                          <span>{row.candidateName}</span>
-                        </td>
+      {statusToggle === 'rejections' && (
+        <div className="space-y-4">
+          <div className="p-4 bg-rose-50/80 border border-rose-200 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs text-rose-950 font-medium shadow-2xs">
+            <div className="flex items-start gap-2.5">
+              <UserX className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <div>
+                <strong className="text-rose-900 font-extrabold text-sm block">Rejection Stage Track & Candidate Audit Trail</strong>
+                <span>
+                  Track all candidates who were rejected across every evaluation stage: <strong>Screening</strong>, <strong>L1 Technical</strong>, <strong>L2 Technical</strong>, <strong>L3 / Manager Round</strong>, and <strong>Final HR Round</strong>. Review detailed evaluator feedback, rejection reasons, and candidate submission history.
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 font-mono text-[11px] font-bold text-rose-800 bg-white/80 px-3 py-1.5 rounded-xl border border-rose-200 shrink-0">
+              <span>Total Rejections: {filteredRejectedList.length}</span>
+            </div>
+          </div>
 
-                        {/* 2. REQUIREMENT ID + ROLE */}
-                        <td className="px-4 py-4 max-w-xs">
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <button
-                              onClick={() => handleOpenReqOverview(row.requirementId || 'REQ-2026-08-12-001', row.position, row.company)}
-                              className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-mono hover:underline cursor-pointer transition-all flex items-center gap-1"
-                              title="Click to view Requirement Overview"
-                            >
-                              <span>{row.requirementId || 'REQ-2026-08-12-001'}</span>
-                              <ExternalLink className="w-2.5 h-2.5 text-blue-600" />
-                            </button>
-                          </div>
-                          <div className="font-extrabold text-slate-900 text-xs">{row.position}</div>
-                        </td>
-
-                        {/* 3. CLIENT */}
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
-                            <Building2 className="w-3.5 h-3.5 text-purple-600 inline shrink-0" />
-                            <span>{row.company || 'Accenture'}</span>
-                            <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                              Active Client
-                            </span>
-                          </div>
-                          <div className="text-[10px] text-slate-500 font-medium mt-0.5">
-                            Lead: {row.teamLead || 'Harish Gadipally'} | By: {row.submittedBy || 'Marcus Chen'}
-                          </div>
-                        </td>
-
-                        {/* 4. ROUND */}
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${getRoundBadgeStyle(row.round)}`}>
-                            {row.round}
-                          </span>
-                        </td>
-
-                        {/* 5. MODE & SCHEDULE */}
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-1.5 text-xs text-blue-600 font-semibold">
-                            <Laptop className="w-3.5 h-3.5 text-blue-500" />
-                            <span>{row.mode} ({row.dateTime})</span>
-                          </div>
-                        </td>
-
-                        {/* 6. STATUS */}
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${
-                              (row.status as string) === 'Upcoming' || (row.status as string) === 'Scheduled'
-                                ? 'bg-purple-100 text-purple-800 border-purple-200'
-                                : row.status === 'In Progress'
-                                ? 'bg-amber-100 text-amber-800 border-amber-200'
-                                : 'bg-emerald-100 text-emerald-800 border-emerald-200'
-                            }`}
-                          >
-                            {row.status}
-                          </span>
-                        </td>
-                      </>
-                    ) : statusToggle === 'upcoming' ? (
-                      <>
-                        {/* 1. NAME */}
-                        <td className="px-4 py-4 font-extrabold text-slate-900 flex items-center gap-2">
-                          <User className="w-4 h-4 text-slate-400" />
-                          <span>{row.candidateName}</span>
-                        </td>
-
-                        {/* 2. REQUIREMENT ID + ROLE */}
-                        <td className="px-4 py-4 max-w-xs">
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <button
-                              onClick={() => handleOpenReqOverview(row.requirementId || 'REQ-2026-08-12-001', row.position, row.company)}
-                              className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-mono hover:underline cursor-pointer transition-all flex items-center gap-1"
-                              title="Click to view Requirement Overview"
-                            >
-                              <span>{row.requirementId || 'REQ-2026-08-12-001'}</span>
-                              <ExternalLink className="w-2.5 h-2.5 text-blue-600" />
-                            </button>
-                          </div>
-                          <div className="font-extrabold text-slate-900 text-xs">{row.position}</div>
-                        </td>
-
-                        {/* 3. CLIENT */}
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
-                            <Building2 className="w-3.5 h-3.5 text-purple-600 inline shrink-0" />
-                            <span>{row.company || 'Accenture'}</span>
-                            <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                              Active Client
-                            </span>
-                          </div>
-                          <div className="text-[10px] text-slate-500 font-medium mt-0.5">
-                            Lead: {row.teamLead || 'Harish Gadipally'} | By: {row.submittedBy || 'Marcus Chen'}
-                          </div>
-                        </td>
-
-                        {/* 4. ROUND */}
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold ${
-                              row.round === 'Final'
-                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                                : 'bg-purple-100 text-purple-800 border border-purple-200'
-                            }`}
-                          >
-                            {row.round}
-                          </span>
-                        </td>
-
-                        {/* 5. MODE */}
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-1.5 text-xs text-blue-600 font-semibold">
-                            <Laptop className="w-3.5 h-3.5 text-blue-500" />
-                            <span>{row.mode} ({row.dateTime})</span>
-                          </div>
-                        </td>
-
-                        {/* 6. SCHEDULE ACTIONS: EDIT & REMIND */}
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => setRemindModalCandidate(row)}
-                              className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 cursor-pointer shadow-2xs flex items-center gap-1.5"
-                            >
-                              <Bell className="w-3.5 h-3.5 text-[#6B3BF6]" />
-                              <span>Remind Candidate</span>
-                            </button>
-
-                            <button
-                              onClick={() => setSelectedSchedule(row)}
-                              className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 cursor-pointer shadow-2xs flex items-center gap-1.5"
-                              title="Edit schedule"
-                            >
-                              <Edit2 className="w-3.5 h-3.5 text-slate-500" />
-                              <span>Edit</span>
-                            </button>
-                          </div>
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        {/* 1. NAME */}
-                        <td className="px-4 py-4 font-extrabold text-slate-900 flex items-center gap-2">
-                          <User className="w-4 h-4 text-slate-400" />
-                          <span>{row.candidateName}</span>
-                        </td>
-
-                        {/* 2. REQUIREMENT ID + ROLE */}
-                        <td className="px-4 py-4 max-w-xs">
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <button
-                              onClick={() => handleOpenReqOverview(row.requirementId || 'REQ-2026-08-12-001', row.position, row.company)}
-                              className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-mono hover:underline cursor-pointer transition-all flex items-center gap-1"
-                              title="Click to view Requirement Overview"
-                            >
-                              <span>{row.requirementId || 'REQ-2026-08-12-001'}</span>
-                              <ExternalLink className="w-2.5 h-2.5 text-blue-600" />
-                            </button>
-                          </div>
-                          <div className="font-extrabold text-slate-900 text-xs">{row.position}</div>
-                        </td>
-
-                        {/* 3. CLIENT */}
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
-                            <Building2 className="w-3.5 h-3.5 text-purple-600 inline shrink-0" />
-                            <span>{row.company || 'Accenture'}</span>
-                            <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                              Active Client
-                            </span>
-                          </div>
-                          <div className="text-[10px] text-slate-500 font-medium mt-0.5">
-                            Lead: {row.teamLead || 'Harish Gadipally'} | By: {row.submittedBy || 'Marcus Chen'}
-                          </div>
-                        </td>
-
-                        {/* 4. ROUND */}
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${getRoundBadgeStyle(row.round)}`}
-                          >
-                            {row.round}
-                          </span>
-                        </td>
-
-                        {/* 5. MODE */}
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-1.5 text-xs text-blue-600 font-semibold">
-                            <Laptop className="w-3.5 h-3.5 text-blue-500" />
-                            <span>{row.mode} ({row.dateTime})</span>
-                          </div>
-                        </td>
-                      </>
-                    )}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            <div className="bg-amber-50/60 border border-amber-200 rounded-xl p-3 text-center">
+              <span className="text-[10px] font-bold text-amber-800 uppercase block">Screening</span>
+              <span className="text-xl font-extrabold text-amber-900">
+                {scopeRejectedList.filter(r => r.rejectedStage === 'Screening').length}
+              </span>
+            </div>
+            <div className="bg-purple-50/60 border border-purple-200 rounded-xl p-3 text-center">
+              <span className="text-[10px] font-bold text-purple-800 uppercase block">L1 Technical</span>
+              <span className="text-xl font-extrabold text-[#6B3BF6]">
+                {scopeRejectedList.filter(r => r.rejectedStage === 'L1 Technical').length}
+              </span>
+            </div>
+            <div className="bg-blue-50/60 border border-blue-200 rounded-xl p-3 text-center">
+              <span className="text-[10px] font-bold text-blue-800 uppercase block">L2 Technical</span>
+              <span className="text-xl font-extrabold text-blue-900">
+                {scopeRejectedList.filter(r => r.rejectedStage === 'L2 Technical').length}
+              </span>
+            </div>
+            <div className="bg-indigo-50/60 border border-indigo-200 rounded-xl p-3 text-center">
+              <span className="text-[10px] font-bold text-indigo-800 uppercase block">L3 / Manager</span>
+              <span className="text-xl font-extrabold text-indigo-900">
+                {scopeRejectedList.filter(r => r.rejectedStage === 'L3 / Manager').length}
+              </span>
+            </div>
+            <div className="bg-rose-50/60 border border-rose-200 rounded-xl p-3 text-center col-span-2 sm:col-span-1">
+              <span className="text-[10px] font-bold text-rose-800 uppercase block">Final HR Round</span>
+              <span className="text-xl font-extrabold text-rose-900">
+                {scopeRejectedList.filter(r => r.rejectedStage === 'Final HR Round').length}
+              </span>
+            </div>
+          </div>
         </div>
+      )}
 
-        {/* 10-ITEM PAGINATION FOOTER */}
-        <PaginationFooter
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={filteredScheduleList.length}
-          pageSize={pageSize}
-          onPageChange={setCurrentPage}
-        />
-      </div>
-
-
-
-      {/* 5. CARD 3: RELEASED OFFER LETTER (ONLY DISPLAYED IN COMPLETED & ALL TABS) */}
-      {(statusToggle === 'completed' || statusToggle === 'all') && (
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
+      {/* 3. CARD 1: INTERVIEW SCHEDULE / REJECTIONS TABLE */}
+      {statusToggle === 'rejections' ? (
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden space-y-3 p-5">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
-              <h2 className="text-base font-extrabold text-slate-900 tracking-tight">Released offer letter</h2>
+              <h2 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                <UserX className="w-4 h-4 text-rose-600" />
+                <span>Rejected Candidates Track ({filteredRejectedList.length})</span>
+              </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                For offers released after final round evaluation, track candidate response status, CTC, joining date, or decline reasons for recruiter reference.
+                Audit log of candidates rejected during initial screening, technical assessments (L1/L2), manager evaluation (L3), or HR round.
               </p>
             </div>
-            <span className="text-xs font-extrabold text-[#6B3BF6] bg-purple-50 px-3 py-1 rounded-xl border border-purple-200">
-              {scopeOfferLetters.length} candidate(s)
+            <span className="text-xs font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-xl border border-rose-200">
+              Showing {paginatedRejectedList.length} of {filteredRejectedList.length} rejections
             </span>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-slate-200/80 bg-slate-50/70 text-slate-500 font-bold text-[11px] uppercase tracking-wider">
-                  <th className="px-4 py-3">CANDIDATE NAME</th>
-                  <th className="px-4 py-3">REQUIREMENT & ROLE</th>
-                  <th className="px-4 py-3">CLIENT</th>
-                  <th className="px-4 py-3">OFFER DATE & CTC</th>
-                  <th className="px-4 py-3">JOINING DATE</th>
-                  <th className="px-4 py-3">STATUS</th>
-                  <th className="px-4 py-3 text-right">ACTIONS</th>
+                <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 font-extrabold text-[10px] uppercase tracking-wider">
+                  <th className="px-4 py-3.5">CANDIDATE NAME & ID</th>
+                  <th className="px-4 py-3.5">REQUIREMENT & ROLE</th>
+                  <th className="px-4 py-3.5">CLIENT PARTNER</th>
+                  <th className="px-4 py-3.5">REJECTED STAGE</th>
+                  <th className="px-4 py-3.5">REJECTION REASON & EVALUATOR NOTES</th>
+                  <th className="px-4 py-3.5">EVALUATED BY & DATE</th>
+                  <th className="px-4 py-3.5 text-right">ACTIONS</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                {scopeOfferLetters.map(item => (
-                  <tr key={item.id} className="hover:bg-slate-50/60 transition-colors align-middle">
-                    <td className="px-4 py-3.5 font-extrabold text-slate-900">
-                      {item.candidateName}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className="text-[10px] font-mono text-blue-600 font-bold block">{item.requirementId}</span>
-                      <span className="text-xs text-slate-800 font-semibold">{item.position}</span>
-                    </td>
-                    <td className="px-4 py-3.5 font-bold text-slate-800">{item.client}</td>
-                    <td className="px-4 py-3.5">
-                      <span className="text-xs text-slate-900 font-bold block">{item.offeredCTC}</span>
-                      <span className="text-[10px] text-slate-400">Released: {item.offerDate}</span>
-                    </td>
-                    <td className="px-4 py-3.5 font-semibold text-slate-700">
-                      {item.joiningDate ? (
-                        <span className="text-emerald-700 font-bold">{item.joiningDate}</span>
-                      ) : (
-                        <span className="text-slate-400 text-[11px] italic">Not set</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      {item.status === 'Offer Released' && (
-                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 inline-block">
-                          Offer Released
-                        </span>
-                      )}
-                      {item.status === 'Accepted' && (
-                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-block">
-                          Accepted
-                        </span>
-                      )}
-                      {item.status === 'Joined' && (
-                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200 inline-block">
-                          Joined
-                        </span>
-                      )}
-                      {item.status === 'Declined' && (
-                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200 inline-block" title={item.declineReason}>
-                          Declined
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3.5 text-right space-x-1.5 whitespace-nowrap">
-                      {item.status === 'Offer Released' && (
-                        <>
-                          <button
-                            onClick={() => {
-                              setOfferLetters(prev => prev.map(o => o.id === item.id ? { ...o, status: 'Accepted', joiningDate: o.joiningDate || 'Sep 10, 2026' } : o))
-                              showToast(`Offer marked as Accepted for ${item.candidateName}`)
-                            }}
-                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg cursor-pointer transition-all"
-                          >
-                            Mark Accepted
-                          </button>
-                          <button
-                            onClick={() => {
-                              setOfferLetters(prev => prev.map(o => o.id === item.id ? { ...o, status: 'Declined', declineReason: 'Candidate declined offer' } : o))
-                              showToast(`Offer marked as Declined for ${item.candidateName}`)
-                            }}
-                            className="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-600 text-[11px] font-bold rounded-lg cursor-pointer transition-all border border-slate-200"
-                          >
-                            Declined
-                          </button>
-                        </>
-                      )}
-                      {item.status === 'Accepted' && (
-                        <button
-                          onClick={() => {
-                            setOfferLetters(prev => prev.map(o => o.id === item.id ? { ...o, status: 'Joined' } : o))
-                            showToast(`${item.candidateName} marked as Joined!`)
-                          }}
-                          className="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-bold rounded-lg cursor-pointer transition-all"
-                        >
-                          Mark Joined
-                        </button>
-                      )}
-                      {(item.status === 'Joined' || item.status === 'Declined') && (
-                        <span className="text-[10px] font-bold text-slate-400">Record Finalized</span>
-                      )}
+                {paginatedRejectedList.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center text-slate-400 font-medium">
+                      No candidate rejections found matching the selected filters.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  paginatedRejectedList.map(item => (
+                    <tr key={item.id} className="hover:bg-rose-50/20 transition-colors align-top">
+                      {/* 1. CANDIDATE NAME & ID */}
+                      <td className="px-4 py-4">
+                        <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span>{item.candidateName}</span>
+                        </div>
+                        {item.candidateId && (
+                          <div className="text-[10px] font-mono text-slate-500 font-bold mt-0.5">
+                            ID: {item.candidateId}
+                          </div>
+                        )}
+                        <div className="text-[10px] text-slate-400 mt-1">
+                          Submitted by: <strong className="text-slate-600">{item.submittedBy || 'Marcus Chen'}</strong>
+                        </div>
+                      </td>
+
+                      {/* 2. REQUIREMENT & ROLE */}
+                      <td className="px-4 py-4 max-w-xs">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <button
+                            onClick={() => handleOpenReqOverview(item.requirementId, item.position, item.company)}
+                            className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-mono hover:underline cursor-pointer transition-all flex items-center gap-1"
+                            title="Click to view Requirement Overview"
+                          >
+                            <span>{item.requirementId}</span>
+                            <ExternalLink className="w-2.5 h-2.5 text-blue-600" />
+                          </button>
+                        </div>
+                        <div className="font-extrabold text-slate-900 text-xs">{item.position}</div>
+                      </td>
+
+                      {/* 3. CLIENT PARTNER */}
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                          <Building2 className="w-3.5 h-3.5 text-purple-600 inline shrink-0" />
+                          <span>{item.company}</span>
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+                          Lead: {item.teamLead || 'Harish Gadipally'}
+                        </div>
+                      </td>
+
+                      {/* 4. REJECTED STAGE */}
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <span className={`px-3 py-1 rounded-full text-[11px] font-extrabold border ${getRejectionStageBadgeStyle(item.rejectedStage)}`}>
+                          {item.rejectedStage}
+                        </span>
+                      </td>
+
+                      {/* 5. REJECTION REASON & EVALUATOR NOTES */}
+                      <td className="px-4 py-4 max-w-md">
+                        <div className="font-bold text-rose-900 text-xs flex items-center gap-1">
+                          <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                          <span>{item.rejectionReason}</span>
+                        </div>
+                        {item.evaluatorNotes && (
+                          <div className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-200/80 mt-1.5 leading-relaxed font-medium">
+                            <span className="font-bold text-slate-700">Notes: </span>
+                            {item.evaluatorNotes}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* 6. EVALUATED BY & DATE */}
+                      <td className="px-4 py-4 whitespace-nowrap text-xs">
+                        <div className="font-bold text-slate-800">{item.evaluatedBy}</div>
+                        <div className="text-[10px] text-slate-400 font-medium flex items-center gap-1 mt-0.5">
+                          <CalendarIcon className="w-3 h-3 text-slate-400" />
+                          <span>{item.rejectionDate}</span>
+                        </div>
+                      </td>
+
+                      {/* 7. ACTIONS */}
+                      <td className="px-4 py-4 text-right whitespace-nowrap">
+                        <button
+                          onClick={() => setSelectedRejectedCandidateModal(item)}
+                          className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 cursor-pointer shadow-2xs inline-flex items-center gap-1"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-[#6B3BF6]" />
+                          <span>View Details</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <PaginationFooter
+            currentPage={currentPage}
+            totalPages={rejectedTotalPages}
+            totalItems={filteredRejectedList.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      ) : statusToggle === 'onboarding' ? null : (
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden space-y-3 p-5">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h2 className="text-base font-extrabold text-slate-900 tracking-tight">
+              {statusToggle === 'upcoming'
+                ? 'Upcoming Interviews'
+                : statusToggle === 'in_progress'
+                ? 'In Progress Interviews'
+                : statusToggle === 'completed'
+                ? 'Completed Interviews'
+                : 'All Scheduled & Conducted Interviews'}
+            </h2>
+            <span className="text-xs text-slate-400 font-medium">
+              Showing {filteredScheduleList.length} of {combinedScheduleList.length} interviews
+            </span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50/50">
+                  {statusToggle === 'all' ? (
+                    <>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        CANDIDATE NAME
+                      </th>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        REQUIREMENT ID & ROLE
+                      </th>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        CLIENT
+                      </th>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        INTERVIEW ROUND
+                      </th>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        MODE & SCHEDULE
+                      </th>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        STATUS
+                      </th>
+                    </>
+                  ) : statusToggle === 'upcoming' ? (
+                    <>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        NAME
+                      </th>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        REQUIREMENT ID + ROLE
+                      </th>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        CLIENT
+                      </th>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        ROUND
+                      </th>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        MODE
+                      </th>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        SCHEDULE ACTIONS
+                      </th>
+                    </>
+                  ) : (
+                    <>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        NAME
+                      </th>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        REQUIREMENT ID + ROLE
+                      </th>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        CLIENT
+                      </th>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        ROUND
+                      </th>
+                      <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        MODE
+                      </th>
+                    </>
+                  )}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
+                {paginatedScheduleList.length === 0 ? (
+                  <tr>
+                    <td colSpan={statusToggle === 'in_progress' || statusToggle === 'completed' ? 5 : 6} className="py-10 text-center text-slate-400">
+                      No interviews in this section.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedScheduleList.map(row => (
+                    <tr key={row.id} className="hover:bg-purple-50/30 transition-colors">
+                      {statusToggle === 'all' ? (
+                        <>
+                          {/* 1. CANDIDATE NAME */}
+                          <td className="px-4 py-4 font-extrabold text-slate-900 flex items-center gap-2">
+                            <User className="w-4 h-4 text-slate-400" />
+                            <span>{row.candidateName}</span>
+                          </td>
+
+                          {/* 2. REQUIREMENT ID + ROLE */}
+                          <td className="px-4 py-4 max-w-xs">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <button
+                                onClick={() => handleOpenReqOverview(row.requirementId || 'REQ-2026-08-12-001', row.position, row.company)}
+                                className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-mono hover:underline cursor-pointer transition-all flex items-center gap-1"
+                                title="Click to view Requirement Overview"
+                              >
+                                <span>{row.requirementId || 'REQ-2026-08-12-001'}</span>
+                                <ExternalLink className="w-2.5 h-2.5 text-blue-600" />
+                              </button>
+                            </div>
+                            <div className="font-extrabold text-slate-900 text-xs">{row.position}</div>
+                          </td>
+
+                          {/* 3. CLIENT */}
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                              <Building2 className="w-3.5 h-3.5 text-purple-600 inline shrink-0" />
+                              <span>{row.company || 'Accenture'}</span>
+                              <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                Active Client
+                              </span>
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+                              Lead: {row.teamLead || 'Harish Gadipally'} | By: {row.submittedBy || 'Marcus Chen'}
+                            </div>
+                          </td>
+
+                          {/* 4. ROUND */}
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${getRoundBadgeStyle(row.round)}`}>
+                              {row.round}
+                            </span>
+                          </td>
+
+                          {/* 5. MODE & SCHEDULE */}
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-1.5 text-xs text-blue-600 font-semibold">
+                              <Laptop className="w-3.5 h-3.5 text-blue-500" />
+                              <span>{row.mode} ({row.dateTime})</span>
+                            </div>
+                          </td>
+
+                          {/* 6. STATUS */}
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${
+                                (row.status as string) === 'Upcoming' || (row.status as string) === 'Scheduled'
+                                  ? 'bg-purple-100 text-purple-800 border-purple-200'
+                                  : row.status === 'In Progress'
+                                  ? 'bg-amber-100 text-amber-800 border-amber-200'
+                                  : 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                              }`}
+                            >
+                              {row.status}
+                            </span>
+                          </td>
+                        </>
+                      ) : statusToggle === 'upcoming' ? (
+                        <>
+                          {/* 1. NAME */}
+                          <td className="px-4 py-4 font-extrabold text-slate-900 flex items-center gap-2">
+                            <User className="w-4 h-4 text-slate-400" />
+                            <span>{row.candidateName}</span>
+                          </td>
+
+                          {/* 2. REQUIREMENT ID + ROLE */}
+                          <td className="px-4 py-4 max-w-xs">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <button
+                                onClick={() => handleOpenReqOverview(row.requirementId || 'REQ-2026-08-12-001', row.position, row.company)}
+                                className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-mono hover:underline cursor-pointer transition-all flex items-center gap-1"
+                                title="Click to view Requirement Overview"
+                              >
+                                <span>{row.requirementId || 'REQ-2026-08-12-001'}</span>
+                                <ExternalLink className="w-2.5 h-2.5 text-blue-600" />
+                              </button>
+                            </div>
+                            <div className="font-extrabold text-slate-900 text-xs">{row.position}</div>
+                          </td>
+
+                          {/* 3. CLIENT */}
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                              <Building2 className="w-3.5 h-3.5 text-purple-600 inline shrink-0" />
+                              <span>{row.company || 'Accenture'}</span>
+                              <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                Active Client
+                              </span>
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+                              Lead: {row.teamLead || 'Harish Gadipally'} | By: {row.submittedBy || 'Marcus Chen'}
+                            </div>
+                          </td>
+
+                          {/* 4. ROUND */}
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold ${
+                                row.round === 'Final'
+                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                  : 'bg-purple-100 text-purple-800 border border-purple-200'
+                              }`}
+                            >
+                              {row.round}
+                            </span>
+                          </td>
+
+                          {/* 5. MODE */}
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-1.5 text-xs text-blue-600 font-semibold">
+                              <Laptop className="w-3.5 h-3.5 text-blue-500" />
+                              <span>{row.mode} ({row.dateTime})</span>
+                            </div>
+                          </td>
+
+                          {/* 6. SCHEDULE ACTIONS: EDIT & REMIND */}
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => setRemindModalCandidate(row)}
+                                className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 cursor-pointer shadow-2xs flex items-center gap-1.5"
+                              >
+                                <Bell className="w-3.5 h-3.5 text-[#6B3BF6]" />
+                                <span>Remind Candidate</span>
+                              </button>
+
+                              <button
+                                onClick={() => setSelectedSchedule(row)}
+                                className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 cursor-pointer shadow-2xs flex items-center gap-1.5"
+                                title="Edit schedule"
+                              >
+                                <Edit2 className="w-3.5 h-3.5 text-slate-500" />
+                                <span>Edit</span>
+                              </button>
+                            </div>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          {/* 1. NAME */}
+                          <td className="px-4 py-4 font-extrabold text-slate-900 flex items-center gap-2">
+                            <User className="w-4 h-4 text-slate-400" />
+                            <span>{row.candidateName}</span>
+                          </td>
+
+                          {/* 2. REQUIREMENT ID + ROLE */}
+                          <td className="px-4 py-4 max-w-xs">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <button
+                                onClick={() => handleOpenReqOverview(row.requirementId || 'REQ-2026-08-12-001', row.position, row.company)}
+                                className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-mono hover:underline cursor-pointer transition-all flex items-center gap-1"
+                                title="Click to view Requirement Overview"
+                              >
+                                <span>{row.requirementId || 'REQ-2026-08-12-001'}</span>
+                                <ExternalLink className="w-2.5 h-2.5 text-blue-600" />
+                              </button>
+                            </div>
+                            <div className="font-extrabold text-slate-900 text-xs">{row.position}</div>
+                          </td>
+
+                          {/* 3. CLIENT */}
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                              <Building2 className="w-3.5 h-3.5 text-purple-600 inline shrink-0" />
+                              <span>{row.company || 'Accenture'}</span>
+                              <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                Active Client
+                              </span>
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+                              Lead: {row.teamLead || 'Harish Gadipally'} | By: {row.submittedBy || 'Marcus Chen'}
+                            </div>
+                          </td>
+
+                          {/* 4. ROUND */}
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold border ${getRoundBadgeStyle(row.round)}`}
+                            >
+                              {row.round}
+                            </span>
+                          </td>
+
+                          {/* 5. MODE */}
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-1.5 text-xs text-blue-600 font-semibold">
+                              <Laptop className="w-3.5 h-3.5 text-blue-500" />
+                              <span>{row.mode} ({row.dateTime})</span>
+                            </div>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* 10-ITEM PAGINATION FOOTER */}
+          <PaginationFooter
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredScheduleList.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      )}
+
+
+
+      {/* 5. CARD 3: RELEASED OFFER LETTER & ONBOARDING TRACK (JOINED VS NOT JOINED - SHOWN ONLY WHEN ONBOARDING TOGGLE IS CLICKED) */}
+      {statusToggle === 'onboarding' && (
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
+          {/* Header & Sub-Pill Filters */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                <UserCheck className="w-5 h-5 text-[#6B3BF6]" />
+                <span>Onboarding & Offer Outcome Track (Joined vs Not Joined)</span>
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Track candidate onboarding completion, joined candidates, and backed-out / not-joined candidates with detailed recruiter notes.
+              </p>
+            </div>
+
+            {/* Sub-Pill Filters */}
+            <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setOfferOutcomeFilter('all')}
+                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  offerOutcomeFilter === 'all'
+                    ? 'bg-slate-900 text-white shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                All Offers ({scopeOfferLetters.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setOfferOutcomeFilter('joined')}
+                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                  offerOutcomeFilter === 'joined'
+                    ? 'bg-emerald-600 text-white shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Joined ({scopeOfferLetters.filter(o => o.status === 'Joined').length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setOfferOutcomeFilter('not_joined')}
+                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                  offerOutcomeFilter === 'not_joined'
+                    ? 'bg-rose-600 text-white shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <UserX className="w-3.5 h-3.5" />
+                <span>Not Joined ({scopeOfferLetters.filter(o => o.status === 'Not Joined' || o.status === 'Declined').length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setOfferOutcomeFilter('pending')}
+                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  offerOutcomeFilter === 'pending'
+                    ? 'bg-[#6B3BF6] text-white shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Pending Response ({scopeOfferLetters.filter(o => o.status === 'Offer Released' || o.status === 'Accepted').length})
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Summary Metrics Bar */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-medium">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Offers Released</span>
+                <span className="text-lg font-extrabold text-slate-900 tabular-nums">{scopeOfferLetters.length}</span>
+              </div>
+              <FileText className="w-4 h-4 text-slate-400" />
+            </div>
+
+            <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider block">Joined / On-boarded</span>
+                <span className="text-lg font-extrabold text-emerald-900 tabular-nums">
+                  {scopeOfferLetters.filter(o => o.status === 'Joined').length}
+                  <span className="text-xs font-bold text-emerald-700 ml-1">
+                    ({Math.round((scopeOfferLetters.filter(o => o.status === 'Joined').length / (scopeOfferLetters.length || 1)) * 100)}%)
+                  </span>
+                </span>
+              </div>
+              <UserCheck className="w-4 h-4 text-emerald-600" />
+            </div>
+
+            <div className="bg-rose-50/70 border border-rose-200 rounded-xl p-3 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-extrabold text-rose-800 uppercase tracking-wider block">Not Joined / Backed Out</span>
+                <span className="text-lg font-extrabold text-rose-900 tabular-nums">
+                  {scopeOfferLetters.filter(o => o.status === 'Not Joined' || o.status === 'Declined').length}
+                </span>
+              </div>
+              <UserX className="w-4 h-4 text-rose-600" />
+            </div>
+
+            <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-3 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-extrabold text-blue-800 uppercase tracking-wider block">Awaiting Onboarding</span>
+                <span className="text-lg font-extrabold text-blue-900 tabular-nums">
+                  {scopeOfferLetters.filter(o => o.status === 'Offer Released' || o.status === 'Accepted').length}
+                </span>
+              </div>
+              <Clock className="w-4 h-4 text-blue-600" />
+            </div>
+          </div>
+
+          {/* Offer Letters Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-slate-200/80 bg-slate-50/70 text-slate-500 font-extrabold text-[10px] uppercase tracking-wider">
+                  <th className="px-4 py-3.5">CANDIDATE NAME</th>
+                  <th className="px-4 py-3.5">REQUIREMENT & ROLE</th>
+                  <th className="px-4 py-3.5">CLIENT PARTNER</th>
+                  <th className="px-4 py-3.5">OFFER DATE & CTC</th>
+                  <th className="px-4 py-3.5">JOINING DATE</th>
+                  <th className="px-4 py-3.5">ONBOARDING STATUS & NOTES</th>
+                  <th className="px-4 py-3.5 text-right">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                {filteredOfferLetters.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-10 text-center text-slate-400 font-medium">
+                      No offer records found matching current selection.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredOfferLetters.map(item => (
+                    <tr key={item.id} className="hover:bg-slate-50/60 transition-colors align-top">
+                      {/* 1. CANDIDATE NAME */}
+                      <td className="px-4 py-4">
+                        <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span>{item.candidateName}</span>
+                        </div>
+                        <div className="text-[10px] text-slate-400 mt-0.5">
+                          Recruiter: <strong className="text-slate-600">{item.submittedBy || 'Marcus Chen'}</strong>
+                        </div>
+                      </td>
+
+                      {/* 2. REQUIREMENT & ROLE */}
+                      <td className="px-4 py-4 max-w-xs">
+                        <span className="text-[10px] font-mono text-blue-600 font-bold block">{item.requirementId}</span>
+                        <span className="text-xs text-slate-800 font-semibold">{item.position}</span>
+                      </td>
+
+                      {/* 3. CLIENT PARTNER */}
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">
+                          <Building2 className="w-3.5 h-3.5 text-purple-600 inline shrink-0" />
+                          <span>{item.client}</span>
+                        </div>
+                      </td>
+
+                      {/* 4. OFFER DATE & CTC */}
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <span className="text-xs text-slate-900 font-extrabold block">{item.offeredCTC}</span>
+                        <span className="text-[10px] text-slate-400">Offered: {item.offerDate}</span>
+                      </td>
+
+                      {/* 5. JOINING DATE */}
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        {item.joiningDate ? (
+                          <div className="text-xs font-bold text-emerald-800 flex items-center gap-1">
+                            <CalendarIcon className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>{item.joiningDate}</span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 text-[11px] italic">Not scheduled</span>
+                        )}
+                      </td>
+
+                      {/* 6. ONBOARDING STATUS & NOTES */}
+                      <td className="px-4 py-4 max-w-sm">
+                        {item.status === 'Joined' && (
+                          <div className="space-y-1">
+                            <span className="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300 inline-flex items-center gap-1">
+                              <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
+                              <span>Joined / On-boarded</span>
+                            </span>
+                            <div className="text-[10px] font-bold text-emerald-700">
+                              ✓ Onboarded on {item.joiningDate || 'Aug 25, 2026'}
+                            </div>
+                          </div>
+                        )}
+
+                        {(item.status === 'Not Joined' || item.status === 'Declined') && (
+                          <div className="space-y-1.5">
+                            <span className="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-rose-100 text-rose-900 border border-rose-300 inline-flex items-center gap-1">
+                              <UserX className="w-3.5 h-3.5 text-rose-700" />
+                              <span>Not Joined / Backed Out</span>
+                            </span>
+
+                            {item.notJoinedReason && (
+                              <div className="text-[11px] font-extrabold text-rose-900 flex items-center gap-1">
+                                <AlertTriangle className="w-3 h-3 text-rose-500 shrink-0" />
+                                <span>{item.notJoinedReason}</span>
+                              </div>
+                            )}
+
+                            {item.notJoinedNote && (
+                              <div className="bg-rose-50/70 p-2 rounded-lg border border-rose-200 text-[11px] text-slate-700 leading-relaxed font-medium">
+                                <div className="flex items-center gap-1 font-bold text-rose-900 mb-0.5">
+                                  <MessageSquare className="w-3 h-3 text-rose-600 shrink-0" />
+                                  <span>Recruiter Non-Joining Note:</span>
+                                </div>
+                                <span>{item.notJoinedNote}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {item.status === 'Offer Released' && (
+                          <span className="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-purple-100 text-purple-900 border border-purple-300 inline-block">
+                            Offer Released (Awaiting Joining)
+                          </span>
+                        )}
+
+                        {item.status === 'Accepted' && (
+                          <span className="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-blue-100 text-blue-900 border border-blue-300 inline-block">
+                            Offer Accepted (Joining Pending)
+                          </span>
+                        )}
+                      </td>
+
+                      {/* 7. ACTIONS */}
+                      <td className="px-4 py-4 text-right space-x-1.5 whitespace-nowrap">
+                        {(item.status === 'Offer Released' || item.status === 'Accepted') && (
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOfferLetters(prev =>
+                                  prev.map(o => (o.id === item.id ? { ...o, status: 'Joined', joiningDate: o.joiningDate || 'Aug 25, 2026' } : o))
+                                )
+                                showToast(`Candidate ${item.candidateName} marked as Joined / On-boarded! 🎉`)
+                              }}
+                              className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold rounded-xl cursor-pointer transition-all shadow-2xs flex items-center gap-1"
+                            >
+                              <UserCheck className="w-3.5 h-3.5" />
+                              <span>Mark Joined</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleOpenNotJoinedModal(item)}
+                              className="px-2.5 py-1.5 bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 text-[11px] font-extrabold rounded-xl cursor-pointer transition-all flex items-center gap-1 shadow-2xs"
+                            >
+                              <UserX className="w-3.5 h-3.5" />
+                              <span>Mark Not Joined</span>
+                            </button>
+                          </div>
+                        )}
+
+                        {(item.status === 'Not Joined' || item.status === 'Declined') && (
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenNotJoinedModal(item)}
+                              className="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-[11px] font-extrabold rounded-xl cursor-pointer transition-all flex items-center gap-1 shadow-2xs"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5 text-[#6B3BF6]" />
+                              <span>{item.notJoinedNote ? 'Edit Note' : 'Add Note'}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setViewNotJoinedDetailModal(item)}
+                              className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-extrabold rounded-xl cursor-pointer transition-all shadow-2xs"
+                            >
+                              <span>View Details</span>
+                            </button>
+                          </div>
+                        )}
+
+                        {item.status === 'Joined' && (
+                          <span className="px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-extrabold rounded-lg inline-flex items-center gap-1">
+                            <UserCheck className="w-3 h-3 text-emerald-600" /> Onboarded ✓
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -1433,52 +2176,79 @@ export function InterviewTrackingPage({
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-800">
-                  Select Reason for Rejection <span className="text-rose-500">*</span>
-                </label>
+              <div className="space-y-3">
                 <div className="space-y-1.5">
-                  {[
-                    'Technical evaluation score below threshold',
-                    'Domain experience mismatch for client requirement',
-                    'Salary expectation exceeds approved budget',
-                    'Communication / soft skills mismatch',
-                    'Candidate withdrew / unavailable for next round',
-                    'Other',
-                  ].map(reason => (
-                    <label
-                      key={reason}
-                      className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
-                        selectedRejectionReason === reason
-                          ? 'border-purple-600 bg-purple-50/60 font-bold text-slate-900 shadow-2xs'
-                          : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="rejectionReasonRadio"
-                        value={reason}
-                        checked={selectedRejectionReason === reason}
-                        onChange={() => setSelectedRejectionReason(reason)}
-                        className="text-[#6B3BF6] focus:ring-[#6B3BF6]"
-                      />
-                      <span>{reason}</span>
-                    </label>
-                  ))}
+                  <label className="block text-xs font-bold text-slate-800">
+                    Select Rejection Stage / Round <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {(['Screening', 'L1 Technical', 'L2 Technical', 'L3 / Manager', 'Final HR Round'] as RejectionStageType[]).map(stage => (
+                      <button
+                        key={stage}
+                        type="button"
+                        onClick={() => setSelectedRejectionStage(stage)}
+                        className={`px-2.5 py-2 rounded-xl text-[11px] font-extrabold text-left border transition-all cursor-pointer flex items-center justify-between ${
+                          selectedRejectionStage === stage
+                            ? 'border-rose-500 bg-rose-50 text-rose-900 shadow-2xs'
+                            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span>{stage}</span>
+                        {selectedRejectionStage === stage && (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                {selectedRejectionReason === 'Other' && (
-                  <div className="pt-2 space-y-1">
-                    <label className="block text-[11px] font-bold text-slate-700">Specify Custom Rejection Reason</label>
-                    <textarea
-                      rows={2}
-                      value={customRejectionNote}
-                      onChange={e => setCustomRejectionNote(e.target.value)}
-                      placeholder="Type custom reason for rejection..."
-                      className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6B3BF6] text-slate-800"
-                    />
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-slate-800">
+                    Select Reason for Rejection <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="space-y-1.5">
+                    {[
+                      'Technical evaluation score below threshold',
+                      'Domain experience mismatch for client requirement',
+                      'Salary expectation exceeds approved budget',
+                      'Communication / soft skills mismatch',
+                      'Candidate withdrew / unavailable for next round',
+                      'Other',
+                    ].map(reason => (
+                      <label
+                        key={reason}
+                        className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
+                          selectedRejectionReason === reason
+                            ? 'border-purple-600 bg-purple-50/60 font-bold text-slate-900 shadow-2xs'
+                            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="rejectionReasonRadio"
+                          value={reason}
+                          checked={selectedRejectionReason === reason}
+                          onChange={() => setSelectedRejectionReason(reason)}
+                          className="text-[#6B3BF6] focus:ring-[#6B3BF6]"
+                        />
+                        <span>{reason}</span>
+                      </label>
+                    ))}
                   </div>
-                )}
+
+                  {selectedRejectionReason === 'Other' && (
+                    <div className="pt-2 space-y-1">
+                      <label className="block text-[11px] font-bold text-slate-700">Specify Custom Rejection Reason</label>
+                      <textarea
+                        rows={2}
+                        value={customRejectionNote}
+                        onChange={e => setCustomRejectionNote(e.target.value)}
+                        placeholder="Type custom reason for rejection..."
+                        className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6B3BF6] text-slate-800"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1674,6 +2444,287 @@ export function InterviewTrackingPage({
                 className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-extrabold transition-all cursor-pointer"
               >
                 Close Calendar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* REJECTED CANDIDATE DETAIL MODAL */}
+      {selectedRejectedCandidateModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 text-rose-600">
+                <UserX className="w-5 h-5" />
+                <h3 className="text-base font-extrabold text-slate-900">Rejected Candidate Detailed Feedback</h3>
+              </div>
+              <button
+                onClick={() => setSelectedRejectedCandidateModal(null)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs text-slate-700">
+              <div className="bg-rose-50/70 p-4 rounded-2xl border border-rose-200/80 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-slate-900 text-sm">{selectedRejectedCandidateModal.candidateName}</span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] ${getRejectionStageBadgeStyle(selectedRejectedCandidateModal.rejectedStage)}`}>
+                    Rejected at {selectedRejectedCandidateModal.rejectedStage}
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-600">
+                  Requirement: <strong className="text-slate-900">{selectedRejectedCandidateModal.position}</strong> ({selectedRejectedCandidateModal.requirementId})
+                </div>
+                <div className="text-[11px] text-purple-800 font-bold">
+                  Client: {selectedRejectedCandidateModal.company}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Primary Rejection Reason</div>
+                  <div className="font-extrabold text-rose-900 flex items-center gap-1.5 text-xs">
+                    <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+                    <span>{selectedRejectedCandidateModal.rejectionReason}</span>
+                  </div>
+                </div>
+
+                {selectedRejectedCandidateModal.evaluatorNotes && (
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Evaluator Notes & Assessment</div>
+                    <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                      {selectedRejectedCandidateModal.evaluatorNotes}
+                    </p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                    <span className="text-slate-400 font-bold block">Evaluated By</span>
+                    <span className="font-bold text-slate-800">{selectedRejectedCandidateModal.evaluatedBy}</span>
+                  </div>
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                    <span className="text-slate-400 font-bold block">Rejection Date</span>
+                    <span className="font-bold text-slate-800">{selectedRejectedCandidateModal.rejectionDate}</span>
+                  </div>
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                    <span className="text-slate-400 font-bold block">Submitted By</span>
+                    <span className="font-bold text-slate-800">{selectedRejectedCandidateModal.submittedBy || 'Recruiter'}</span>
+                  </div>
+                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                    <span className="text-slate-400 font-bold block">Team Lead</span>
+                    <span className="font-bold text-slate-800">{selectedRejectedCandidateModal.teamLead || 'Harish Gadipally'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <button
+                onClick={() => {
+                  showToast(`Rejection evaluation report downloaded for ${selectedRejectedCandidateModal.candidateName}`)
+                }}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <FileText className="w-3.5 h-3.5 text-[#6B3BF6]" />
+                <span>Download Evaluation Report</span>
+              </button>
+              <button
+                onClick={() => setSelectedRejectedCandidateModal(null)}
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MARK NOT JOINED & ADD REASON NOTE MODAL */}
+      {notJoinedModalCandidate && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 text-rose-600">
+                <UserX className="w-5 h-5" />
+                <h3 className="text-base font-extrabold text-slate-900">Record Non-Joining Reason & Recruiter Note</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setNotJoinedModalCandidate(null)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs text-slate-700">
+              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-1 font-medium">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Candidate:</span>
+                  <span className="font-bold text-slate-900">{notJoinedModalCandidate.candidateName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Requirement / Role:</span>
+                  <span className="font-bold text-slate-900">{notJoinedModalCandidate.position}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Client:</span>
+                  <span className="font-bold text-purple-700">{notJoinedModalCandidate.client}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Offered CTC:</span>
+                  <span className="font-bold text-emerald-700">{notJoinedModalCandidate.offeredCTC}</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-800">
+                  Select Primary Reason for Not Joining <span className="text-rose-500">*</span>
+                </label>
+                <div className="space-y-1.5">
+                  {[
+                    'Competing offer with higher compensation',
+                    'Counter offer from current employer',
+                    'Relocation / Location constraint',
+                    'Shift timing / work mode mismatch',
+                    'Personal / Family / Health issues',
+                    'Joined another organization',
+                    'Other',
+                  ].map(reason => (
+                    <label
+                      key={reason}
+                      className={`flex items-center gap-2.5 p-2 rounded-xl border transition-all cursor-pointer ${
+                        selectedNotJoinedReason === reason
+                          ? 'border-rose-500 bg-rose-50/70 font-bold text-slate-900 shadow-2xs'
+                          : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="notJoinedReasonRadio"
+                        value={reason}
+                        checked={selectedNotJoinedReason === reason}
+                        onChange={() => setSelectedNotJoinedReason(reason)}
+                        className="text-rose-600 focus:ring-rose-500"
+                      />
+                      <span>{reason}</span>
+                    </label>
+                  ))}
+                </div>
+
+                <div className="pt-2 space-y-1">
+                  <label className="block text-xs font-bold text-slate-800 flex items-center justify-between">
+                    <span>Recruiter Non-Joining Note / Background Details</span>
+                    <span className="text-[10px] text-slate-400 font-normal">Required for audit tracking</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={notJoinedCustomNote}
+                    onChange={e => setNotJoinedCustomNote(e.target.value)}
+                    placeholder="Type specific notes on why candidate backed out or did not join (e.g. counter offer details, competing CTC, relocation constraints)..."
+                    className="w-full p-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-rose-500 text-slate-800 font-medium leading-relaxed"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setNotJoinedModalCandidate(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveNotJoinedRecord}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-1.5"
+              >
+                <UserX className="w-3.5 h-3.5" />
+                <span>Save Non-Joining Note & Update Status</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW NOT JOINED DETAILS MODAL */}
+      {viewNotJoinedDetailModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 text-rose-600">
+                <MessageSquare className="w-5 h-5" />
+                <h3 className="text-base font-extrabold text-slate-900">Non-Joining Candidate Record</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewNotJoinedDetailModal(null)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-700">
+              <div className="bg-rose-50/70 p-3.5 rounded-2xl border border-rose-200 space-y-1">
+                <div className="font-extrabold text-slate-900 text-sm">{viewNotJoinedDetailModal.candidateName}</div>
+                <div className="text-slate-600 font-medium">Role: {viewNotJoinedDetailModal.position} ({viewNotJoinedDetailModal.requirementId})</div>
+                <div className="text-purple-800 font-bold">Client: {viewNotJoinedDetailModal.client} | Offered CTC: {viewNotJoinedDetailModal.offeredCTC}</div>
+              </div>
+
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Primary Non-Joining Reason</div>
+                <div className="font-extrabold text-rose-900 flex items-center gap-1.5 text-xs">
+                  <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+                  <span>{viewNotJoinedDetailModal.notJoinedReason || viewNotJoinedDetailModal.declineReason || 'Candidate backed out'}</span>
+                </div>
+              </div>
+
+              {viewNotJoinedDetailModal.notJoinedNote && (
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Recruiter Detailed Note</div>
+                  <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                    {viewNotJoinedDetailModal.notJoinedNote}
+                  </p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-2 text-[11px]">
+                <div className="bg-slate-50 p-2 rounded-xl border border-slate-200">
+                  <span className="text-slate-400 font-bold block">Status</span>
+                  <span className="font-extrabold text-rose-700">Not Joined / Backed Out</span>
+                </div>
+                <div className="bg-slate-50 p-2 rounded-xl border border-slate-200">
+                  <span className="text-slate-400 font-bold block">Recruiter</span>
+                  <span className="font-bold text-slate-800">{viewNotJoinedDetailModal.submittedBy || 'Marcus Chen'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  const item = viewNotJoinedDetailModal
+                  setViewNotJoinedDetailModal(null)
+                  handleOpenNotJoinedModal(item)
+                }}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+              >
+                Edit Note
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewNotJoinedDetailModal(null)}
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
+              >
+                Close
               </button>
             </div>
           </div>

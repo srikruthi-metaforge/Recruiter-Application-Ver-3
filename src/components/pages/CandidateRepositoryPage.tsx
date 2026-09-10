@@ -25,11 +25,13 @@ import {
   Send,
   ExternalLink,
   UserPlus,
+  ShieldAlert,
 } from 'lucide-react'
 import { Candidate, Requirement, Role } from '../../types'
 import { PaginationFooter } from '../ui/PaginationFooter'
 import { SubmitToLeadPage } from './SubmitToLeadPage'
 import { INITIAL_REQUIREMENTS } from '../../data/mockData'
+import { checkDuplicateSubmission, getSubmissionsStore } from '../../data/submissionsStore'
 
 /**
  * Masks email address:
@@ -91,6 +93,86 @@ export interface CandidateRepoItem {
   resumeReference?: string
   notes?: string
 }
+
+/**
+ * Helper to retrieve candidate submission history (count and companies submitted to)
+ */
+export function getCandidateSubmissionsHistory(item: CandidateRepoItem) {
+  const store = getSubmissionsStore()
+  const normEmail = item.email ? item.email.trim().toLowerCase() : ''
+  const normPhone = item.phone ? item.phone.replace(/[^\d]/g, '').slice(-10) : ''
+  const normName = item.name ? item.name.trim().toLowerCase() : ''
+
+  const matches = store.filter(sub => {
+    if (normEmail && sub.email && sub.email.trim().toLowerCase() === normEmail) return true
+    if (normPhone && sub.phone && sub.phone.replace(/[^\d]/g, '').slice(-10) === normPhone) return true
+    if (normName && sub.candidate) {
+      const subName = sub.candidate.trim().toLowerCase()
+      if (subName === normName || subName.includes(normName) || normName.includes(subName)) return true
+    }
+    return false
+  })
+
+  let records = matches.map(m => ({
+    id: m.id || `SUB-${Math.random().toString(36).substr(2, 6)}`,
+    client: m.client || 'Client Account',
+    requirementTitle: m.requirement || 'Requirement Title',
+    reqId: m.reqId || 'REQ-001',
+    submittedBy: m.recruiter || 'Recruiter',
+    submittedDate: m.date || 'Aug 04, 2026',
+    status: m.stage || 'Submitted to Client',
+  }))
+
+  // Fallback defaults for repository seed candidates so they show clear submission history
+  if (records.length === 0) {
+    if (item.candidateId === '18016') {
+      records = [
+        { id: 'SUB-901', client: 'Accenture', requirementTitle: 'Senior React Developer', reqId: 'REQ-001', submittedBy: 'Marcus Chen', submittedDate: 'Aug 02, 2026, 02:30 PM', status: 'Submitted to Client' },
+        { id: 'SUB-902', client: 'Capgemini', requirementTitle: 'SAP Transportation Management', reqId: 'REQ-2026-08-06-001', submittedBy: 'Adirala sathvika', submittedDate: 'Aug 06, 2026, 11:15 AM', status: 'L1 Interview Scheduled' }
+      ]
+    } else if (item.candidateId === '18015') {
+      records = [
+        { id: 'SUB-903', client: 'Infosys', requirementTitle: 'Java Architect', reqId: 'REQ-002', submittedBy: 'Priya Sharma', submittedDate: 'Aug 03, 2026, 04:10 PM', status: 'Submitted to Lead' },
+        { id: 'SUB-904', client: 'Goldman Sachs', requirementTitle: 'SAP TM+ S4 Hana', reqId: 'REQ-2026-08-06-002', submittedBy: 'Arvind GR', submittedDate: 'Aug 06, 2026, 01:45 PM', status: 'Submitted to Client' }
+      ]
+    } else if (item.candidateId === '18014') {
+      records = [
+        { id: 'SUB-905', client: 'Wipro', requirementTitle: 'DevOps Lead Engineer', reqId: 'REQ-003', submittedBy: 'James O\'Brien', submittedDate: 'Aug 01, 2026, 10:20 AM', status: 'Submitted to Client' },
+        { id: 'SUB-906', client: 'Metaforge Client', requirementTitle: 'System Administrator Lead', reqId: 'REQ-2026-08-06-004', submittedBy: 'Harish Gadipally', submittedDate: 'Aug 06, 2026, 03:00 PM', status: 'Interview Completed' }
+      ]
+    } else if (item.candidateId === '18013') {
+      records = [
+        { id: 'SUB-907', client: 'LTIMindtree', requirementTitle: 'Senior Data Scientist', reqId: 'REQ-004', submittedBy: 'Elena Rostova', submittedDate: 'Aug 04, 2026, 11:50 AM', status: 'Submitted to Client' }
+      ]
+    } else if (item.candidateId === '18012') {
+      records = [
+        { id: 'SUB-908', client: 'Tata Technologies', requirementTitle: 'Python ML Engineer', reqId: 'REQ-006', submittedBy: 'Puttapaka Saiteja', submittedDate: 'Aug 05, 2026, 09:30 AM', status: 'Submitted to Lead' },
+        { id: 'SUB-909', client: 'Tesla', requirementTitle: 'Salesforce Admin', reqId: 'REQ-005', submittedBy: 'Alex Rivera', submittedDate: 'Jul 29, 2026, 03:15 PM', status: 'Offer Extended' }
+      ]
+    } else if (item.candidateId === '18011') {
+      records = [
+        { id: 'SUB-910', client: 'Tech Mahindra', requirementTitle: 'Full Stack Java Engineer', reqId: 'REQ-007', submittedBy: 'Tejasree Chakravarthy', submittedDate: 'Aug 04, 2026, 02:00 PM', status: 'Submitted to Client' },
+        { id: 'SUB-911', client: 'Accenture', requirementTitle: 'Senior React Developer', reqId: 'REQ-001', submittedBy: 'Marcus Chen', submittedDate: 'Aug 03, 2026, 05:40 PM', status: 'Screening Completed' }
+      ]
+    } else if (item.candidateId === '18010') {
+      records = [
+        { id: 'SUB-912', client: 'Bosch', requirementTitle: 'Embedded Systems Engineer', reqId: 'REQ-008', submittedBy: 'Rahul Verma', submittedDate: 'Aug 02, 2026, 01:10 PM', status: 'Submitted to Client' }
+      ]
+    }
+  }
+
+  const companies: string[] = Array.from(new Set(records.map(r => r.client)))
+  const count = records.length
+
+  return {
+    count,
+    companies,
+    records,
+    matches,
+  }
+}
+
+
 
 const DEFAULT_REPO_CANDIDATES: CandidateRepoItem[] = [
   {
@@ -303,6 +385,17 @@ export function CandidateRepositoryPage({
   const [searchQuery, setSearchQuery] = useState('')
   const [submittedPeriod, setSubmittedPeriod] = useState('All time')
   const [totalExpFilter, setTotalExpFilter] = useState('All experience')
+  const [submissionCountFilter, setSubmissionCountFilter] = useState('All Submissions')
+  const [submittedClientFilter, setSubmittedClientFilter] = useState('All Clients')
+
+  const uniqueSubmittedClients = useMemo(() => {
+    const set = new Set<string>()
+    repoList.forEach(item => {
+      const history = getCandidateSubmissionsHistory(item)
+      history.companies.forEach(c => set.add(c))
+    })
+    return Array.from(set).sort()
+  }, [repoList])
 
   const scrollToNextPageSection = () => {
     setTimeout(() => {
@@ -442,6 +535,10 @@ export function CandidateRepositoryPage({
   // Detail Modal view state (displays WHOLE information about candidate)
   const [viewingCandidateDetail, setViewingCandidateDetail] = useState<CandidateRepoItem | null>(null)
 
+  // Dedicated Submission History Inspection Modal State
+  const [selectedSubmissionHistoryCandidate, setSelectedSubmissionHistoryCandidate] = useState<CandidateRepoItem | null>(null)
+  const [submissionModalSearchQuery, setSubmissionModalSearchQuery] = useState('')
+
   // Full-page edit state
   const [editingCandidate, setEditingCandidate] = useState<CandidateRepoItem | null>(null)
 
@@ -477,6 +574,7 @@ export function CandidateRepositoryPage({
   // Filter repo list dynamically
   const filteredList = useMemo(() => {
     return repoList.filter(item => {
+      // 1. Search Query Filter
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim()
         const matchName = item.name.toLowerCase().includes(q)
@@ -487,9 +585,38 @@ export function CandidateRepositoryPage({
         const matchCompany = (item.currentCompany || '').toLowerCase().includes(q)
         if (!matchName && !matchId && !matchTech && !matchCreator && !matchSkills && !matchCompany) return false
       }
+
+      const subHistory = getCandidateSubmissionsHistory(item)
+
+      // 2. Submission Count Filter
+      if (submissionCountFilter !== 'All Submissions') {
+        if (submissionCountFilter === 'Not Submitted Yet' && subHistory.count !== 0) return false
+        if (submissionCountFilter === 'Submitted 1+ times' && subHistory.count < 1) return false
+        if (submissionCountFilter === 'Submitted 2+ times' && subHistory.count < 2) return false
+        if (submissionCountFilter === 'Submitted 3+ times' && subHistory.count < 3) return false
+      }
+
+      // 3. Submitted Client Filter
+      if (submittedClientFilter !== 'All Clients') {
+        const clientTarget = submittedClientFilter.toLowerCase()
+        const matchesClient = subHistory.companies.some(c => c.toLowerCase().includes(clientTarget))
+        if (!matchesClient) return false
+      }
+
+      // 4. Total Experience Filter
+      if (totalExpFilter !== 'All experience') {
+        const expMatch = item.totalExperience.match(/\d+/)
+        const years = expMatch ? parseInt(expMatch[0], 10) : 0
+        if (totalExpFilter === '0–2 years' && (years < 0 || years > 2)) return false
+        if (totalExpFilter === '2–5 years' && (years < 2 || years > 5)) return false
+        if (totalExpFilter === '5–8 years' && (years < 5 || years > 8)) return false
+        if (totalExpFilter === '8–10 years' && (years < 8 || years > 10)) return false
+        if (totalExpFilter === '10+ years' && years < 10) return false
+      }
+
       return true
     })
-  }, [repoList, searchQuery])
+  }, [repoList, searchQuery, submissionCountFilter, submittedClientFilter, totalExpFilter])
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -530,6 +657,24 @@ export function CandidateRepositoryPage({
   // Handle Submit to Lead for single candidate
   const handleSubmitSingleToLead = (item: CandidateRepoItem, e?: React.MouseEvent) => {
     e?.stopPropagation()
+
+    // Perform Duplicate Check if active requirement exists
+    if (activeReqId) {
+      const dupCheck = checkDuplicateSubmission(activeReqId, {
+        email: item.email,
+        phone: item.phone,
+        candidateId: item.candidateId,
+        name: item.name,
+      })
+
+      if (dupCheck.isDuplicate) {
+        showToast(
+          `⚠️ Duplicate Submission: Candidate "${item.name}" has already been submitted for requirement "${activeRequirement?.title || activeReqId}" by ${dupCheck.existingSubmission?.recruiter || 'another recruiter'}. Cannot submit!`
+        )
+        return
+      }
+    }
+
     setViewingCandidateDetail(null)
     if (!activeReqId) {
       setPendingCandidateForSubmit(item)
@@ -931,16 +1076,55 @@ export function CandidateRepositoryPage({
         </div>
 
         {/* Dropdown Filters */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 self-end md:self-auto">
-          {/* Submitted period */}
+        <div className="flex flex-wrap items-center gap-3 self-end md:self-auto">
+          {/* Submissions count filter */}
+          <div className="space-y-1 w-full sm:w-40">
+            <div className="text-[10px] font-bold text-slate-400 tracking-wider flex items-center gap-1">
+              <Send className="w-3 h-3 text-[#6B3BF6]" />
+              <span>Submissions count</span>
+            </div>
+            <select
+              value={submissionCountFilter}
+              onChange={e => setSubmissionCountFilter(e.target.value)}
+              className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium text-slate-700 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
+            >
+              <option value="All Submissions">All Submissions</option>
+              <option value="Submitted 1+ times">Submitted 1+ times</option>
+              <option value="Submitted 2+ times">Submitted 2+ times</option>
+              <option value="Submitted 3+ times">Submitted 3+ times</option>
+              <option value="Not Submitted Yet">Not Submitted Yet</option>
+            </select>
+          </div>
+
+          {/* Submitted Client filter */}
           <div className="space-y-1 w-full sm:w-44">
+            <div className="text-[10px] font-bold text-slate-400 tracking-wider flex items-center gap-1">
+              <Building className="w-3 h-3 text-[#6B3BF6]" />
+              <span>Submitted Client</span>
+            </div>
+            <select
+              value={submittedClientFilter}
+              onChange={e => setSubmittedClientFilter(e.target.value)}
+              className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium text-slate-700 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
+            >
+              <option value="All Clients">All Clients</option>
+              {uniqueSubmittedClients.map(client => (
+                <option key={client} value={client}>
+                  {client}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Submitted period */}
+          <div className="space-y-1 w-full sm:w-36">
             <div className="text-[10px] font-bold text-slate-400 tracking-wider">
               Submitted period
             </div>
             <select
               value={submittedPeriod}
               onChange={e => setSubmittedPeriod(e.target.value)}
-              className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium text-slate-700 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
+              className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium text-slate-700 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
             >
               <option value="All time">All time</option>
               <option value="Week">Week</option>
@@ -952,17 +1136,16 @@ export function CandidateRepositoryPage({
           </div>
 
           {/* Total experience */}
-          <div className="space-y-1 w-full sm:w-44">
+          <div className="space-y-1 w-full sm:w-36">
             <div className="text-[10px] font-bold text-slate-400 tracking-wider">
               Total experience
             </div>
             <select
               value={totalExpFilter}
               onChange={e => setTotalExpFilter(e.target.value)}
-              className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium text-slate-700 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
+              className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium text-slate-700 focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
             >
               <option value="All experience">All experience</option>
-              <option value="Custom range">Custom range</option>
               <option value="0–2 years">0–2 years</option>
               <option value="2–5 years">2–5 years</option>
               <option value="5–8 years">5–8 years</option>
@@ -970,8 +1153,57 @@ export function CandidateRepositoryPage({
               <option value="10+ years">10+ years</option>
             </select>
           </div>
+
+          {/* Clear Filters Button if any filter active */}
+          {(submissionCountFilter !== 'All Submissions' || submittedClientFilter !== 'All Clients' || totalExpFilter !== 'All experience' || searchQuery) && (
+            <button
+              onClick={() => {
+                setSubmissionCountFilter('All Submissions')
+                setSubmittedClientFilter('All Clients')
+                setTotalExpFilter('All experience')
+                setSubmittedPeriod('All time')
+                setSearchQuery('')
+              }}
+              className="px-3 py-2 text-xs text-purple-700 hover:text-purple-900 font-bold underline cursor-pointer self-end mb-0.5"
+            >
+              Reset Filters
+            </button>
+          )}
         </div>
       </div>
+
+      {/* ACTIVE SUBMISSION FILTER INDICATOR BANNER */}
+      {(submittedClientFilter !== 'All Clients' || submissionCountFilter !== 'All Submissions') && (
+        <div className="bg-purple-50/90 border border-purple-200/90 rounded-2xl p-3 px-4 flex items-center justify-between gap-3 text-xs shadow-2xs animate-in fade-in duration-150 font-sans">
+          <div className="flex items-center gap-2 font-bold text-purple-950">
+            <Filter className="w-4 h-4 text-[#6B3BF6]" />
+            <span>
+              Active Filter:{' '}
+              {submittedClientFilter !== 'All Clients' && (
+                <span className="bg-[#6B3BF6] text-white px-2.5 py-0.5 rounded-full text-xs font-extrabold mr-1.5 inline-flex items-center gap-1 shadow-2xs">
+                  <span>Client: {submittedClientFilter}</span>
+                </span>
+              )}
+              {submissionCountFilter !== 'All Submissions' && (
+                <span className="bg-purple-700 text-white px-2.5 py-0.5 rounded-full text-xs font-extrabold inline-flex items-center gap-1 shadow-2xs">
+                  <span>Count: {submissionCountFilter}</span>
+                </span>
+              )}
+            </span>
+          </div>
+
+          <button
+            onClick={() => {
+              setSubmittedClientFilter('All Clients')
+              setSubmissionCountFilter('All Submissions')
+            }}
+            className="text-xs text-purple-700 hover:text-purple-950 font-extrabold underline cursor-pointer flex items-center gap-1"
+          >
+            <X className="w-3.5 h-3.5" />
+            <span>Clear Filters</span>
+          </button>
+        </div>
+      )}
 
       {/* 4. CANDIDATE REPOSITORY TABLE CARD */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
@@ -990,7 +1222,7 @@ export function CandidateRepositoryPage({
                   </th>
                 )}
                 <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                  CANDIDATE NAME & ID
+                  CANDIDATE NAME & ROLE
                 </th>
                 <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                   CURRENT COMPANY
@@ -999,7 +1231,10 @@ export function CandidateRepositoryPage({
                   CONTACT (EMAIL & PHONE)
                 </th>
                 <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                  TECHNOLOGY & SKILLS
+                  <div className="flex items-center gap-1.5">
+                    <span>SUBMITTED & CLIENTS</span>
+                    <Filter className="w-3 h-3 text-[#6B3BF6]" />
+                  </div>
                 </th>
                 <th className="px-4 py-3.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
                   EXPERIENCE
@@ -1016,13 +1251,21 @@ export function CandidateRepositoryPage({
               {paginatedRepoList.map(item => {
                 const isUnmasked = unmaskedIds.has(item.id)
                 const isSelected = selectedIds.has(item.id)
+                const dupCheck = activeReqId
+                  ? checkDuplicateSubmission(activeReqId, {
+                      email: item.email,
+                      phone: item.phone,
+                      candidateId: item.candidateId,
+                      name: item.name,
+                    })
+                  : { isDuplicate: false }
                 return (
                   <tr
                     key={item.id}
                     onClick={() => setViewingCandidateDetail(item)}
                     className={`hover:bg-purple-50/40 cursor-pointer transition-colors group ${
                       isSelected ? 'bg-purple-50/30' : ''
-                    }`}
+                    } ${dupCheck.isDuplicate ? 'bg-rose-50/20' : ''}`}
                   >
                     {/* Checkbox (shown only when requirement is selected) */}
                     {activeRequirement && (
@@ -1036,17 +1279,31 @@ export function CandidateRepositoryPage({
                       </td>
                     )}
 
-                    {/* Candidate Name, ID & Status Badge */}
+                    {/* Candidate Name, Role & ID & Status / Duplicate Badge */}
                     <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-slate-900 text-xs group-hover:text-[#6B3BF6] transition-colors">
                           {item.name}
                         </span>
-                        {item.status && (
-                          <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-indigo-100 text-indigo-800 border border-indigo-200 shrink-0">
-                            {item.status}
+                        {dupCheck.isDuplicate ? (
+                          <span
+                            className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300 shrink-0 inline-flex items-center gap-1"
+                            title={`Already submitted by ${dupCheck.existingSubmission?.recruiter || 'another recruiter'} on ${dupCheck.existingSubmission?.date}`}
+                          >
+                            <ShieldAlert className="w-3 h-3 text-rose-600" />
+                            <span>Duplicate Submission</span>
                           </span>
+                        ) : (
+                          item.status && (
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-indigo-100 text-indigo-800 border border-indigo-200 shrink-0">
+                              {item.status}
+                            </span>
+                          )
                         )}
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] text-[#6B3BF6] font-bold mt-1">
+                        <Briefcase className="w-3 h-3 shrink-0" />
+                        <span className="truncate max-w-[210px]" title={item.technology}>{item.technology}</span>
                       </div>
                       <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                         ID: {item.candidateId}
@@ -1089,12 +1346,74 @@ export function CandidateRepositoryPage({
                       </div>
                     </td>
 
-                    {/* Technology & Skills */}
-                    <td className="px-4 py-4 max-w-xs">
-                      <div className="font-bold text-slate-800 text-xs truncate">{item.technology}</div>
-                      {item.skills && (
-                        <div className="text-[10px] text-slate-500 truncate mt-0.5">{item.skills}</div>
-                      )}
+                    {/* Submitted (Companies & Count - Interactive Filters & History) */}
+                    <td className="px-4 py-4 max-w-xs" onClick={e => e.stopPropagation()}>
+                      {(() => {
+                        const subHistory = getCandidateSubmissionsHistory(item)
+                        if (subHistory.count === 0) {
+                          return (
+                            <span className="text-[11px] text-slate-400 italic font-medium">
+                              Not Submitted Yet
+                            </span>
+                          )
+                        }
+
+                        return (
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-1.5">
+                              {/* Sleek Count Badge */}
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-50 text-[#6B3BF6] border border-purple-200 shrink-0">
+                                {subHistory.count} Submission{subHistory.count > 1 ? 's' : ''}
+                              </span>
+
+                              {/* Inspect Full History Icon */}
+                              <button
+                                type="button"
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  setSelectedSubmissionHistoryCandidate(item)
+                                  setSubmissionModalSearchQuery('')
+                                }}
+                                className="p-1 text-slate-400 hover:text-[#6B3BF6] hover:bg-purple-50 rounded-md transition-all cursor-pointer"
+                                title="Inspect complete submission history details"
+                              >
+                                <Eye className="w-3.5 h-3.5 text-[#6B3BF6]" />
+                              </button>
+                            </div>
+
+                            {/* Clickable Client Filter Chips */}
+                            <div className="flex items-center gap-1 flex-wrap">
+                              {subHistory.companies.map((comp, idx) => {
+                                const isActiveFilter = submittedClientFilter === comp
+                                return (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={e => {
+                                      e.stopPropagation()
+                                      if (isActiveFilter) {
+                                        setSubmittedClientFilter('All Clients')
+                                      } else {
+                                        setSubmittedClientFilter(comp)
+                                      }
+                                    }}
+                                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 border ${
+                                      isActiveFilter
+                                        ? 'bg-[#6B3BF6] text-white border-[#6B3BF6] shadow-2xs'
+                                        : 'bg-slate-50 hover:bg-purple-50 text-slate-700 hover:text-[#6B3BF6] border-slate-200 hover:border-purple-200'
+                                    }`}
+                                    title={isActiveFilter ? `Active Filter: ${comp} (click to clear)` : `Click to filter candidates by ${comp}`}
+                                  >
+                                    <Building className={`w-2.5 h-2.5 ${isActiveFilter ? 'text-white' : 'text-slate-500'}`} />
+                                    <span>{comp}</span>
+                                    {isActiveFilter && <X className="w-2.5 h-2.5 ml-0.5" />}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )
+                      })()}
                     </td>
 
                     {/* Total Experience */}
@@ -1111,9 +1430,36 @@ export function CandidateRepositoryPage({
                       <div className="text-[10px] text-slate-400">{item.createdDate}</div>
                     </td>
 
-                    {/* Action Buttons: Call & Edit */}
+                    {/* Action Buttons: Submit / Duplicate, Call & Edit */}
                     <td className="px-4 py-4 text-right whitespace-nowrap" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1.5">
+                        {activeRequirement && (
+                          dupCheck.isDuplicate ? (
+                            <button
+                              type="button"
+                              onClick={e => {
+                                e.stopPropagation()
+                                showToast(
+                                  `⚠️ Duplicate Submission: Candidate "${item.name}" has already been submitted for ${activeRequirement.title} (${activeRequirement.id}) by ${dupCheck.existingSubmission?.recruiter || 'another recruiter'}.`
+                                )
+                              }}
+                              className="px-2.5 py-1.5 border border-rose-300 bg-rose-50 text-rose-800 text-xs font-bold rounded-lg cursor-not-allowed flex items-center gap-1 shrink-0"
+                              title={`Already submitted by ${dupCheck.existingSubmission?.recruiter || 'another recruiter'}`}
+                            >
+                              <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
+                              <span>Duplicate Submission</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={e => handleSubmitSingleToLead(item, e)}
+                              className="px-3 py-1.5 border border-purple-300 bg-[#6B3BF6] hover:bg-[#5833E0] text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-2xs active:scale-98 flex items-center gap-1 shrink-0"
+                            >
+                              <Send className="w-3.5 h-3.5" />
+                              <span>Submit</span>
+                            </button>
+                          )
+                        )}
                         <a
                           href={`tel:${item.phone.replace(/[^0-9+]/g, '')}`}
                           onClick={e => {
@@ -1174,6 +1520,22 @@ export function CandidateRepositoryPage({
             <button
               onClick={() => {
                 const items = repoList.filter(i => selectedIds.has(i.id))
+                const dupItems = items.filter(i =>
+                  checkDuplicateSubmission(activeRequirement.id, {
+                    email: i.email,
+                    phone: i.phone,
+                    candidateId: i.candidateId,
+                    name: i.name,
+                  }).isDuplicate
+                )
+
+                if (dupItems.length > 0) {
+                  showToast(
+                    `⚠️ Duplicate Submission: ${dupItems.map(d => d.name).join(', ')} ${dupItems.length === 1 ? 'has' : 'have'} already been submitted for ${activeRequirement.title}. Cannot submit duplicate candidates.`
+                  )
+                  return
+                }
+
                 setSelectedCandidatesForSubmit(items)
                 setViewMode('submit_to_lead')
                 scrollToNextPageSection()
@@ -1221,8 +1583,91 @@ export function CandidateRepositoryPage({
               </button>
             </div>
 
-            {/* Modal Body - Scrollable Whole Information */}
-            <div className="p-6 overflow-y-auto space-y-6 flex-1 custom-scrollbar">
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-4 max-h-[calc(90vh-140px)]">
+              {/* Duplicate Submission Warning Alert Box */}
+              {activeReqId && viewingCandidateDetail && (() => {
+                const modalDupCheck = checkDuplicateSubmission(activeReqId, {
+                  email: viewingCandidateDetail.email,
+                  phone: viewingCandidateDetail.phone,
+                  candidateId: viewingCandidateDetail.candidateId,
+                  name: viewingCandidateDetail.name,
+                })
+                if (!modalDupCheck.isDuplicate) return null
+                return (
+                  <div className="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 space-y-2 animate-in fade-in">
+                    <div className="flex items-center gap-2">
+                      <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0" />
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-rose-900 text-xs uppercase tracking-wide bg-rose-600 text-white px-2 py-0.5 rounded-md">
+                          Duplicate Submission
+                        </span>
+                        <span className="text-xs font-bold text-rose-800">Submission Blocked</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-rose-950 font-medium leading-relaxed">
+                      Candidate <strong>{viewingCandidateDetail.name}</strong> has already been submitted for target requirement <strong>{activeRequirement?.title || activeReqId} ({activeReqId})</strong> by another recruiter/vendor.
+                    </p>
+                    <div className="text-[11px] text-rose-900 bg-rose-100/80 p-2.5 rounded-xl border border-rose-200/80 flex flex-wrap gap-x-4 gap-y-1 font-semibold">
+                      <span>Submitted By: <strong>{modalDupCheck.existingSubmission?.recruiter || 'External Recruiter'}</strong></span>
+                      <span>Date: <strong>{modalDupCheck.existingSubmission?.date}</strong></span>
+                      <span>Status: <strong>{modalDupCheck.existingSubmission?.stage}</strong></span>
+                      <span>Match Reason: <em>{modalDupCheck.matchReason}</em></span>
+                    </div>
+                  </div>
+                )
+              })()}
+              {/* Submission History Section */}
+              {(() => {
+                const subHistory = getCandidateSubmissionsHistory(viewingCandidateDetail)
+                return (
+                  <div className="bg-purple-50/60 border border-purple-200/80 rounded-2xl p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-bold text-purple-900 uppercase tracking-wider flex items-center gap-1.5">
+                        <Send className="w-3.5 h-3.5 text-[#6B3BF6]" />
+                        Submission History & Client Submissions
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-[#6B3BF6] text-white">
+                          {subHistory.count > 0 ? `Submitted ${subHistory.count} time${subHistory.count > 1 ? 's' : ''}` : 'No Submissions Yet'}
+                        </span>
+                        {subHistory.count > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedSubmissionHistoryCandidate(viewingCandidateDetail)
+                              setSubmissionModalSearchQuery('')
+                            }}
+                            className="px-2.5 py-1 bg-white hover:bg-purple-100 text-[#6B3BF6] border border-purple-300 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-[#6B3BF6]" />
+                            <span>Inspect Full Details</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 text-xs">
+                      <div>
+                        <span className="text-slate-500 block text-[11px] font-medium mb-1">Companies Submitted To:</span>
+                        {subHistory.companies.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {subHistory.companies.map((comp, idx) => (
+                              <span key={idx} className="px-3 py-1 bg-white border border-purple-200 text-purple-950 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-2xs">
+                                <Building className="w-3 h-3 text-[#6B3BF6]" />
+                                {comp}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-slate-500 italic text-xs">Candidate has not been submitted for any client requirement yet.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+
               {/* Section 1: Basic & Contact Details */}
               <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
@@ -1454,15 +1899,37 @@ export function CandidateRepositoryPage({
                 >
                   Edit Profile
                 </button>
-                {activeRequirement && (
-                  <button
-                    type="button"
-                    onClick={() => handleSubmitSingleToLead(viewingCandidateDetail)}
-                    className="px-6 py-2.5 bg-[#6B3BF6] hover:bg-[#5833E0] text-white text-xs font-extrabold rounded-xl transition-all shadow-sm cursor-pointer active:scale-98"
-                  >
-                    Submit to Lead
-                  </button>
-                )}
+                {activeRequirement && (() => {
+                  const modalDup = checkDuplicateSubmission(activeRequirement.id, {
+                    email: viewingCandidateDetail.email,
+                    phone: viewingCandidateDetail.phone,
+                    candidateId: viewingCandidateDetail.candidateId,
+                    name: viewingCandidateDetail.name,
+                  })
+                  if (modalDup.isDuplicate) {
+                    return (
+                      <button
+                        type="button"
+                        disabled
+                        className="px-6 py-2.5 bg-rose-200 text-rose-800 text-xs font-extrabold rounded-xl border border-rose-300 cursor-not-allowed flex items-center gap-2"
+                        title={`Already submitted by ${modalDup.existingSubmission?.recruiter || 'another recruiter'}`}
+                      >
+                        <ShieldAlert className="w-4 h-4 text-rose-700" />
+                        <span>Duplicate Submission - Cannot Submit</span>
+                      </button>
+                    )
+                  }
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => handleSubmitSingleToLead(viewingCandidateDetail)}
+                      className="px-6 py-2.5 bg-[#6B3BF6] hover:bg-[#5833E0] text-white text-xs font-extrabold rounded-xl transition-all shadow-sm cursor-pointer active:scale-98 flex items-center gap-2"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Submit to Lead</span>
+                    </button>
+                  )
+                })()}
               </div>
             </div>
           </div>
@@ -1536,6 +2003,147 @@ export function CandidateRepositoryPage({
           </div>
         </div>
       )}
+
+      {/* CANDIDATE SUBMISSION HISTORY INSPECTION MODAL */}
+      {selectedSubmissionHistoryCandidate && (() => {
+        const subHistory = getCandidateSubmissionsHistory(selectedSubmissionHistoryCandidate)
+        const filteredRecords = subHistory.records.filter(r => {
+          if (!submissionModalSearchQuery.trim()) return true
+          const q = submissionModalSearchQuery.toLowerCase()
+          return (
+            r.client.toLowerCase().includes(q) ||
+            r.requirementTitle.toLowerCase().includes(q) ||
+            r.reqId.toLowerCase().includes(q) ||
+            r.submittedBy.toLowerCase().includes(q) ||
+            r.status.toLowerCase().includes(q)
+          )
+        })
+
+        return (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-150">
+            <div className="bg-white rounded-3xl border border-slate-200 max-w-2xl w-full p-6 space-y-5 shadow-2xl animate-in zoom-in-95 duration-200 font-sans max-h-[90vh] overflow-y-auto">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-purple-100 text-[#6B3BF6] font-black text-sm flex items-center justify-center border border-purple-200 shadow-2xs">
+                    <Send className="w-5 h-5 text-[#6B3BF6]" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                      <span>Submission History for {selectedSubmissionHistoryCandidate.name}</span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-100 text-[#6B3BF6] border border-purple-200">
+                        {subHistory.count} Total Submission{subHistory.count > 1 ? 's' : ''}
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">
+                      ID: {selectedSubmissionHistoryCandidate.candidateId} • {selectedSubmissionHistoryCandidate.technology}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setSelectedSubmissionHistoryCandidate(null)
+                    setSubmissionModalSearchQuery('')
+                  }}
+                  className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-full transition-all cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Submissions KPI Summary Cards */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-purple-50/70 border border-purple-200/80 rounded-2xl p-3 text-center">
+                  <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider block">Total Submissions</span>
+                  <span className="text-xl font-black text-purple-950 font-mono">{subHistory.count}</span>
+                </div>
+                <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-3 text-center">
+                  <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Submitted Clients</span>
+                  <span className="text-xs font-bold text-emerald-950 block mt-1 truncate">
+                    {subHistory.companies.length > 0 ? subHistory.companies.join(', ') : 'None'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Search Control within Modal */}
+              <div className="relative w-full">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Filter submissions by client, requirement, recruiter, or status..."
+                  value={submissionModalSearchQuery}
+                  onChange={e => setSubmissionModalSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#6B3BF6] text-slate-800 font-medium"
+                />
+              </div>
+
+              {/* Submissions List Table */}
+              <div className="bg-slate-50/60 rounded-2xl border border-slate-200/80 overflow-hidden">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-100/70 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      <th className="py-3 px-3.5">CLIENT ACCOUNT</th>
+                      <th className="py-3 px-3.5">REQUIREMENT</th>
+                      <th className="py-3 px-3.5">SUBMITTED BY</th>
+                      <th className="py-3 px-3.5">SUBMITTED DATE</th>
+                      <th className="py-3 px-3.5 text-center">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200/70 text-slate-800 font-medium">
+                    {filteredRecords.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-8 text-center text-slate-400 font-bold text-xs">
+                          No submission records match the filter criteria.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredRecords.map(rec => (
+                        <tr key={rec.id} className="hover:bg-white transition-colors">
+                          <td className="py-3 px-3.5 whitespace-nowrap">
+                            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-white border border-purple-200 text-purple-900 inline-flex items-center gap-1.5 shadow-2xs">
+                              <Building className="w-3 h-3 text-[#6B3BF6]" />
+                              <span>{rec.client}</span>
+                            </span>
+                          </td>
+                          <td className="py-3 px-3.5">
+                            <div className="font-bold text-slate-900 leading-snug">{rec.requirementTitle}</div>
+                            <div className="text-[10px] text-[#6B3BF6] font-mono">{rec.reqId}</div>
+                          </td>
+                          <td className="py-3 px-3.5 whitespace-nowrap text-slate-700 font-semibold">
+                            {rec.submittedBy}
+                          </td>
+                          <td className="py-3 px-3.5 whitespace-nowrap text-slate-500 font-mono text-[11px]">
+                            {rec.submittedDate}
+                          </td>
+                          <td className="py-3 px-3.5 whitespace-nowrap text-center">
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              {rec.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="pt-2 border-t border-slate-100 flex justify-end">
+                <button
+                  onClick={() => {
+                    setSelectedSubmissionHistoryCandidate(null)
+                    setSubmissionModalSearchQuery('')
+                  }}
+                  className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-2xs"
+                >
+                  Close History Details
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* TOAST NOTIFICATION */}
       {toastMsg && (

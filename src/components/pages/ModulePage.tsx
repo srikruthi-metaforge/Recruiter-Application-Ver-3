@@ -20,6 +20,7 @@ import { TeamsPage } from './TeamsPage'
 import { MyTeamPage } from './MyTeamPage'
 import { RecruitersPage } from './RecruitersPage'
 import { TeamsRecruitersPage } from './TeamsRecruitersPage'
+import { HistoryPage } from './HistoryPage'
 import { INITIAL_CANDIDATES } from '../../data/mockData'
 
 interface ModulePageProps {
@@ -108,6 +109,10 @@ export function ModulePage({
 
   if (pageKey === 'Activity Logs' || pageKey === 'Audit Logs') {
     return <ActivityLogsPage role={role} logs={activityLogs} />
+  }
+
+  if (pageKey === 'History' || pageKey === 'Recruiter History' || pageKey === 'Performance History') {
+    return <HistoryPage role={role} />
   }
 
   if (pageKey === 'My Team') {

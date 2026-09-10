@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Candidate, Requirement } from '../../types'
 import { PageHeader } from '../layout/PageHeader'
 import {
@@ -16,6 +16,7 @@ import {
   Play,
   Clock,
   Briefcase,
+  ShieldAlert,
 } from 'lucide-react'
 import {
   getSavedDrafts,
@@ -23,6 +24,7 @@ import {
   removeSavedDraft,
   SavedDraftItem,
 } from '../../data/savedDraftsStore'
+import { checkDuplicateSubmission } from '../../data/submissionsStore'
 
 interface AddCandidatePageProps {
   requirements?: Requirement[]
@@ -79,6 +81,21 @@ export function AddCandidatePage({
   const [reasonForChange, setReasonForChange] = useState('')
   const [notes, setNotes] = useState('')
 
+  const [targetReqId, setTargetReqId] = useState<string>(selectedReqId || (requirements[0]?.id ?? 'REQ-001'))
+
+  // Real-time Duplicate Submission Check
+  const dupCheckResult = useMemo(() => {
+    if (!targetReqId || (!candidateName && !email && !contactNumber)) {
+      return { isDuplicate: false }
+    }
+    return checkDuplicateSubmission(targetReqId, {
+      email,
+      phone: contactNumber,
+      candidateId,
+      name: candidateName,
+    })
+  }, [targetReqId, candidateName, email, contactNumber, candidateId])
+
   // Simulate Metaforge AI Resume Parsing
   const handleParseResume = () => {
     setIsParsing(true)
@@ -112,6 +129,11 @@ export function AddCandidatePage({
   // Handle Form Submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (dupCheckResult.isDuplicate) {
+      setToastMsg(`⚠️ Duplicate Submission: ${candidateName || 'Candidate'} has already been submitted for this requirement.`)
+      setTimeout(() => setToastMsg(null), 3500)
+      return
+    }
 
     const newCandidate: Candidate = {
       id: candidateId,
@@ -418,13 +440,62 @@ export function AddCandidatePage({
         <form onSubmit={handleSubmit} className="space-y-6">
         {/* SECTION 2: BASIC INFO CARD (MATCHING SCREENSHOT 1) */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-          <div>
-            <h2 className="text-sm font-bold text-slate-900">Basic Info</h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              All fields are optional except you must enter at least one detail
-              somewhere on the form (name, contact, skills, resume, etc.).
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">Basic Info</h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Target requirement & candidate contact details for submission validation.
+              </p>
+            </div>
+            {/* Requirement Selector for Submission Check */}
+            <div className="flex items-center gap-2 bg-purple-50/70 p-2 rounded-xl border border-purple-200">
+              <label className="text-xs font-bold text-purple-900 whitespace-nowrap">Target Requirement:</label>
+              <select
+                value={targetReqId}
+                onChange={e => setTargetReqId(e.target.value)}
+                className="px-3 py-1 text-xs font-bold bg-white border border-purple-300 rounded-lg text-purple-950 focus:outline-none cursor-pointer"
+              >
+                {requirements.map(r => (
+                  <option key={r.id} value={r.id}>
+                    {r.id} — {r.title} ({r.client})
+                  </option>
+                ))}
+                {!requirements.some(r => r.id === 'REQ-001') && (
+                  <option value="REQ-001">REQ-001 — Senior React Developer (Accenture)</option>
+                )}
+                {!requirements.some(r => r.id === 'REQ-002') && (
+                  <option value="REQ-002">REQ-002 — Java Architect (Goldman Sachs)</option>
+                )}
+                {!requirements.some(r => r.id === 'REQ-006') && (
+                  <option value="REQ-006">REQ-006 — Python ML Engineer (Tesla)</option>
+                )}
+              </select>
+            </div>
           </div>
+
+          {/* DUPLICATE SUBMISSION ALERT BANNER */}
+          {dupCheckResult.isDuplicate && dupCheckResult.existingSubmission && (
+            <div className="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 space-y-2 animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0" />
+                <div className="flex items-center gap-2">
+                  <span className="font-extrabold text-rose-900 text-xs uppercase tracking-wide bg-rose-600 text-white px-2 py-0.5 rounded-md">
+                    Duplicate Submission
+                  </span>
+                  <span className="text-xs font-bold text-rose-800">Submission Blocked</span>
+                </div>
+              </div>
+              <p className="text-xs text-rose-950 font-medium leading-relaxed">
+                Candidate <strong>{candidateName || 'Entered Candidate'}</strong> ({email || contactNumber}) has already been submitted for target requirement <strong>{targetReqId}</strong>.
+              </p>
+              <div className="text-[11px] text-rose-900 bg-rose-100/80 p-2.5 rounded-xl border border-rose-200/80 flex flex-wrap gap-x-4 gap-y-1 font-semibold">
+                <span>Submitted By: <strong>{dupCheckResult.existingSubmission.recruiter || 'External Recruiter'}</strong></span>
+                <span>Date: <strong>{dupCheckResult.existingSubmission.date}</strong></span>
+                <span>Status: <strong>{dupCheckResult.existingSubmission.stage}</strong></span>
+                <span>Reason: <em>{dupCheckResult.matchReason}</em></span>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
             {/* Candidate ID */}
@@ -814,10 +885,24 @@ export function AddCandidatePage({
             </button>
             <button
               type="submit"
-              className="w-full sm:w-auto bg-[#6B3BF6] hover:bg-[#5833E0] text-white font-semibold text-xs px-6 py-2.5 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+              disabled={dupCheckResult.isDuplicate}
+              className={`w-full sm:w-auto font-semibold text-xs px-6 py-2.5 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 ${
+                dupCheckResult.isDuplicate
+                  ? 'bg-rose-300 text-rose-900 cursor-not-allowed border border-rose-300 shadow-none'
+                  : 'bg-[#6B3BF6] hover:bg-[#5833E0] text-white cursor-pointer active:scale-98'
+              }`}
             >
-              Review & continue
-              <ArrowRight className="w-4 h-4" />
+              {dupCheckResult.isDuplicate ? (
+                <>
+                  <ShieldAlert className="w-4 h-4 text-rose-700" />
+                  <span>Duplicate Submission - Cannot Submit</span>
+                </>
+              ) : (
+                <>
+                  <span>Review & continue</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </div>
         </div>

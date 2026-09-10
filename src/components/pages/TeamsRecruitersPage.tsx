@@ -11,9 +11,13 @@ import {
   Building2,
   ChevronRight,
   Filter,
+  Clock,
+  Lock,
 } from 'lucide-react'
 import { Role } from '../../types'
 import { PaginationFooter } from '../ui/PaginationFooter'
+import { DEMO_ACCOUNTS } from '../../data/mockData'
+import { getRecruiterScreenTime, formatDuration, formatDurationShort, canViewScreenTime } from '../../utils/screenTimeTracker'
 
 export interface UnifiedTeamMember {
   id: string
@@ -530,6 +534,9 @@ export function TeamsRecruitersPage({ role = 'superadmin' }: TeamsRecruitersPage
                 <th className="py-3.5 px-4">MAPPED CLIENTS</th>
                 <th className="py-3.5 px-4 text-center">REQUIREMENTS</th>
                 <th className="py-3.5 px-4 text-center">SUBMISSIONS</th>
+                {role !== 'recruiter' && (
+                  <th className="py-3.5 px-4 text-center">SCREEN TIME</th>
+                )}
                 <th className="py-3.5 px-4 text-center">STATUS</th>
                 <th className="py-3.5 px-4 text-right">ACTION</th>
               </tr>
@@ -596,6 +603,35 @@ export function TeamsRecruitersPage({ role = 'superadmin' }: TeamsRecruitersPage
                       {member.totalSubmissions} Subs
                     </span>
                   </td>
+
+                  {/* SCREEN TIME (RECORDED) */}
+                  {role !== 'recruiter' && (
+                    <td className="py-4 px-4 whitespace-nowrap text-center">
+                      {(() => {
+                        const currentUser = DEMO_ACCOUNTS[role] || { name: 'Current User' }
+                        const isAllowed = canViewScreenTime(role, currentUser.name, member.name, member.teamLead)
+                        if (!isAllowed) {
+                          return (
+                            <span
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-100 text-slate-400 border border-slate-200 text-[11px] font-bold"
+                              title="Screen time privacy: Only visible to self, team lead, and admin"
+                            >
+                              <Lock className="w-3 h-3 text-slate-400" />
+                              <span>Private</span>
+                            </span>
+                          )
+                        }
+                        const st = getRecruiterScreenTime(member.name)
+                        return (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-purple-50 text-[#6B3BF6] border border-purple-200 text-xs font-black">
+                            <Clock className="w-3 h-3 text-[#6B3BF6]" />
+                            <span>{formatDurationShort(st.activeSeconds)}</span>
+                            <span className={`w-1.5 h-1.5 rounded-full ${st.status === 'Active' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                          </span>
+                        )
+                      })()}
+                    </td>
+                  )}
 
                   {/* PERFORMANCE STATUS */}
                   <td className="py-4 px-4 whitespace-nowrap text-center">
@@ -829,6 +865,42 @@ export function TeamsRecruitersPage({ role = 'superadmin' }: TeamsRecruitersPage
                   <span className="text-lg font-extrabold text-emerald-900 tabular-nums">{selectedMemberDetail.tatDays} Days</span>
                 </div>
               </div>
+
+              {/* SCREEN TIME RECORDED CARD (PRIVACY ENFORCED FOR LEADS/ADMINS ONLY) */}
+              {role !== 'recruiter' && (() => {
+                const currentUser = DEMO_ACCOUNTS[role] || { name: 'Current User' }
+                const isAllowed = canViewScreenTime(role, currentUser.name, selectedMemberDetail.name, selectedMemberDetail.teamLead)
+                if (!isAllowed) {
+                  return (
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 flex items-center justify-between text-xs font-medium">
+                      <div className="flex items-center gap-2 text-slate-500 font-bold">
+                        <Lock className="w-4 h-4 text-slate-400" />
+                        <span>Screen Time & Usage Metrics</span>
+                      </div>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-200 text-slate-600">
+                        🔒 Restricted (Self & Team Lead Only)
+                      </span>
+                    </div>
+                  )
+                }
+                const st = getRecruiterScreenTime(selectedMemberDetail.name)
+                return (
+                  <div className="bg-purple-50/70 border border-purple-200/80 rounded-2xl p-3.5 flex items-center justify-between text-xs font-bold">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-[#6B3BF6]" />
+                      <span className="text-purple-950 font-extrabold">Active Screen Time Recorded:</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-sm font-black text-[#6B3BF6]">
+                        {formatDuration(st.activeSeconds)}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase ${st.status === 'Active' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                        {st.status}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })()}
 
               {selectedMemberDetail.isTeamLead && selectedMemberDetail.teamMembers && (
                 <div className="pt-2 border-t border-slate-100">

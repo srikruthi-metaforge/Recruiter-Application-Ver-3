@@ -2193,16 +2193,6 @@ export function ReportsPage({ role = 'recruiter' }: ReportsPageProps) {
                   </button>
                 )}
               </div>
-
-              {role !== 'lead' && (
-                <button
-                  onClick={() => setActiveReportView('charts')}
-                  className="text-xs font-bold text-[#6B3BF6] hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-[#6B3BF6]" />
-                  <span>Open Interactive Charts Page →</span>
-                </button>
-              )}
             </div>
 
             {/* Recruiter Performance Tab */}

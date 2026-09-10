@@ -4,6 +4,7 @@ import { Role } from '../../types'
 import { brand, appTheme, roleTheme } from '../../theme'
 import { DEMO_ACCOUNTS } from '../../data/mockData'
 import { NotificationPopover } from '../ui/NotificationPopover'
+import { ScreenTimeWidget } from '../ui/ScreenTimeWidget'
 
 interface TopbarProps {
   title: string
@@ -46,7 +47,7 @@ export function Topbar({
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <div className="relative hidden sm:block">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: brand.textMuted }} />
           <input
@@ -58,6 +59,9 @@ export function Topbar({
             style={{ borderColor: brand.border, color: brand.text }}
           />
         </div>
+
+        {/* Live Screen Time & Performance Tracker Badge */}
+        <ScreenTimeWidget currentUserName={user.name} currentUserRole={role} />
 
         <div className="relative">
           <button

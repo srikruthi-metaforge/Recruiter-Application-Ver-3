@@ -68,7 +68,7 @@ export function RequirementsPage({
 
   // Search and Filter states
   const [globalSearch, setGlobalSearch] = useState('')
-  const [statusDropdown, setStatusDropdown] = useState<string>('Unassigned')
+  const [statusDropdown, setStatusDropdown] = useState<string>('All')
   const [clientDropdown, setClientDropdown] = useState<string>('All')
 
   // Selected card filter
@@ -868,6 +868,7 @@ export function RequirementsPage({
               onChange={e => setStatusDropdown(e.target.value)}
               className="w-full appearance-none pl-3.5 pr-8 py-2.5 text-xs sm:text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-700 bg-gray-50/50 font-semibold cursor-pointer"
             >
+              <option value="All">All Requirements</option>
               <option value="Unassigned">Unassigned</option>
               <option value="Assigned">Assigned</option>
               <option value="Submitted">Submitted</option>
@@ -945,7 +946,7 @@ export function RequirementsPage({
                 <th className="py-3 px-4 font-bold">ROLE</th>
                 <th className="py-3 px-4 font-bold text-center">POSITIONS</th>
                 <th className="py-3 px-4 font-bold">PRIORITY</th>
-                <th className="py-3 px-4 font-bold">OWNER</th>
+                <th className="py-3 px-4 font-bold">ASSIGNED TO RECRUITER</th>
                 <th className="py-3 px-4 font-bold">EMAIL ARRIVED TIME</th>
                 <th className="py-3 px-4 font-bold">OPEN SINCE</th>
                 <th className="py-3 px-4 font-bold text-center">SLA</th>
@@ -1046,23 +1047,22 @@ export function RequirementsPage({
                         </span>
                       </td>
 
-                      {/* Owner */}
+                      {/* Submitted to Recruiter */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              isUnassigned ? 'bg-gray-400' : 'bg-emerald-500'
-                            }`}
-                          />
-                          <span
-                            className={`text-xs ${
-                              isUnassigned
-                                ? 'text-gray-500 italic font-medium'
-                                : 'text-gray-900 font-semibold'
-                            }`}
-                          >
-                            {req.owner || 'Unassigned'}
-                          </span>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+                            isUnassigned ? 'bg-slate-100 text-slate-500 border border-slate-200' : 'bg-purple-100 text-[#6B3BF6] border border-purple-200 shadow-2xs'
+                          }`}>
+                            {isUnassigned ? '?' : (req.owner || 'R').charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className={`text-xs ${isUnassigned ? 'text-slate-400 italic font-medium' : 'text-slate-900 font-extrabold'}`}>
+                              {req.owner || 'Unassigned'}
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-normal">
+                              {isUnassigned ? 'Pending assignment' : 'Assigned Recruiter'}
+                            </div>
+                          </div>
                         </div>
                       </td>
 

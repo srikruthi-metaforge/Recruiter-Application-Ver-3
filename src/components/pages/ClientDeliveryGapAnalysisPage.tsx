@@ -748,9 +748,6 @@ export function ClientDeliveryGapAnalysisPage({
       {/* 2.5 SECTION TOGGLE NAVIGATION CONTROL BAR */}
       <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3 font-sans">
         <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
-          <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider shrink-0 mr-1">
-            Section Toggles:
-          </span>
           <button
             onClick={() => {
               setActiveTabSection('kpi')
