@@ -186,6 +186,7 @@ export function SubmissionsPage({
   const [customStartDate, setCustomStartDate] = useState('')
   const [customEndDate, setCustomEndDate] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
+  const [clientFilter, setClientFilter] = useState('All')
   const [selectedSub, setSelectedSub] = useState<ScreenshotSubmission | null>(
     null
   )
@@ -317,6 +318,27 @@ export function SubmissionsPage({
     return submissionsList
   }, [submissionsList, role, scopeTab])
 
+  // Extract unique client names dynamically for the client-wise filter dropdown
+  const clientOptions = useMemo(() => {
+    const clientsSet = new Set<string>()
+    scopeSubmissions.forEach(item => {
+      if (item.clientName) {
+        clientsSet.add(item.clientName)
+      }
+    })
+    return Array.from(clientsSet).sort()
+  }, [scopeSubmissions])
+
+  // Map submission counts per client for stats & quick filter pills
+  const clientCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    scopeSubmissions.forEach(item => {
+      const client = item.clientName || 'Unknown Client'
+      counts[client] = (counts[client] || 0) + 1
+    })
+    return counts
+  }, [scopeSubmissions])
+
   // Dynamic filter
   const filteredData = useMemo(() => {
     return scopeSubmissions.filter(item => {
@@ -327,8 +349,9 @@ export function SubmissionsPage({
         const matchCompany = item.currentCompany.toLowerCase().includes(q)
         const matchReq = item.requirement.toLowerCase().includes(q)
         const matchRecruiter = item.submittedBy.toLowerCase().includes(q)
+        const matchClient = (item.clientName || '').toLowerCase().includes(q)
 
-        if (!matchCandidate && !matchCompany && !matchReq && !matchRecruiter) {
+        if (!matchCandidate && !matchCompany && !matchReq && !matchRecruiter && !matchClient) {
           return false
         }
       }
@@ -348,6 +371,13 @@ export function SubmissionsPage({
         }
       }
 
+      // Client filter
+      if (clientFilter !== 'All') {
+        if (item.clientName?.toLowerCase() !== clientFilter.toLowerCase()) {
+          return false
+        }
+      }
+
       // Status filter
       const itemStatus = item.status.toLowerCase().trim()
       const filterVal = statusFilter.toLowerCase().trim()
@@ -359,6 +389,10 @@ export function SubmissionsPage({
           if (!itemStatus.includes('interview')) return false
         } else if (filterVal === 'selected') {
           if (!itemStatus.includes('select')) return false
+        } else if (filterVal === 'placed') {
+          if (!itemStatus.includes('place')) return false
+        } else if (filterVal === 'rejected') {
+          if (!itemStatus.includes('reject')) return false
         }
       }
 
@@ -370,10 +404,17 @@ export function SubmissionsPage({
     dateFilter,
     customStartDate,
     customEndDate,
+    clientFilter,
     statusFilter,
   ])
 
   const [currentPage, setCurrentPage] = useState(1)
+
+  // Reset pagination to page 1 whenever any filter changes
+  React.useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, dateFilter, customStartDate, customEndDate, clientFilter, statusFilter, scopeTab])
+
   const pageSize = 10
 
   const totalPages = Math.ceil(filteredData.length / pageSize) || 1
@@ -465,19 +506,39 @@ export function SubmissionsPage({
 
       </div>
 
-      {/* 2. Unified Minimal KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* 2. Enhanced KPI Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              {dateFilter === 'Today' ? 'Total Submissions Today' : dateFilter === 'Yesterday' ? 'Total Submissions Yesterday' : dateFilter === 'This week' ? 'Total Submissions This Week' : dateFilter === 'This month' ? 'Total Submissions This Month' : 'Total Submissions'}
+              {dateFilter === 'Today' ? 'Submissions Today' : dateFilter === 'Yesterday' ? 'Submissions Yesterday' : dateFilter === 'This week' ? 'Submissions This Week' : dateFilter === 'This month' ? 'Submissions This Month' : 'Total Submissions'}
             </span>
             <p className="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">
               {filteredData.length}
             </p>
+            <span className="text-[10px] text-purple-600 font-semibold mt-0.5 block">
+              {clientFilter !== 'All' ? `Filtered by ${clientFilter}` : `Across ${clientOptions.length} Clients`}
+            </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-[#6B3BF6]">
+          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-[#6B3BF6] shrink-0">
             <FileText className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex items-center justify-between">
+          <div>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+              Client Partners
+            </span>
+            <p className="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">
+              {new Set(filteredData.map(d => d.clientName || 'Accenture')).size}
+            </p>
+            <span className="text-[10px] text-blue-600 font-semibold mt-0.5 block">
+              Active Client Organizations
+            </span>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+            <Building className="w-5 h-5" />
           </div>
         </div>
 
@@ -489,8 +550,11 @@ export function SubmissionsPage({
             <p className="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">
               {filteredData.filter(d => d.status.toLowerCase().includes('client')).length}
             </p>
+            <span className="text-[10px] text-indigo-600 font-semibold mt-0.5 block">
+              Client Stage Submissions
+            </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-[#6B3BF6]">
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
             <Send className="w-5 h-5" />
           </div>
         </div>
@@ -498,13 +562,16 @@ export function SubmissionsPage({
         <div className="bg-white rounded-2xl p-4 shadow-2xs border border-slate-200/80 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              Interviews Scheduled
+              Interviews & Selections
             </span>
             <p className="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">
-              {filteredData.filter(d => d.status.toLowerCase().includes('interview')).length}
+              {filteredData.filter(d => d.status.toLowerCase().includes('interview') || d.status.toLowerCase().includes('select')).length}
             </p>
+            <span className="text-[10px] text-emerald-600 font-semibold mt-0.5 block">
+              Active Interviews & Placements
+            </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-[#6B3BF6]">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
             <UserCheck className="w-5 h-5" />
           </div>
         </div>
@@ -546,15 +613,17 @@ export function SubmissionsPage({
         </div>
       )}
 
+
+
       <div className="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-sm">
-        <div className="flex flex-col sm:flex-row items-center gap-3 justify-between">
+        <div className="flex flex-col lg:flex-row items-center gap-3 justify-between">
           {/* Search Bar & Submissions Count Pill */}
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
             <div className="relative w-full sm:w-80">
               <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search candidate name or company..."
+                placeholder="Search candidate name, client, requirement..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-9 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-800 placeholder-slate-400 bg-slate-50/50"
@@ -573,13 +642,30 @@ export function SubmissionsPage({
             <div className="px-3.5 py-2 rounded-xl bg-purple-50 text-[#6B3BF6] border border-purple-200 text-xs font-extrabold flex items-center gap-2 shrink-0 shadow-2xs animate-in fade-in duration-150">
               <FileText className="w-3.5 h-3.5 text-[#6B3BF6]" />
               <span>
-                {filteredData.length} {dateFilter === 'Today' ? 'Submissions Today' : dateFilter === 'Yesterday' ? 'Submissions Yesterday' : dateFilter === 'This week' ? 'Submissions This Week' : dateFilter === 'This month' ? 'Submissions This Month' : dateFilter === 'Custom range' ? 'Submissions (Custom)' : 'Total Submissions'}
+                {filteredData.length} {clientFilter !== 'All' ? `Submissions (${clientFilter})` : 'Total Submissions'}
               </span>
             </div>
           </div>
 
           {/* Right Filter Dropdowns */}
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            {/* Client Filter Dropdown */}
+            <div className="relative w-full sm:w-48">
+              <select
+                value={clientFilter}
+                onChange={e => setClientFilter(e.target.value)}
+                className="w-full appearance-none pl-3.5 pr-8 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B3BF6]/20 focus:border-[#6B3BF6] text-slate-700 bg-white font-bold cursor-pointer"
+              >
+                <option value="All">All Clients ({scopeSubmissions.length})</option>
+                {clientOptions.map(client => (
+                  <option key={client} value={client}>
+                    Client: {client} ({clientCounts[client] || 0})
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            </div>
+
             {/* Date filter dropdown */}
             <div className="relative w-full sm:w-44">
               <select
@@ -667,7 +753,7 @@ export function SubmissionsPage({
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
                     <p className="font-bold text-sm">No candidate submissions found</p>
-                    <p className="text-xs mt-1">Try adjusting your search query or date range filter above</p>
+                    <p className="text-xs mt-1">Try adjusting your search query, client filter, or date range filter above</p>
                   </td>
                 </tr>
               ) : (

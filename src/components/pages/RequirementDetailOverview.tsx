@@ -290,12 +290,13 @@ export function RequirementDetailOverview({
             <span>SLA remaining: <strong>{isUnassigned ? '10 days' : '0 days'}</strong></span>
           </span>
           <span>•</span>
-          <span className="flex items-center gap-1.5">
-            <span>{requirement.owner || 'Unassigned'}</span>
+          <span className="flex items-center gap-1.5 bg-purple-50 text-[#6B3BF6] px-2.5 py-0.5 rounded-full border border-purple-200 font-extrabold">
+            <User className="w-3.5 h-3.5 text-[#6B3BF6]" />
+            <span>Assigned Recruiter: <strong>{requirement.owner || 'Unassigned'}</strong></span>
             {onOpenAssignModal && (
               <button
                 onClick={onOpenAssignModal}
-                className="text-blue-600 font-bold hover:underline cursor-pointer ml-1"
+                className="text-blue-600 font-bold hover:underline cursor-pointer ml-1 text-[11px]"
               >
                 Reassign
               </button>

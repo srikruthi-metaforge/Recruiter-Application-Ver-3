@@ -32,15 +32,12 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Organization',
       items: [
         { key: 'Users', label: 'User Management' },
-        { key: 'Roles', label: 'Roles & Permissions' },
       ],
     },
     {
       title: 'Operations',
       items: [
         { key: 'Clients', label: 'Clients' },
-        { key: 'Recruiters', label: 'Recruiters' },
-        { key: 'Teams', label: 'Teams' },
         { key: 'Interviews', label: 'Interview Scheduler' },
       ],
     },
@@ -48,13 +45,12 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Intelligence',
       items: [
         { key: 'Reports', label: 'Reports' },
-        { key: 'Activity Logs', label: 'Activity Logs' },
+        { key: 'History', label: 'History' },
       ],
     },
     {
       title: 'System',
       items: [
-        { key: 'Settings', label: 'Settings' },
         { key: 'Audit Logs', label: 'Audit Logs' },
       ],
     },
@@ -72,16 +68,15 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Operations',
       items: [
         { key: 'Clients', label: 'Clients' },
-        { key: 'Recruiters', label: 'Recruiters' },
-        { key: 'Teams', label: 'Teams' },
         { key: 'Interviews', label: 'Interview Scheduler' },
       ],
     },
     {
-      title: 'Tools',
+      title: 'Tools & System',
       items: [
         { key: 'Reports', label: 'Reports' },
-        { key: 'Activity Logs', label: 'Activity Logs' },
+        { key: 'History', label: 'History' },
+        { key: 'Audit Logs', label: 'Audit Logs' },
       ],
     },
   ],
@@ -124,15 +119,12 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Organization',
       items: [
         { key: 'Users', label: 'User Management' },
-        { key: 'Roles', label: 'Roles & Permissions' },
       ],
     },
     {
       title: 'Operations',
       items: [
         { key: 'Clients', label: 'Clients' },
-        { key: 'Recruiters', label: 'Recruiters' },
-        { key: 'Teams', label: 'Teams' },
         { key: 'Interviews', label: 'Interview Scheduler' },
       ],
     },
@@ -140,13 +132,12 @@ export const ROLE_NAV: Record<Role, NavSection[]> = {
       title: 'Intelligence',
       items: [
         { key: 'Reports', label: 'Reports' },
-        { key: 'Activity Logs', label: 'Activity Logs' },
+        { key: 'History', label: 'History' },
       ],
     },
     {
       title: 'System',
       items: [
-        { key: 'Settings', label: 'Settings' },
         { key: 'Audit Logs', label: 'Audit Logs' },
       ],
     },

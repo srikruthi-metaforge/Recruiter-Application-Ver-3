@@ -128,7 +128,7 @@ export interface Interview {
   notes?: string
 }
 
-export type SubmissionStage = 'Submitted' | 'Client Review' | 'Interview Scheduled' | 'Offered' | 'Placed' | 'Rejected'
+export type SubmissionStage = 'Submitted' | 'Submitted to Client' | 'Submitted to Lead' | 'Client Review' | 'Interview Scheduled' | 'Offered' | 'Placed' | 'Rejected'
 
 export interface Submission {
   id: string

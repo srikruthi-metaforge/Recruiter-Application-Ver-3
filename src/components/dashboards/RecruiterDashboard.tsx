@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
-import { Interview, Requirement, Submission } from '../../types'
+import { Interview, Requirement, Submission, ActivityLogItem } from '../../types'
 import { RequirementDetailOverview } from '../pages/RequirementDetailOverview'
 import { CandidateRepositoryPage } from '../pages/CandidateRepositoryPage'
+import { SubmissionsPage } from '../pages/SubmissionsPage'
+import { InterviewTrackingPage } from '../pages/InterviewTrackingPage'
 import {
   Send,
   MessageSquare,
@@ -24,10 +26,14 @@ interface Props {
   submissions: Submission[]
   interviews: Interview[]
   requirements: Requirement[]
+  activityLogs?: ActivityLogItem[]
+  currentUserName?: string
+  currentUserEmail?: string
   onOpenSubmitCandidate?: (reqId?: string) => void
   onOpenCandidateRepo?: (reqId?: string) => void
   onOpenFeedbackModal?: (interview: Interview) => void
   onOpenCandidateDetail?: (sub: Submission) => void
+  onAddActivityLog?: (log: ActivityLogItem) => void
 }
 
 interface ActiveReqRow {
@@ -70,11 +76,77 @@ export function RecruiterDashboard({
   submissions,
   interviews,
   requirements,
+  activityLogs,
+  currentUserName = 'Harish Gadipally',
+  currentUserEmail,
   onOpenSubmitCandidate,
   onOpenCandidateRepo,
   onOpenFeedbackModal,
   onOpenCandidateDetail,
+  onAddActivityLog,
 }: Props) {
+  // Filter activity logs specifically performed by or relevant to the logged-in user/recruiter
+  const userActivityLogs = React.useMemo(() => {
+    const targetName = (currentUserName || 'Harish Gadipally').toLowerCase()
+    const targetEmail = (currentUserEmail || '').toLowerCase()
+
+    // 1. Explicit activity logs matching user name or email
+    const explicitLogs = (activityLogs || []).filter(log => {
+      const matchName = log.userName && log.userName.toLowerCase().includes(targetName)
+      const matchEmail = targetEmail && log.userEmail && log.userEmail.toLowerCase().includes(targetEmail)
+      return matchName || matchEmail
+    })
+
+    // 2. Synthesize log items from candidate submissions performed by this recruiter
+    const submissionLogs: ActivityLogItem[] = submissions
+      .filter(s => !targetName || s.recruiter.toLowerCase().includes(targetName) || targetName.includes('harish'))
+      .map(s => ({
+        id: `sub-activity-${s.id}`,
+        timestamp: s.date || 'Recently',
+        userName: s.recruiter,
+        userEmail: currentUserEmail || '',
+        userRole: 'recruiter',
+        userAvatar: s.recruiter.charAt(0).toUpperCase(),
+        action: `Submitted candidate ${s.candidate} for ${s.req}`,
+        category: 'Submissions',
+        targetEntity: `Candidate ${s.candidate}`,
+        targetId: s.id,
+        clientName: s.client,
+        ipAddress: '192.168.1.45',
+        status: s.stage.toLowerCase().includes('reject') ? 'Warning' : 'Success',
+        details: `Submitted to client ${s.client} | Current Stage: ${s.stage}`,
+      }))
+
+    // 3. Synthesize log items from interview tracking
+    const interviewLogs: ActivityLogItem[] = interviews
+      .filter(i => !targetName || (i.submittedBy && i.submittedBy.toLowerCase().includes(targetName)) || (i.recruiterName && i.recruiterName.toLowerCase().includes(targetName)) || targetName.includes('harish'))
+      .map(i => ({
+        id: `iv-activity-${i.id}`,
+        timestamp: i.scheduledDate || 'Recently',
+        userName: i.recruiterName || currentUserName || 'Harish Gadipally',
+        userEmail: currentUserEmail || '',
+        userRole: 'recruiter',
+        userAvatar: (i.recruiterName || 'H').charAt(0).toUpperCase(),
+        action: `Scheduled interview (${i.roundName || i.round || 'Round'}) for ${i.candidateName}`,
+        category: 'Interviews',
+        targetEntity: `Interview with ${i.candidateName}`,
+        targetId: i.id,
+        clientName: i.clientName || 'Client',
+        ipAddress: '192.168.1.45',
+        status: i.status === 'Completed' ? 'Success' : 'Warning',
+        details: `Status: ${i.status} | Client: ${i.clientName || 'Partner'}`,
+      }))
+
+    // Combine and deduplicate
+    const combined = [...explicitLogs, ...submissionLogs, ...interviewLogs]
+    const seen = new Set<string>()
+    return combined.filter(item => {
+      const key = `${item.action}-${item.timestamp}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  }, [activityLogs, submissions, interviews, currentUserName, currentUserEmail])
   const [selectedReqForDetail, setSelectedReqForDetail] = useState<Requirement | null>(null)
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
   const [isAssignMyselfChecked, setIsAssignMyselfChecked] = useState(true)
@@ -89,6 +161,9 @@ export function RecruiterDashboard({
   // Pagination state for active requirements table
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+
+  // Inline View state for KPI cards (Total Submissions, Interviews Handled, etc.)
+  const [inlineView, setInlineView] = useState<'submissions' | 'interviews' | null>(null)
 
   // Inline Candidate Repository & Submission workflow state (kept strictly inside My Work page)
   const [inlineReqId, setInlineReqId] = useState<string | null>(null)
@@ -107,6 +182,30 @@ export function RecruiterDashboard({
         el.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
     }, 100)
+  }
+
+  const handleOpenReqOverview = (reqId: string, reqName?: string, reqClient?: string) => {
+    const found = requirements.find(r => r.id === reqId) || {
+      id: reqId,
+      client: reqClient || 'harish',
+      title: reqName || 'Implement and support SAP Transportation Management solutions in S 4HANA',
+      priority: 'Medium' as const,
+      status: 'Active' as const,
+      assignmentStatus: 'Assigned' as const,
+      owner: 'Harish Gadipally',
+      submissions: 7,
+      interviews: 0,
+      placed: 0,
+      rejections: 0,
+      clientEmail: reqClient || 'harish',
+      clientPhone: '+91 98765 43210',
+      location: 'Remote, Hybrid, Onsite',
+      openings: 1,
+      dueDate: '2026-06-19',
+      emailArrivedTime: 'Jun 19, 2026, 05:30 AM',
+      budget: '₹5,000,000',
+    }
+    setSelectedReqForDetail(found)
   }
 
   const recruiterList = [
@@ -335,6 +434,84 @@ export function RecruiterDashboard({
     return sub.stage.toLowerCase() === recentSubmissionsFilter.toLowerCase()
   })
 
+  if (inlineView === 'submissions') {
+    return (
+      <div className="w-full pb-12 font-sans animate-in fade-in duration-200 space-y-4">
+        <div className="flex items-center justify-between bg-white px-5 py-3.5 rounded-2xl border border-slate-200 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                setInlineView(null)
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4 text-slate-500" />
+              <span>Back to My Workspace</span>
+            </button>
+            <span className="text-xs font-bold text-slate-300">|</span>
+            <span className="text-xs font-bold text-slate-700">Total Submissions Overview</span>
+          </div>
+        </div>
+
+        <SubmissionsPage
+          role="recruiter"
+          submissions={submissions}
+          requirements={requirements}
+          onOpenSubmitCandidate={onOpenSubmitCandidate}
+        />
+      </div>
+    )
+  }
+
+  if (inlineView === 'interviews') {
+    return (
+      <div className="w-full pb-12 font-sans animate-in fade-in duration-200 space-y-4">
+        <div className="flex items-center justify-between bg-white px-5 py-3.5 rounded-2xl border border-slate-200 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                setInlineView(null)
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4 text-slate-500" />
+              <span>Back to My Workspace</span>
+            </button>
+            <span className="text-xs font-bold text-slate-300">|</span>
+            <span className="text-xs font-bold text-slate-700">Interview Tracking Overview</span>
+          </div>
+        </div>
+
+        <InterviewTrackingPage
+          role="recruiter"
+          interviews={interviews}
+          onOpenFeedbackModal={onOpenFeedbackModal}
+        />
+      </div>
+    )
+  }
+
+  if (inlineReqId) {
+    return (
+      <div className="w-full pb-12 font-sans animate-in fade-in duration-200">
+        <CandidateRepositoryPage
+          selectedReqId={inlineReqId}
+          role="recruiter"
+          requirements={requirements}
+          onBackToDashboard={() => {
+            setInlineReqId(null)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }}
+          onOpenAddForm={() => {
+            showToast('Use candidate upload form to add new candidate profiles.')
+          }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8 w-full pb-12 font-sans">
       {/* Header */}
@@ -348,51 +525,88 @@ export function RecruiterDashboard({
         <h2 className="text-base font-semibold text-slate-800 mb-3">Performance Summary</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Total Submissions */}
-          <div className="bg-[#E6F8F0] border border-[#A7F3D0] rounded-2xl p-5 flex items-center justify-between shadow-sm transition-all duration-200 hover:shadow-md">
+          <div
+            onClick={() => setInlineView('submissions')}
+            className="bg-[#E6F8F0] border border-[#A7F3D0] rounded-2xl p-5 flex items-center justify-between shadow-sm transition-all duration-200 hover:shadow-md cursor-pointer hover:scale-[1.01] group"
+            title="Click to view Total Submissions details"
+          >
             <div>
-              <p className="text-xs sm:text-sm font-semibold text-slate-700">Total Submissions</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs sm:text-sm font-semibold text-slate-700">Total Submissions</p>
+                <ExternalLink className="w-3.5 h-3.5 text-emerald-600 opacity-75 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+              </div>
               <p className="text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">
                 {submissions.length > 0 ? submissions.length : 6}
               </p>
+              <p className="text-[11px] font-medium text-emerald-700 mt-1">Click to view Total Submissions data</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-[#00BA7C] text-white flex items-center justify-center shadow-sm shrink-0">
+            <div className="w-10 h-10 rounded-full bg-[#00BA7C] text-white flex items-center justify-center shadow-sm shrink-0 group-hover:scale-105 transition-transform">
               <Send className="w-5 h-5" />
             </div>
           </div>
 
           {/* Card 2: Interviews Handled */}
-          <div className="bg-[#EEF2FF] border border-[#C7D2FE] rounded-2xl p-5 flex items-center justify-between shadow-sm transition-all duration-200 hover:shadow-md">
+          <div
+            onClick={() => setInlineView('interviews')}
+            className="bg-[#EEF2FF] border border-[#C7D2FE] rounded-2xl p-5 flex items-center justify-between shadow-sm transition-all duration-200 hover:shadow-md cursor-pointer hover:scale-[1.01] group"
+            title="Click to view Interview Tracking details"
+          >
             <div>
-              <p className="text-xs sm:text-sm font-semibold text-slate-700">Interviews Handled</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs sm:text-sm font-semibold text-slate-700">Interviews Handled</p>
+                <ExternalLink className="w-3.5 h-3.5 text-[#5B51D8] opacity-75 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+              </div>
               <p className="text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">
                 {interviews.length}
               </p>
+              <p className="text-[11px] font-medium text-[#5B51D8] mt-1">Click to view Interview Tracker data</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-[#5B51D8] text-white flex items-center justify-center shadow-sm shrink-0">
+            <div className="w-10 h-10 rounded-full bg-[#5B51D8] text-white flex items-center justify-center shadow-sm shrink-0 group-hover:scale-105 transition-transform">
               <MessageSquare className="w-5 h-5" />
             </div>
           </div>
 
           {/* Card 3: Selections Achieved */}
-          <div className="bg-[#F4EFFE] border border-[#E9D8FD] rounded-2xl p-5 flex items-center justify-between shadow-sm transition-all duration-200 hover:shadow-md">
+          <div
+            onClick={() => setInlineView('submissions')}
+            className="bg-[#F4EFFE] border border-[#E9D8FD] rounded-2xl p-5 flex items-center justify-between shadow-sm transition-all duration-200 hover:shadow-md cursor-pointer hover:scale-[1.01] group"
+            title="Click to view Selections details"
+          >
             <div>
-              <p className="text-xs sm:text-sm font-semibold text-slate-700">Selections Achieved</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs sm:text-sm font-semibold text-slate-700">Selections Achieved</p>
+                <ExternalLink className="w-3.5 h-3.5 text-purple-600 opacity-75 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+              </div>
               <p className="text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">0</p>
+              <p className="text-[11px] font-medium text-purple-700 mt-1">Click to view candidate selections</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center shadow-sm shrink-0">
+            <div className="w-10 h-10 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center shadow-sm shrink-0 group-hover:scale-105 transition-transform">
               <CheckCircle2 className="w-5 h-5" />
             </div>
           </div>
 
           {/* Card 4: Assigned Requirements */}
-          <div className="bg-[#EBF3FF] border border-[#BFDBFE] rounded-2xl p-5 flex items-center justify-between shadow-sm transition-all duration-200 hover:shadow-md">
+          <div
+            onClick={() => {
+              setInlineView(null)
+              setStatusFilter('Assigned')
+              const el = document.getElementById('active-requirements-section')
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }}
+            className="bg-[#EBF3FF] border border-[#BFDBFE] rounded-2xl p-5 flex items-center justify-between shadow-sm transition-all duration-200 hover:shadow-md cursor-pointer hover:scale-[1.01] group"
+            title="Click to view Assigned Requirements"
+          >
             <div>
-              <p className="text-xs sm:text-sm font-semibold text-slate-700">Assigned Requirements</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs sm:text-sm font-semibold text-slate-700">Assigned Requirements</p>
+                <ExternalLink className="w-3.5 h-3.5 text-blue-600 opacity-75 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+              </div>
               <p className="text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">
                 {filteredReqs.length > 0 ? filteredReqs.length : 8}
               </p>
+              <p className="text-[11px] font-medium text-blue-700 mt-1">Click to view active requirements</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-[#2F80ED] text-white flex items-center justify-center shadow-sm shrink-0">
+            <div className="w-10 h-10 rounded-full bg-[#2F80ED] text-white flex items-center justify-center shadow-sm shrink-0 group-hover:scale-105 transition-transform">
               <ClipboardList className="w-5 h-5" />
             </div>
           </div>
@@ -400,7 +614,7 @@ export function RecruiterDashboard({
       </section>
 
       {/* Active Requirements + Submitted Candidates Section */}
-      <section className="space-y-4">
+      <section id="active-requirements-section" className="space-y-4">
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -471,39 +685,18 @@ export function RecruiterDashboard({
                     <tr key={req.id || idx} className="hover:bg-slate-50/60 transition-colors align-middle">
                       <td className="px-4 py-3 font-mono text-slate-900 align-middle">
                         <button
-                          onClick={() => handleOpenInlineCandidateRepo(req.id)}
+                          onClick={() => handleOpenReqOverview(req.id, req.name, req.client)}
                           className="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
-                          title="Open Candidate Repo for this requirement"
+                          title="Click to view Requirement Overview"
                         >
                           {req.id}
                         </button>
                       </td>
                       <td className="px-4 py-3 font-semibold text-slate-900 align-middle">
                         <button
-                          onClick={() => {
-                            const found = requirements.find(r => r.id === req.id) || {
-                              id: req.id,
-                              client: req.client,
-                              title: req.name,
-                              priority: 'Medium' as const,
-                              status: 'Active' as const,
-                              assignmentStatus: 'Assigned' as const,
-                              owner: 'Harish Gadipally',
-                              submissions: 7,
-                              interviews: 0,
-                              placed: 0,
-                              rejections: 0,
-                              clientEmail: 'harish',
-                              clientPhone: '+91 98765 43210',
-                              location: 'Remote, Hybrid, Onsite',
-                              openings: 1,
-                              dueDate: '2026-06-19',
-                              emailArrivedTime: 'Jun 19, 2026, 05:30 AM',
-                              budget: '₹5,000,000',
-                            }
-                            setSelectedReqForDetail(found)
-                          }}
+                          onClick={() => handleOpenReqOverview(req.id, req.name, req.client)}
                           className="text-xs font-semibold text-slate-900 hover:text-blue-600 hover:underline cursor-pointer text-left"
+                          title="Click to view Requirement Overview"
                         >
                           {req.name}
                         </button>
@@ -550,74 +743,6 @@ export function RecruiterDashboard({
             itemLabel="requirements"
           />
         </div>
-
-        {/* ======================================================================== */}
-        {/* INLINE CANDIDATE REPOSITORY & SUBMISSION WORKFLOW (DIRECTLY ON MY WORK)   */}
-        {/* ======================================================================== */}
-        {inlineReqId && (
-          <div
-            id="inline-candidate-repo-section"
-            className="pt-6 border-t-2 border-dashed border-purple-300/80 space-y-5 animate-in fade-in slide-in-from-top-4 duration-300 mt-6"
-          >
-            {/* Section Banner Header */}
-            <div className="bg-gradient-to-r from-purple-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-5 px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl border border-purple-700/30">
-              <div className="flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-300 font-extrabold shrink-0 shadow-2xs">
-                  <Briefcase className="w-5 h-5 text-amber-300" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-sm font-extrabold text-white tracking-tight">INLINE WORKFLOW: CANDIDATE REPOSITORY & SUBMISSION</h3>
-                    <span className="px-3 py-0.5 rounded-full text-xs font-black bg-amber-400 text-slate-950 font-mono shadow-2xs">
-                      {inlineReqId}
-                    </span>
-                  </div>
-                  <p className="text-xs text-purple-200 mt-0.5">
-                    Select candidates for requirement <strong className="text-white font-mono">{inlineReqId}</strong> and complete submission to client directly inside My Work without page navigation.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setInlineReqId(null)
-                    window.scrollTo({ top: 0, behavior: 'smooth' })
-                  }}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-2xs"
-                >
-                  <X className="w-4 h-4 text-white" />
-                  <span>Collapse Workflow</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                  className="p-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl transition-all cursor-pointer shadow-2xs"
-                  title="Scroll back to top of My Work"
-                >
-                  <ArrowUp className="w-4 h-4 text-white" />
-                </button>
-              </div>
-            </div>
-
-            {/* Candidate Repository Component rendered inline inside My Work */}
-            <div className="bg-slate-50/60 rounded-3xl border border-slate-200/90 p-4 sm:p-6 shadow-xs">
-              <CandidateRepositoryPage
-                selectedReqId={inlineReqId}
-                role="recruiter"
-                requirements={requirements}
-                onBackToDashboard={() => {
-                  setInlineReqId(null)
-                  window.scrollTo({ top: 0, behavior: 'smooth' })
-                }}
-                onOpenAddForm={() => {
-                  showToast('Use candidate upload form to add new candidate profiles.')
-                }}
-              />
-            </div>
-          </div>
-        )}
       </section>
 
       {/* My Recent Submissions Section (Kept at bottom of My Work page) */}
@@ -694,18 +819,77 @@ export function RecruiterDashboard({
         </div>
       </section>
 
-      {/* Recent Activity Section (Kept at bottom of My Work page) */}
-      <section className="space-y-3">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900">Recent Activity</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            A quick view of your latest actions.
-          </p>
+      {/* Recent Activity Section */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight">Recent Activity</h2>
+            <p className="text-xs text-slate-500 mt-0.5 font-medium">
+              Actions and updates performed in your recruiter account.
+            </p>
+          </div>
+          <span className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200/60 shadow-2xs">
+            {userActivityLogs.length} Action{userActivityLogs.length === 1 ? '' : 's'} Logged
+          </span>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm py-12 px-6 text-center">
-          <p className="text-xs text-slate-400 font-medium">No recent activity yet.</p>
-        </div>
+        {userActivityLogs.length > 0 ? (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs divide-y divide-slate-100 overflow-hidden">
+            {userActivityLogs.slice(0, 10).map((log, idx) => {
+              const isSubmission = log.category === 'Submissions' || log.action.toLowerCase().includes('submit')
+              const isInterview = log.category === 'Interviews' || log.action.toLowerCase().includes('interview')
+
+              let iconBg = 'bg-blue-50 text-blue-600 border-blue-200'
+              let IconComp = ClipboardList
+
+              if (isSubmission) {
+                iconBg = 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                IconComp = Send
+              } else if (isInterview) {
+                iconBg = 'bg-purple-50 text-purple-600 border-purple-200'
+                IconComp = MessageSquare
+              }
+
+              return (
+                <div key={log.id || idx} className="p-4 flex items-start justify-between gap-4 hover:bg-slate-50/60 transition-colors align-middle">
+                  <div className="flex items-start gap-3.5 min-w-0">
+                    <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 mt-0.5 ${iconBg}`}>
+                      <IconComp className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-slate-900 leading-snug">
+                          {log.action}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                          {log.category || 'Activity'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1 font-normal line-clamp-1">
+                        {log.details || `Performed by ${log.userName || currentUserName || 'Recruiter'}`}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0 text-right">
+                    <span className="text-[11px] font-medium text-slate-400 whitespace-nowrap">
+                      {log.timestamp}
+                    </span>
+                    <span className={`w-2 h-2 rounded-full ${log.status === 'Warning' ? 'bg-amber-400' : 'bg-emerald-500'}`} title={log.status} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs py-10 px-6 text-center">
+            <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+              <ClipboardList className="w-6 h-6" />
+            </div>
+            <p className="text-sm font-semibold text-slate-700">No recent activity recorded yet</p>
+            <p className="text-xs text-slate-400 mt-1">Actions you perform across requirements, candidates, and interviews will show up here.</p>
+          </div>
+        )}
       </section>
 
       {/* Toast Notification Container */}

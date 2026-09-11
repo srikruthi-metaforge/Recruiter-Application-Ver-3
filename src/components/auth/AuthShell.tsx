@@ -40,9 +40,9 @@ export function AuthShell({
   wide = false,
 }: AuthShellProps) {
   return (
-    <div className="min-h-screen flex bg-slate-50 overflow-x-hidden font-sans">
+    <div className="h-screen max-h-screen overflow-hidden flex bg-slate-50 font-sans">
       {/* Left panel — deep navy product showcase */}
-      <div className="hidden lg:flex lg:w-[480px] xl:w-[540px] 2xl:w-[600px] flex-shrink-0 bg-[#0B1021] flex-col relative overflow-hidden text-white border-r border-slate-800/80">
+      <div className="hidden lg:flex lg:w-[460px] xl:w-[500px] 2xl:w-[540px] flex-shrink-0 bg-[#0B1021] flex-col relative overflow-hidden text-white border-r border-slate-800/80">
         {/* Grid pattern */}
         <div
           className="absolute inset-0 opacity-[0.12]"
@@ -58,48 +58,48 @@ export function AuthShell({
         <div className="absolute bottom-[-10%] right-[-10%] w-[420px] h-[420px] bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col h-full px-10 xl:px-14 py-12">
+        <div className="relative z-10 flex flex-col justify-between h-full px-8 xl:px-10 py-6 xl:py-8 overflow-y-auto">
           <div>
             {onBack && backLabel && (
               <button
                 type="button"
                 onClick={onBack}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 hover:text-white text-xs font-mono transition-all mb-10 border border-white/10 cursor-pointer"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 hover:text-white text-xs font-mono transition-all mb-4 border border-white/10 cursor-pointer"
               >
-                <ArrowLeft className="w-4 h-4" /> {backLabel}
+                <ArrowLeft className="w-3.5 h-3.5" /> {backLabel}
               </button>
             )}
 
-            <div className="flex items-center gap-3 mb-12">
+            <div className="flex items-center gap-3 mb-5">
               <div>
-                <MetaforgeLogo variant="light" size="lg" />
-                <p className="text-[10px] text-slate-400 font-mono tracking-widest mt-1.5 uppercase font-semibold">
+                <MetaforgeLogo variant="light" size="md" />
+                <p className="text-[9px] text-slate-400 font-mono tracking-widest mt-1 uppercase font-semibold">
                   Recruiter Intelligence Platform
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col justify-center py-4">
+          <div className="flex-1 flex flex-col justify-center py-2">
             {eyebrow && (
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/25 text-blue-300 text-xs font-mono font-medium mb-6 w-max shadow-sm">
-                <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/25 text-blue-300 text-[11px] font-mono font-medium mb-3 w-max shadow-xs">
+                <Sparkles className="w-3 h-3 text-blue-400" />
                 <span>{eyebrow}</span>
               </div>
             )}
 
-            <h1 className="text-3xl xl:text-4xl font-extrabold text-white leading-[1.18] mb-5 tracking-tight">
+            <h1 className="text-2xl xl:text-3xl font-extrabold text-white leading-snug mb-3 tracking-tight">
               {headline}
             </h1>
 
-            <p className="text-slate-300 text-sm xl:text-base leading-relaxed max-w-md">{description}</p>
+            <p className="text-slate-300 text-xs xl:text-sm leading-relaxed max-w-md">{description}</p>
 
             {bullets.length > 0 && (
-              <div className="mt-8 space-y-3.5">
+              <div className="mt-4 space-y-2">
                 {bullets.map(item => (
-                  <div key={item} className="flex items-start gap-3 text-xs xl:text-sm text-slate-300 font-medium">
-                    <div className="w-5 h-5 rounded-full bg-blue-500/15 border border-blue-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
+                  <div key={item} className="flex items-start gap-2.5 text-xs text-slate-300 font-medium">
+                    <div className="w-4 h-4 rounded-full bg-blue-500/15 border border-blue-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle2 className="w-3 h-3 text-blue-400" />
                     </div>
                     <span>{item}</span>
                   </div>
@@ -107,12 +107,12 @@ export function AuthShell({
               </div>
             )}
 
-            {aside && <div className="mt-8">{aside}</div>}
+            {aside && <div className="mt-4">{aside}</div>}
           </div>
 
-          <div className="flex items-center justify-between text-slate-400 text-xs font-mono pt-6 border-t border-slate-800/60">
+          <div className="flex items-center justify-between text-slate-400 text-[11px] font-mono pt-3 border-t border-slate-800/60 mt-2">
             <span className="flex items-center gap-1.5 text-slate-400">
-              <ShieldCheck className="w-4 h-4 text-blue-400" /> Enterprise Secured
+              <ShieldCheck className="w-3.5 h-3.5 text-blue-400" /> Enterprise Secured
             </span>
             <span>v3.2.0 Console</span>
           </div>
@@ -120,10 +120,10 @@ export function AuthShell({
       </div>
 
       {/* Right panel — form column */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-14 bg-slate-50 relative overflow-y-auto">
-        <div className={`w-full my-auto ${wide ? 'max-w-xl xl:max-w-2xl' : 'max-w-lg xl:max-w-xl'}`}>
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-slate-50 relative overflow-y-auto h-full">
+        <div className={`w-full my-auto ${wide ? 'max-w-lg xl:max-w-xl' : 'max-w-md xl:max-w-lg'}`}>
           {/* Mobile brand header */}
-          <div className="flex items-center gap-3 mb-6 lg:hidden">
+          <div className="flex items-center gap-3 mb-4 lg:hidden">
             <MetaforgeLogo variant="dark" size="md" />
             <div className="border-l border-slate-200 pl-3">
               <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider font-bold">
@@ -136,7 +136,7 @@ export function AuthShell({
             <button
               type="button"
               onClick={onBack}
-              className="lg:hidden inline-flex items-center gap-2 text-xs font-mono text-slate-600 hover:text-slate-900 mb-5 transition-colors cursor-pointer"
+              className="lg:hidden inline-flex items-center gap-2 text-xs font-mono text-slate-600 hover:text-slate-900 mb-4 transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" /> {backLabel}
             </button>

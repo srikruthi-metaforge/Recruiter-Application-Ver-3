@@ -20,6 +20,10 @@ import {
   UserCheck,
   Calendar,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Maximize2,
+  Minimize2,
   Layers,
   PieChart,
   ShieldAlert,
@@ -51,6 +55,7 @@ export interface ClientGapAnalysisProps {
   pocPhone?: string
   teamLead?: string
   role?: Role
+  initialDateRange?: string
   onBack: () => void
   onSelectRequirement?: (reqId: string) => void
 }
@@ -211,6 +216,19 @@ export function getClientGapAnalysisDataset(clientName: string = 'Accenture', cl
         })
       }
 
+      // Create dates distributed across week, month, year, and past year
+      const datePool = [
+        '2026-08-25', // This Week
+        '2026-08-23', // This Week
+        '2026-08-14', // This Month
+        '2026-08-05', // This Month
+        '2026-06-18', // This Year
+        '2026-04-10', // This Year
+        '2026-02-14', // This Year
+        '2025-11-20', // All Time (Prior year)
+      ]
+      const createdDate = datePool[(i + dIdx) % datePool.length]
+
       dataset.push({
         id: `REQ-2026-${clientCode}-${reqCounter++}`,
         title,
@@ -219,7 +237,7 @@ export function getClientGapAnalysisDataset(clientName: string = 'Accenture', cl
         submissions: submissionsVal,
         spoc: spocName,
         status: isZeroSub ? 'Open' : submissionsVal > 10 ? 'Closed' : 'In Progress',
-        createdDate: `2026-08-0${(i % 8) + 1}`,
+        createdDate,
         hasMissingDomain: isMissingDomain,
         hasNonNumericPositions: isNonNumericPos,
         interviews: interviewsList,
@@ -238,11 +256,12 @@ export function ClientDeliveryGapAnalysisPage({
   pocPhone = '+91 98765 11223',
   teamLead = 'Harish Gadipally',
   role = 'superadmin',
+  initialDateRange = 'All Time',
   onBack,
   onSelectRequirement,
 }: ClientGapAnalysisProps) {
   // Filters State
-  const [dateRange, setDateRange] = useState('All Time')
+  const [dateRange, setDateRange] = useState(initialDateRange || 'All Time')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDomainFilter, setSelectedDomainFilter] = useState('All Domains')
   const [selectedSpocFilter, setSelectedSpocFilter] = useState('All SPOCs')
@@ -250,6 +269,46 @@ export function ClientDeliveryGapAnalysisPage({
   const [selectedSubStatus, setSelectedSubStatus] = useState('All')
   const [selectedInterviewStatus, setSelectedInterviewStatus] = useState('All')
   const [toastMsg, setToastMsg] = useState<string | null>(null)
+
+  // Section Toggle State (for collapsing sections to reduce scrolling)
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    kpi: true,
+    coverage: false,
+    domainTable: false,
+    domainCharts: false,
+    spocTable: false,
+    reqGaps: false,
+  })
+  const [activeTabSection, setActiveTabSection] = useState<string>('kpi')
+
+  const toggleSection = (key: string) => {
+    setOpenSections(prev => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  const expandAll = () => {
+    setOpenSections({
+      kpi: true,
+      coverage: true,
+      domainTable: true,
+      domainCharts: true,
+      spocTable: true,
+      reqGaps: true,
+    })
+    setActiveTabSection('all')
+    showToast('Expanded all sections.')
+  }
+
+  const collapseAll = () => {
+    setOpenSections({
+      kpi: false,
+      coverage: false,
+      domainTable: false,
+      domainCharts: false,
+      spocTable: false,
+      reqGaps: false,
+    })
+    showToast('Collapsed all sections to reduce scrolling.')
+  }
 
   const showToast = (msg: string) => {
     setToastMsg(msg)
@@ -271,6 +330,18 @@ export function ClientDeliveryGapAnalysisPage({
         const matchSpoc = req.spoc.toLowerCase().includes(q)
         if (!matchTitle && !matchId && !matchSpoc) return false
       }
+
+      // Time Period Filter (Week / Month / Year / All Time)
+      if (dateRange !== 'All Time' && dateRange !== 'All') {
+        if (dateRange === 'This Week') {
+          if (req.createdDate && req.createdDate < '2026-08-22') return false
+        } else if (dateRange === 'This Month') {
+          if (req.createdDate && !req.createdDate.includes('2026-08')) return false
+        } else if (dateRange === 'This Year') {
+          if (req.createdDate && !req.createdDate.includes('2026')) return false
+        }
+      }
+
       if (selectedDomainFilter !== 'All Domains' && req.domain !== selectedDomainFilter) {
         return false
       }
@@ -300,6 +371,7 @@ export function ClientDeliveryGapAnalysisPage({
   }, [
     rawClientRequirements,
     searchQuery,
+    dateRange,
     selectedDomainFilter,
     selectedSpocFilter,
     selectedReqStatus,
@@ -571,7 +643,21 @@ export function ClientDeliveryGapAnalysisPage({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 text-xs">
+          {/* Time Period Filter (Week / Month / Year / All Time) */}
+          <div>
+            <select
+              value={dateRange}
+              onChange={e => setDateRange(e.target.value)}
+              className="w-full px-3 py-2 bg-purple-50/90 border border-purple-200 rounded-xl font-extrabold text-[#6B3BF6] focus:outline-none focus:border-[#6B3BF6] cursor-pointer"
+            >
+              <option value="All Time">All Time</option>
+              <option value="This Week">This Week</option>
+              <option value="This Month">This Month</option>
+              <option value="This Year">This Year</option>
+            </select>
+          </div>
+
           {/* Keyword Search */}
           <div className="relative">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -659,109 +745,253 @@ export function ClientDeliveryGapAnalysisPage({
         </div>
       </div>
 
-      {/* 3. KEY PERFORMANCE INDICATORS TABLE (EXACT MATCH TO EXCEL ANALYSIS) */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs overflow-hidden">
-        {/* Navy Header Banner matching Excel image */}
-        <div className="bg-[#1B2A4A] text-white px-6 py-3.5 font-bold text-sm sm:text-base tracking-wide flex items-center justify-between">
-          <span>{clientName} – MetaForge Delivery Gap Analysis</span>
-          <span className="text-xs font-mono font-normal opacity-80">KPI Summary Table</span>
+      {/* 2.5 SECTION TOGGLE NAVIGATION CONTROL BAR */}
+      <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-3 font-sans">
+        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
+          <button
+            onClick={() => {
+              setActiveTabSection('kpi')
+              setOpenSections(prev => ({ ...prev, kpi: true }))
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+              activeTabSection === 'kpi'
+                ? 'bg-blue-600 text-white shadow-2xs'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>KPI Summary</span>
+          </button>
+          <button
+            onClick={() => {
+              setActiveTabSection('coverage')
+              setOpenSections(prev => ({ ...prev, coverage: true }))
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+              activeTabSection === 'coverage'
+                ? 'bg-emerald-600 text-white shadow-2xs'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span>Coverage ({metrics.coveragePct}%)</span>
+          </button>
+          <button
+            onClick={() => {
+              setActiveTabSection('domainTable')
+              setOpenSections(prev => ({ ...prev, domainTable: true }))
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+              activeTabSection === 'domainTable'
+                ? 'bg-purple-600 text-white shadow-2xs'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Domain Delivery</span>
+          </button>
+          <button
+            onClick={() => {
+              setActiveTabSection('domainCharts')
+              setOpenSections(prev => ({ ...prev, domainCharts: true }))
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+              activeTabSection === 'domainCharts'
+                ? 'bg-amber-600 text-white shadow-2xs'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            <span>Domain Charts</span>
+          </button>
+          <button
+            onClick={() => {
+              setActiveTabSection('spocTable')
+              setOpenSections(prev => ({ ...prev, spocTable: true }))
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+              activeTabSection === 'spocTable'
+                ? 'bg-indigo-600 text-white shadow-2xs'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            <UserCheck className="w-3.5 h-3.5" />
+            <span>SPOC Analysis</span>
+          </button>
+          <button
+            onClick={() => {
+              setActiveTabSection('reqGaps')
+              setOpenSections(prev => ({ ...prev, reqGaps: true }))
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+              activeTabSection === 'reqGaps'
+                ? 'bg-rose-600 text-white shadow-2xs'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span>Requirement Gaps</span>
+          </button>
+          <button
+            onClick={() => {
+              setActiveTabSection('all')
+              expandAll()
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+              activeTabSection === 'all'
+                ? 'bg-[#6B3BF6] text-white shadow-2xs'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            Show All Sections
+          </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs font-sans">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
-                <th className="py-3 px-6 w-2/3">KPI</th>
-                <th className="py-3 px-6 w-1/3 text-right">VALUE</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
-              <tr className="hover:bg-purple-50/30 transition-colors">
-                <td className="py-3 px-6 font-bold text-slate-900">Requirements</td>
-                <td className="py-3 px-6 text-right font-extrabold text-slate-900 tabular-nums">{metrics.totalReqs}</td>
-              </tr>
-              <tr className="hover:bg-purple-50/30 transition-colors">
-                <td className="py-3 px-6 font-bold text-slate-900">Total Positions</td>
-                <td className="py-3 px-6 text-right font-extrabold text-purple-900 tabular-nums">{metrics.totalPositions}</td>
-              </tr>
-              <tr className="hover:bg-purple-50/30 transition-colors">
-                <td className="py-3 px-6 font-bold text-slate-900">Total Submissions</td>
-                <td className="py-3 px-6 text-right font-extrabold text-[#2563EB] tabular-nums">{metrics.totalSubmissions}</td>
-              </tr>
-              <tr className="hover:bg-purple-50/30 transition-colors">
-                <td className="py-3 px-6 font-bold text-slate-900">Submission Coverage</td>
-                <td className="py-3 px-6 text-right font-extrabold tabular-nums">
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-xs font-extrabold border ${
-                      metrics.coveragePct >= 50
-                        ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
-                        : metrics.coveragePct >= 25
-                        ? 'bg-amber-100 text-amber-900 border-amber-200'
-                        : 'bg-rose-100 text-rose-800 border-rose-200'
-                    }`}
-                  >
-                    {metrics.coveragePct}%
-                  </span>
-                </td>
-              </tr>
-              <tr className="hover:bg-purple-50/30 transition-colors">
-                <td className="py-3 px-6 font-bold text-slate-900">Requirements with 0 submissions</td>
-                <td className="py-3 px-6 text-right font-extrabold text-rose-700 tabular-nums">{metrics.zeroSubReqs}</td>
-              </tr>
-              <tr className="hover:bg-purple-50/30 transition-colors">
-                <td className="py-3 px-6 font-bold text-slate-900">Requirements with missing/unusable domain</td>
-                <td className="py-3 px-6 text-right font-extrabold text-amber-700 tabular-nums">{metrics.missingDomainReqs}</td>
-              </tr>
-              <tr className="hover:bg-purple-50/30 transition-colors">
-                <td className="py-3 px-6 font-bold text-slate-900">Requirements with non-numeric positions</td>
-                <td className="py-3 px-6 text-right font-extrabold text-slate-700 tabular-nums">{metrics.nonNumericPositions}</td>
-              </tr>
-              <tr className="hover:bg-purple-50/30 transition-colors">
-                <td className="py-3 px-6 font-bold text-slate-900">Candidate interview records</td>
-                <td className="py-3 px-6 text-right font-extrabold text-slate-900 tabular-nums">{metrics.totalInterviews}</td>
-              </tr>
-              <tr className="hover:bg-purple-50/30 transition-colors">
-                <td className="py-3 px-6 font-bold text-slate-900">Final selects</td>
-                <td className="py-3 px-6 text-right font-extrabold text-emerald-700 tabular-nums">{metrics.finalSelects}</td>
-              </tr>
-              <tr className="hover:bg-purple-50/30 transition-colors">
-                <td className="py-3 px-6 font-bold text-slate-900">L1 rejects</td>
-                <td className="py-3 px-6 text-right font-extrabold text-rose-700 tabular-nums">{metrics.l1Rejects}</td>
-              </tr>
-              <tr className="hover:bg-purple-50/30 transition-colors">
-                <td className="py-3 px-6 font-bold text-slate-900">Awaiting / pending records</td>
-                <td className="py-3 px-6 text-right font-extrabold text-amber-700 tabular-nums">{metrics.awaitingPending}</td>
-              </tr>
-            </tbody>
-          </table>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={expandAll}
+            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+            title="Expand all sections"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Expand All</span>
+          </button>
+          <button
+            onClick={collapseAll}
+            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+            title="Collapse all sections to reduce scrolling"
+          >
+            <Minimize2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Collapse All</span>
+          </button>
         </div>
       </div>
 
-      {/* 4. SUBMISSION COVERAGE SECTION */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-          <div>
-            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-[#6B3BF6]" />
-              <span>Overall Submission Coverage — {metrics.coveragePct}%</span>
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Calculated dynamically as total submissions divided by total open positions for {clientName} ({metrics.totalSubmissions} / {metrics.totalPositions} positions).
-            </p>
+      {/* 3. KEY PERFORMANCE INDICATORS TABLE (EXACT MATCH TO EXCEL ANALYSIS) */}
+      {(activeTabSection === 'all' || activeTabSection === 'kpi') && (
+        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs overflow-hidden transition-all">
+          {/* Navy Header Banner with Toggle Arrow */}
+          <div
+            onClick={() => toggleSection('kpi')}
+            className="bg-[#1B2A4A] hover:bg-[#15223c] text-white px-6 py-3.5 font-bold text-sm sm:text-base tracking-wide flex items-center justify-between cursor-pointer transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <span>{clientName} – MetaForge Delivery Gap Analysis</span>
+              <span className="text-xs font-mono font-normal opacity-80 hidden sm:inline">KPI Summary Table</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs bg-white/10 px-2.5 py-1 rounded-md font-mono">
+                {openSections.kpi ? 'Click to Collapse' : 'Click to Expand'}
+              </span>
+              {openSections.kpi ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </div>
           </div>
 
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-extrabold border ${
-              metrics.coveragePct >= 50
-                ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
-                : metrics.coveragePct >= 25
-                ? 'bg-amber-100 text-amber-900 border-amber-200'
-                : 'bg-rose-100 text-rose-800 border-rose-200'
-            }`}
-          >
-            Status: {metrics.coveragePct >= 50 ? 'Good Coverage' : metrics.coveragePct >= 25 ? 'Medium Coverage' : 'Low / Critical Coverage'}
-          </span>
+          {openSections.kpi && (
+            <div className="overflow-x-auto animate-in fade-in duration-150">
+              <table className="w-full text-left border-collapse text-xs font-sans">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+                    <th className="py-3 px-6 w-2/3">KPI</th>
+                    <th className="py-3 px-6 w-1/3 text-right">VALUE</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+                  <tr className="hover:bg-purple-50/30 transition-colors">
+                    <td className="py-3 px-6 font-bold text-slate-900">Requirements</td>
+                    <td className="py-3 px-6 text-right font-extrabold text-slate-900 tabular-nums">{metrics.totalReqs}</td>
+                  </tr>
+                  <tr className="hover:bg-purple-50/30 transition-colors">
+                    <td className="py-3 px-6 font-bold text-slate-900">Total Positions</td>
+                    <td className="py-3 px-6 text-right font-extrabold text-purple-900 tabular-nums">{metrics.totalPositions}</td>
+                  </tr>
+                  <tr className="hover:bg-purple-50/30 transition-colors">
+                    <td className="py-3 px-6 font-bold text-slate-900">Total Submissions</td>
+                    <td className="py-3 px-6 text-right font-extrabold text-[#2563EB] tabular-nums">{metrics.totalSubmissions}</td>
+                  </tr>
+                  <tr className="hover:bg-purple-50/30 transition-colors">
+                    <td className="py-3 px-6 font-bold text-slate-900">Submission Coverage</td>
+                    <td className="py-3 px-6 text-right font-extrabold tabular-nums">
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-xs font-extrabold border ${
+                          metrics.coveragePct >= 50
+                            ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                            : metrics.coveragePct >= 25
+                            ? 'bg-amber-100 text-amber-900 border-amber-200'
+                            : 'bg-rose-100 text-rose-800 border-rose-200'
+                        }`}
+                      >
+                        {metrics.coveragePct}%
+                      </span>
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-purple-50/30 transition-colors">
+                    <td className="py-3 px-6 font-bold text-slate-900">Requirements with 0 submissions</td>
+                    <td className="py-3 px-6 text-right font-extrabold text-rose-700 tabular-nums">{metrics.zeroSubReqs}</td>
+                  </tr>
+                  <tr className="hover:bg-purple-50/30 transition-colors">
+                    <td className="py-3 px-6 font-bold text-slate-900">Requirements with missing/unusable domain</td>
+                    <td className="py-3 px-6 text-right font-extrabold text-amber-700 tabular-nums">{metrics.missingDomainReqs}</td>
+                  </tr>
+                  <tr className="hover:bg-purple-50/30 transition-colors">
+                    <td className="py-3 px-6 font-bold text-slate-900">Requirements with non-numeric positions</td>
+                    <td className="py-3 px-6 text-right font-extrabold text-slate-700 tabular-nums">{metrics.nonNumericPositions}</td>
+                  </tr>
+                  <tr className="hover:bg-purple-50/30 transition-colors">
+                    <td className="py-3 px-6 font-bold text-slate-900">Candidate interview records</td>
+                    <td className="py-3 px-6 text-right font-extrabold text-slate-900 tabular-nums">{metrics.totalInterviews}</td>
+                  </tr>
+                  <tr className="hover:bg-purple-50/30 transition-colors">
+                    <td className="py-3 px-6 font-bold text-slate-900">Final selects</td>
+                    <td className="py-3 px-6 text-right font-extrabold text-emerald-700 tabular-nums">{metrics.finalSelects}</td>
+                  </tr>
+                  <tr className="hover:bg-purple-50/30 transition-colors">
+                    <td className="py-3 px-6 font-bold text-slate-900">L1 rejects</td>
+                    <td className="py-3 px-6 text-right font-extrabold text-rose-700 tabular-nums">{metrics.l1Rejects}</td>
+                  </tr>
+                  <tr className="hover:bg-purple-50/30 transition-colors">
+                    <td className="py-3 px-6 font-bold text-slate-900">Awaiting / pending records</td>
+                    <td className="py-3 px-6 text-right font-extrabold text-amber-700 tabular-nums">{metrics.awaitingPending}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
+      )}
+
+      {/* 4. SUBMISSION COVERAGE SECTION */}
+      {(activeTabSection === 'all' || activeTabSection === 'coverage') && (
+        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs space-y-4 transition-all">
+          <div
+            onClick={() => toggleSection('coverage')}
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3 cursor-pointer group"
+          >
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2 group-hover:text-[#6B3BF6] transition-colors">
+                <TrendingUp className="w-5 h-5 text-[#6B3BF6]" />
+                <span>Overall Submission Coverage — {metrics.coveragePct}%</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Calculated dynamically as total submissions divided by total open positions for {clientName} ({metrics.totalSubmissions} / {metrics.totalPositions} positions).
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-extrabold border ${
+                  metrics.coveragePct >= 50
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                    : metrics.coveragePct >= 25
+                    ? 'bg-amber-100 text-amber-900 border-amber-200'
+                    : 'bg-rose-100 text-rose-800 border-rose-200'
+                }`}
+              >
+                Status: {metrics.coveragePct >= 50 ? 'Good Coverage' : metrics.coveragePct >= 25 ? 'Medium Coverage' : 'Low / Critical Coverage'}
+              </span>
+              {openSections.coverage ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+            </div>
+          </div>
 
         {/* Visual Progress Bar */}
         <div className="space-y-1.5">
@@ -784,412 +1014,470 @@ export function ClientDeliveryGapAnalysisPage({
             <span>100%+ (Optimal Delivery)</span>
           </div>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* 5. STANDARDIZED DOMAIN ANALYSIS TABLE */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div>
-            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-              <Layers className="w-5 h-5 text-[#6B3BF6]" />
-              <span>Standardized Domain Delivery Analysis ({domainAnalysisRows.length} Active Domains)</span>
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Requirements, open headcount, submissions, coverage percentage, and zero-submission count per domain.
-            </p>
+      {(activeTabSection === 'all' || activeTabSection === 'domainTable') && (
+        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs space-y-4 transition-all">
+          <div
+            onClick={() => toggleSection('domainTable')}
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4 cursor-pointer group"
+          >
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2 group-hover:text-[#6B3BF6] transition-colors">
+                <Layers className="w-5 h-5 text-[#6B3BF6]" />
+                <span>Standardized Domain Delivery Analysis ({domainAnalysisRows.length} Active Domains)</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Requirements, open headcount, submissions, coverage percentage, and zero-submission count per domain.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate-400 font-mono hidden sm:inline">
+                Auto-calculated from {clientName} job demand records
+              </span>
+              {openSections.domainTable ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+            </div>
           </div>
 
-          <span className="text-xs text-slate-400 font-mono">
-            Auto-calculated from {clientName} job demand records
-          </span>
+          {openSections.domainTable && (
+            <div className="overflow-x-auto border border-slate-200/80 rounded-2xl animate-in fade-in duration-150">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    <th className="py-3.5 px-4">STANDARDIZED DOMAIN</th>
+                    <th className="py-3.5 px-4 text-center">REQUIREMENTS</th>
+                    <th className="py-3.5 px-4 text-center">POSITIONS</th>
+                    <th className="py-3.5 px-4 text-center">SUBMISSIONS</th>
+                    <th className="py-3.5 px-4 text-center">COVERAGE %</th>
+                    <th className="py-3.5 px-4 text-center">ZERO-SUBMISSION REQS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+                  {domainAnalysisRows.map(row => (
+                    <tr key={row.domain} className="hover:bg-purple-50/40 transition-colors">
+                      <td className="py-3.5 px-4 font-bold text-slate-900 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-[#6B3BF6]" />
+                        <span>{row.domain}</span>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-center font-extrabold text-slate-800 tabular-nums">
+                        {row.requirements}
+                      </td>
+
+                      <td className="py-3.5 px-4 text-center font-extrabold text-purple-900 tabular-nums">
+                        {row.positions}
+                      </td>
+
+                      <td className="py-3.5 px-4 text-center font-extrabold text-[#2563EB] tabular-nums">
+                        {row.submissions}
+                      </td>
+
+                      <td className="py-3.5 px-4 text-center">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-extrabold border tabular-nums ${
+                            row.coverage >= 50
+                              ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                              : row.coverage >= 25
+                              ? 'bg-amber-100 text-amber-900 border-amber-200'
+                              : 'bg-rose-100 text-rose-800 border-rose-200'
+                          }`}
+                        >
+                          {row.coverage}%
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-center">
+                        {row.zeroSubReqs > 0 ? (
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-rose-100 text-rose-800 border border-rose-200 tabular-nums">
+                            {row.zeroSubReqs} Reqs
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-500 tabular-nums">
+                            0
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
-
-        <div className="overflow-x-auto border border-slate-200/80 rounded-2xl">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                <th className="py-3.5 px-4">STANDARDIZED DOMAIN</th>
-                <th className="py-3.5 px-4 text-center">REQUIREMENTS</th>
-                <th className="py-3.5 px-4 text-center">POSITIONS</th>
-                <th className="py-3.5 px-4 text-center">SUBMISSIONS</th>
-                <th className="py-3.5 px-4 text-center">COVERAGE %</th>
-                <th className="py-3.5 px-4 text-center">ZERO-SUBMISSION REQS</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
-              {domainAnalysisRows.map(row => (
-                <tr key={row.domain} className="hover:bg-purple-50/40 transition-colors">
-                  <td className="py-3.5 px-4 font-bold text-slate-900 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#6B3BF6]" />
-                    <span>{row.domain}</span>
-                  </td>
-
-                  <td className="py-3.5 px-4 text-center font-extrabold text-slate-800 tabular-nums">
-                    {row.requirements}
-                  </td>
-
-                  <td className="py-3.5 px-4 text-center font-extrabold text-purple-900 tabular-nums">
-                    {row.positions}
-                  </td>
-
-                  <td className="py-3.5 px-4 text-center font-extrabold text-[#2563EB] tabular-nums">
-                    {row.submissions}
-                  </td>
-
-                  <td className="py-3.5 px-4 text-center">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-extrabold border tabular-nums ${
-                        row.coverage >= 50
-                          ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
-                          : row.coverage >= 25
-                          ? 'bg-amber-100 text-amber-900 border-amber-200'
-                          : 'bg-rose-100 text-rose-800 border-rose-200'
-                      }`}
-                    >
-                      {row.coverage}%
-                    </span>
-                  </td>
-
-                  <td className="py-3.5 px-4 text-center">
-                    {row.zeroSubReqs > 0 ? (
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-rose-100 text-rose-800 border border-rose-200 tabular-nums">
-                        {row.zeroSubReqs} Reqs
-                      </span>
-                    ) : (
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-500 tabular-nums">
-                        0
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      )}
 
       {/* 6. DOMAIN PERFORMANCE CHARTS (RECHARTS) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Chart 1: Requirements by Domain */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h4 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-[#6B3BF6]" />
-              <span>Requirements Count by Domain</span>
-            </h4>
-            <span className="text-[10px] text-slate-400 font-semibold">{clientName}</span>
+      {(activeTabSection === 'all' || activeTabSection === 'domainCharts') && (
+        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs space-y-4 transition-all">
+          <div
+            onClick={() => toggleSection('domainCharts')}
+            className="flex items-center justify-between border-b border-slate-100 pb-3 cursor-pointer group"
+          >
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2 group-hover:text-[#6B3BF6] transition-colors">
+                <BarChart3 className="w-5 h-5 text-amber-600" />
+                <span>Domain Performance Analytics Charts (4 Visual Reports)</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Requirements count, Positions vs Submissions, Coverage ratio, and Zero-submission requirements per domain.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-amber-700 font-bold bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+                {openSections.domainCharts ? 'Hide Charts' : 'Show Charts'}
+              </span>
+              {openSections.domainCharts ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+            </div>
           </div>
 
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={domainChartData} margin={{ top: 10, right: 10, left: -20, bottom: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                <XAxis dataKey="domainShort" angle={-25} textAnchor="end" interval={0} tick={{ fontSize: 10, fill: '#64748B' }} />
-                <YAxis tick={{ fontSize: 10, fill: '#64748B' }} />
-                <Tooltip
-                  formatter={(value: any) => [`${value} Reqs`, 'Requirements']}
-                  labelFormatter={(lbl: any) => `Domain: ${lbl}`}
-                />
-                <Bar dataKey="requirements" fill="#6B3BF6" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          {openSections.domainCharts && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in duration-150">
+              {/* Chart 1: Requirements by Domain */}
+              <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-200/80 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                  <h4 className="text-xs font-extrabold text-slate-900 flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-[#6B3BF6]" />
+                    <span>Requirements Count by Domain</span>
+                  </h4>
+                  <span className="text-[10px] text-slate-400 font-semibold">{clientName}</span>
+                </div>
+
+                <div className="h-60 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={domainChartData} margin={{ top: 10, right: 10, left: -20, bottom: 40 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                      <XAxis dataKey="domainShort" angle={-25} textAnchor="end" interval={0} tick={{ fontSize: 10, fill: '#64748B' }} />
+                      <YAxis tick={{ fontSize: 10, fill: '#64748B' }} />
+                      <Tooltip
+                        formatter={(value: any) => [`${value} Reqs`, 'Requirements']}
+                        labelFormatter={(lbl: any) => `Domain: ${lbl}`}
+                      />
+                      <Bar dataKey="requirements" fill="#6B3BF6" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Chart 2: Positions vs Submissions by Domain */}
+              <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-200/80 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                  <h4 className="text-xs font-extrabold text-slate-900 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-[#2563EB]" />
+                    <span>Positions vs Submissions by Domain</span>
+                  </h4>
+                  <span className="text-[10px] text-slate-400 font-semibold">Grouped Comparison</span>
+                </div>
+
+                <div className="h-60 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={domainChartData} margin={{ top: 10, right: 10, left: -20, bottom: 40 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                      <XAxis dataKey="domainShort" angle={-25} textAnchor="end" interval={0} tick={{ fontSize: 10, fill: '#64748B' }} />
+                      <YAxis tick={{ fontSize: 10, fill: '#64748B' }} />
+                      <Tooltip />
+                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      <Bar dataKey="positions" name="Open Positions" fill="#C7D2FE" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="submissions" name="Submissions Sent" fill="#2563EB" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Chart 3: Coverage % by Domain */}
+              <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-200/80 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                  <h4 className="text-xs font-extrabold text-slate-900 flex items-center gap-2">
+                    <PieChart className="w-4 h-4 text-emerald-600" />
+                    <span>Submission Coverage % by Domain</span>
+                  </h4>
+                  <span className="text-[10px] text-slate-400 font-semibold">Delivery Ratio</span>
+                </div>
+
+                <div className="h-60 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={domainChartData} margin={{ top: 10, right: 10, left: -20, bottom: 40 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                      <XAxis dataKey="domainShort" angle={-25} textAnchor="end" interval={0} tick={{ fontSize: 10, fill: '#64748B' }} />
+                      <YAxis tick={{ fontSize: 10, fill: '#64748B' }} unit="%" />
+                      <Tooltip formatter={(val: any) => [`${val}%`, 'Coverage Ratio']} />
+                      <Bar dataKey="coverage" fill="#10B981" radius={[6, 6, 0, 0]}>
+                        {domainChartData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={entry.coverage >= 50 ? '#10B981' : entry.coverage >= 25 ? '#F59E0B' : '#EF4444'}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Chart 4: Zero-Submission Requirements by Domain */}
+              <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-200/80 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                  <h4 className="text-xs font-extrabold text-slate-900 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-600" />
+                    <span>Zero-Submission Requirements by Domain</span>
+                  </h4>
+                  <span className="text-[10px] text-rose-700 font-bold">Attention Needed</span>
+                </div>
+
+                <div className="h-60 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={domainChartData} margin={{ top: 10, right: 10, left: -20, bottom: 40 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                      <XAxis dataKey="domainShort" angle={-25} textAnchor="end" interval={0} tick={{ fontSize: 10, fill: '#64748B' }} />
+                      <YAxis tick={{ fontSize: 10, fill: '#64748B' }} />
+                      <Tooltip formatter={(val: any) => [`${val} Reqs`, 'Zero Submissions']} />
+                      <Bar dataKey="zeroSubReqs" fill="#EF4444" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-
-        {/* Chart 2: Positions vs Submissions by Domain */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h4 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-[#2563EB]" />
-              <span>Positions vs Submissions by Domain</span>
-            </h4>
-            <span className="text-[10px] text-slate-400 font-semibold">Grouped Comparison</span>
-          </div>
-
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={domainChartData} margin={{ top: 10, right: 10, left: -20, bottom: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                <XAxis dataKey="domainShort" angle={-25} textAnchor="end" interval={0} tick={{ fontSize: 10, fill: '#64748B' }} />
-                <YAxis tick={{ fontSize: 10, fill: '#64748B' }} />
-                <Tooltip />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar dataKey="positions" name="Open Positions" fill="#C7D2FE" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="submissions" name="Submissions Sent" fill="#2563EB" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Chart 3: Coverage % by Domain */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h4 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-              <PieChart className="w-4 h-4 text-emerald-600" />
-              <span>Submission Coverage % by Domain</span>
-            </h4>
-            <span className="text-[10px] text-slate-400 font-semibold">Delivery Ratio</span>
-          </div>
-
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={domainChartData} margin={{ top: 10, right: 10, left: -20, bottom: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                <XAxis dataKey="domainShort" angle={-25} textAnchor="end" interval={0} tick={{ fontSize: 10, fill: '#64748B' }} />
-                <YAxis tick={{ fontSize: 10, fill: '#64748B' }} unit="%" />
-                <Tooltip formatter={(val: any) => [`${val}%`, 'Coverage Ratio']} />
-                <Bar dataKey="coverage" fill="#10B981" radius={[6, 6, 0, 0]}>
-                  {domainChartData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={entry.coverage >= 50 ? '#10B981' : entry.coverage >= 25 ? '#F59E0B' : '#EF4444'}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Chart 4: Zero-Submission Requirements by Domain */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h4 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-rose-600" />
-              <span>Zero-Submission Requirements by Domain</span>
-            </h4>
-            <span className="text-[10px] text-rose-700 font-bold">Attention Needed</span>
-          </div>
-
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={domainChartData} margin={{ top: 10, right: 10, left: -20, bottom: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                <XAxis dataKey="domainShort" angle={-25} textAnchor="end" interval={0} tick={{ fontSize: 10, fill: '#64748B' }} />
-                <YAxis tick={{ fontSize: 10, fill: '#64748B' }} />
-                <Tooltip formatter={(val: any) => [`${val} Reqs`, 'Zero Submissions']} />
-                <Bar dataKey="zeroSubReqs" fill="#EF4444" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* 7. SPOC / OWNERSHIP ANALYSIS SECTION */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div>
-            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-              <UserCheck className="w-5 h-5 text-[#6B3BF6]" />
-              <span>SPOC / Account Ownership Delivery Analysis</span>
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Breakdown of single point of contacts assigned to {clientName} requirements and their coverage metrics.
-            </p>
+      {(activeTabSection === 'all' || activeTabSection === 'spocTable') && (
+        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs space-y-4 transition-all">
+          <div
+            onClick={() => toggleSection('spocTable')}
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4 cursor-pointer group"
+          >
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2 group-hover:text-[#6B3BF6] transition-colors">
+                <UserCheck className="w-5 h-5 text-[#6B3BF6]" />
+                <span>SPOC / Account Ownership Delivery Analysis</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Breakdown of single point of contacts assigned to {clientName} requirements and their coverage metrics.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-[#6B3BF6] font-bold">
+                {spocAnalysisRows.length} Active SPOC Owners
+              </span>
+              {openSections.spocTable ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+            </div>
           </div>
 
-          <span className="text-xs text-[#6B3BF6] font-bold">
-            {spocAnalysisRows.length} Active SPOC Owners
-          </span>
+          {openSections.spocTable && (
+            <div className="overflow-x-auto border border-slate-200/80 rounded-2xl animate-in fade-in duration-150">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                    <th className="py-3.5 px-4">SPOC OWNER</th>
+                    <th className="py-3.5 px-4 text-center">ASSIGNED REQS</th>
+                    <th className="py-3.5 px-4 text-center">POSITIONS</th>
+                    <th className="py-3.5 px-4 text-center">SUBMISSIONS</th>
+                    <th className="py-3.5 px-4 text-center">COVERAGE %</th>
+                    <th className="py-3.5 px-4 text-center">ZERO-SUB REQS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+                  {spocAnalysisRows.map(sRow => (
+                    <tr key={sRow.spoc} className="hover:bg-purple-50/40 transition-colors">
+                      <td className="py-3.5 px-4 font-bold text-slate-900 flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-full bg-purple-100 text-[#6B3BF6] font-bold flex items-center justify-center text-xs">
+                          {sRow.spoc.substring(0, 1)}
+                        </div>
+                        <span>SPOC: {sRow.spoc}</span>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-center font-extrabold text-slate-800 tabular-nums">
+                        {sRow.requirements}
+                      </td>
+
+                      <td className="py-3.5 px-4 text-center font-extrabold text-purple-900 tabular-nums">
+                        {sRow.positions}
+                      </td>
+
+                      <td className="py-3.5 px-4 text-center font-extrabold text-[#2563EB] tabular-nums">
+                        {sRow.submissions}
+                      </td>
+
+                      <td className="py-3.5 px-4 text-center">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-extrabold border tabular-nums ${
+                            sRow.coverage >= 50
+                              ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                              : sRow.coverage >= 25
+                              ? 'bg-amber-100 text-amber-900 border-amber-200'
+                              : 'bg-rose-100 text-rose-800 border-rose-200'
+                          }`}
+                        >
+                          {sRow.coverage}%
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-center">
+                        {sRow.zeroSubReqs > 0 ? (
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-rose-100 text-rose-800 border border-rose-200 tabular-nums">
+                            {sRow.zeroSubReqs} Reqs
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-500 tabular-nums">
+                            0
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
-
-        <div className="overflow-x-auto border border-slate-200/80 rounded-2xl">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                <th className="py-3.5 px-4">SPOC OWNER</th>
-                <th className="py-3.5 px-4 text-center">ASSIGNED REQS</th>
-                <th className="py-3.5 px-4 text-center">POSITIONS</th>
-                <th className="py-3.5 px-4 text-center">SUBMISSIONS</th>
-                <th className="py-3.5 px-4 text-center">COVERAGE %</th>
-                <th className="py-3.5 px-4 text-center">ZERO-SUB REQS</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
-              {spocAnalysisRows.map(sRow => (
-                <tr key={sRow.spoc} className="hover:bg-purple-50/40 transition-colors">
-                  <td className="py-3.5 px-4 font-bold text-slate-900 flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-full bg-purple-100 text-[#6B3BF6] font-bold flex items-center justify-center text-xs">
-                      {sRow.spoc.substring(0, 1)}
-                    </div>
-                    <span>SPOC: {sRow.spoc}</span>
-                  </td>
-
-                  <td className="py-3.5 px-4 text-center font-extrabold text-slate-800 tabular-nums">
-                    {sRow.requirements}
-                  </td>
-
-                  <td className="py-3.5 px-4 text-center font-extrabold text-purple-900 tabular-nums">
-                    {sRow.positions}
-                  </td>
-
-                  <td className="py-3.5 px-4 text-center font-extrabold text-[#2563EB] tabular-nums">
-                    {sRow.submissions}
-                  </td>
-
-                  <td className="py-3.5 px-4 text-center">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-extrabold border tabular-nums ${
-                        sRow.coverage >= 50
-                          ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
-                          : sRow.coverage >= 25
-                          ? 'bg-amber-100 text-amber-900 border-amber-200'
-                          : 'bg-rose-100 text-rose-800 border-rose-200'
-                      }`}
-                    >
-                      {sRow.coverage}%
-                    </span>
-                  </td>
-
-                  <td className="py-3.5 px-4 text-center">
-                    {sRow.zeroSubReqs > 0 ? (
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-rose-100 text-rose-800 border border-rose-200 tabular-nums">
-                        {sRow.zeroSubReqs} Reqs
-                      </span>
-                    ) : (
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-500 tabular-nums">
-                        0
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-
+      )}
 
       {/* 9. REQUIREMENT GAP ANALYSIS (ATTENTION NEEDED LIST) */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div>
-            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-rose-600" />
-              <span>Requirement Gap Analysis ({filteredRequirements.length} Reqs Monitored)</span>
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Click any requirement row below to inspect job details and assign recruiter bandwidth.
-            </p>
+      {(activeTabSection === 'all' || activeTabSection === 'reqGaps') && (
+        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs space-y-4 transition-all">
+          <div
+            onClick={() => toggleSection('reqGaps')}
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4 cursor-pointer group"
+          >
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2 group-hover:text-[#6B3BF6] transition-colors">
+                <AlertTriangle className="w-5 h-5 text-rose-600" />
+                <span>Requirement Gap Analysis ({filteredRequirements.length} Reqs Monitored)</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Click any requirement row below to inspect job details and assign recruiter bandwidth.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-rose-700 font-bold bg-rose-50 border border-rose-200 px-3 py-1 rounded-full">
+                {metrics.zeroSubReqs} Zero-Submission Gaps
+              </span>
+              {openSections.reqGaps ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+            </div>
           </div>
 
-          <span className="text-xs text-rose-700 font-bold bg-rose-50 border border-rose-200 px-3 py-1 rounded-full">
-            {metrics.zeroSubReqs} Zero-Submission Gaps
-          </span>
+          {openSections.reqGaps && (
+            <div className="space-y-4 animate-in fade-in duration-150">
+              <div className="overflow-x-auto border border-slate-200/80 rounded-2xl">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      <th className="py-3.5 px-4">REQUIREMENT TITLE & ID</th>
+                      <th className="py-3.5 px-4">STANDARDIZED DOMAIN</th>
+                      <th className="py-3.5 px-4 text-center">POSITIONS</th>
+                      <th className="py-3.5 px-4 text-center">SUBMISSIONS</th>
+                      <th className="py-3.5 px-4">SPOC OWNER</th>
+                      <th className="py-3.5 px-4">GAP DIAGNOSTIC FLAG</th>
+                      <th className="py-3.5 px-4 text-right">ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+                    {paginatedRequirements.map(req => (
+                      <tr
+                        key={req.id}
+                        onClick={() => onSelectRequirement && onSelectRequirement(req.id)}
+                        className="hover:bg-purple-50/40 transition-colors cursor-pointer group"
+                      >
+                        <td className="py-3.5 px-4">
+                          <div className="font-extrabold text-slate-900 group-hover:text-[#6B3BF6] transition-colors">
+                            {req.title}
+                          </div>
+                          <div className="text-[10px] text-slate-400 font-mono">{req.id}</div>
+                        </td>
+
+                        <td className="py-3.5 px-4">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-[#6B3BF6] border border-purple-200">
+                            {req.domain}
+                          </span>
+                        </td>
+
+                        <td className="py-3.5 px-4 text-center font-extrabold text-slate-900 tabular-nums">
+                          {req.positions}
+                        </td>
+
+                        <td className="py-3.5 px-4 text-center">
+                          {req.submissions === 0 ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-rose-100 text-rose-800 border border-rose-200 tabular-nums">
+                              0 Submissions
+                            </span>
+                          ) : (
+                            <span className="font-extrabold text-[#2563EB] tabular-nums">
+                              {req.submissions}
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="py-3.5 px-4 font-bold text-slate-700">
+                          {req.spoc}
+                        </td>
+
+                        <td className="py-3.5 px-4">
+                          <div className="flex flex-wrap gap-1">
+                            {req.submissions === 0 && (
+                              <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-rose-100 text-rose-800 border border-rose-200">
+                                🔴 Zero Submissions
+                              </span>
+                            )}
+                            {req.hasMissingDomain && (
+                              <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-amber-100 text-amber-900 border border-amber-200">
+                                🟡 Missing Domain
+                              </span>
+                            )}
+                            {req.hasNonNumericPositions && (
+                              <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200">
+                                ⚪ Non-Numeric Pos
+                              </span>
+                            )}
+                            {req.submissions > 0 && !req.hasMissingDomain && !req.hasNonNumericPositions && (
+                              <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                🟢 On Track
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="py-3.5 px-4 text-right">
+                          <button
+                            onClick={e => {
+                              e.stopPropagation()
+                              if (onSelectRequirement) onSelectRequirement(req.id)
+                            }}
+                            className="px-3 py-1 bg-purple-50 hover:bg-purple-100 text-[#6B3BF6] text-xs font-bold rounded-xl border border-purple-200 transition-all inline-flex items-center gap-1 cursor-pointer"
+                          >
+                            <span>View Req</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* 10-ITEM PAGINATION FOOTER */}
+              <PaginationFooter
+                currentPage={gapCurrentPage}
+                totalPages={gapTotalPages}
+                totalItems={filteredRequirements.length}
+                pageSize={gapPageSize}
+                onPageChange={setGapCurrentPage}
+                onPageSizeChange={size => {
+                  setGapPageSize(size)
+                  setGapCurrentPage(1)
+                }}
+                pageSizeOptions={[10, 20, 50]}
+                itemLabel="requirement gap items"
+              />
+            </div>
+          )}
         </div>
-
-        <div className="overflow-x-auto border border-slate-200/80 rounded-2xl">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                <th className="py-3.5 px-4">REQUIREMENT TITLE & ID</th>
-                <th className="py-3.5 px-4">STANDARDIZED DOMAIN</th>
-                <th className="py-3.5 px-4 text-center">POSITIONS</th>
-                <th className="py-3.5 px-4 text-center">SUBMISSIONS</th>
-                <th className="py-3.5 px-4">SPOC OWNER</th>
-                <th className="py-3.5 px-4">GAP DIAGNOSTIC FLAG</th>
-                <th className="py-3.5 px-4 text-right">ACTION</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
-              {paginatedRequirements.map(req => (
-                <tr
-                  key={req.id}
-                  onClick={() => onSelectRequirement && onSelectRequirement(req.id)}
-                  className="hover:bg-purple-50/40 transition-colors cursor-pointer group"
-                >
-                  <td className="py-3.5 px-4">
-                    <div className="font-extrabold text-slate-900 group-hover:text-[#6B3BF6] transition-colors">
-                      {req.title}
-                    </div>
-                    <div className="text-[10px] text-slate-400 font-mono">{req.id}</div>
-                  </td>
-
-                  <td className="py-3.5 px-4">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-[#6B3BF6] border border-purple-200">
-                      {req.domain}
-                    </span>
-                  </td>
-
-                  <td className="py-3.5 px-4 text-center font-extrabold text-slate-900 tabular-nums">
-                    {req.positions}
-                  </td>
-
-                  <td className="py-3.5 px-4 text-center">
-                    {req.submissions === 0 ? (
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-rose-100 text-rose-800 border border-rose-200 tabular-nums">
-                        0 Submissions
-                      </span>
-                    ) : (
-                      <span className="font-extrabold text-[#2563EB] tabular-nums">
-                        {req.submissions}
-                      </span>
-                    )}
-                  </td>
-
-                  <td className="py-3.5 px-4 font-bold text-slate-700">
-                    {req.spoc}
-                  </td>
-
-                  <td className="py-3.5 px-4">
-                    <div className="flex flex-wrap gap-1">
-                      {req.submissions === 0 && (
-                        <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-rose-100 text-rose-800 border border-rose-200">
-                          🔴 Zero Submissions
-                        </span>
-                      )}
-                      {req.hasMissingDomain && (
-                        <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-amber-100 text-amber-900 border border-amber-200">
-                          🟡 Missing Domain
-                        </span>
-                      )}
-                      {req.hasNonNumericPositions && (
-                        <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200">
-                          ⚪ Non-Numeric Pos
-                        </span>
-                      )}
-                      {req.submissions > 0 && !req.hasMissingDomain && !req.hasNonNumericPositions && (
-                        <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          🟢 On Track
-                        </span>
-                      )}
-                    </div>
-                  </td>
-
-                  <td className="py-3.5 px-4 text-right">
-                    <button
-                      onClick={e => {
-                        e.stopPropagation()
-                        if (onSelectRequirement) onSelectRequirement(req.id)
-                      }}
-                      className="px-3 py-1 bg-purple-50 hover:bg-purple-100 text-[#6B3BF6] text-xs font-bold rounded-xl border border-purple-200 transition-all inline-flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>View Req</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* 10-ITEM PAGINATION FOOTER */}
-        <PaginationFooter
-          currentPage={gapCurrentPage}
-          totalPages={gapTotalPages}
-          totalItems={filteredRequirements.length}
-          pageSize={gapPageSize}
-          onPageChange={setGapCurrentPage}
-          onPageSizeChange={size => {
-            setGapPageSize(size)
-            setGapCurrentPage(1)
-          }}
-          pageSizeOptions={[10, 20, 50]}
-          itemLabel="requirement gap items"
-        />
-      </div>
+      )}
 
       {/* TOAST */}
       {toastMsg && (

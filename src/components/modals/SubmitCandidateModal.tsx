@@ -13,8 +13,11 @@ import {
   Building,
   Briefcase,
   Layers,
+  ShieldAlert,
+  AlertTriangle,
 } from 'lucide-react'
 import { Requirement, Submission } from '../../types'
+import { checkDuplicateSubmission } from '../../data/submissionsStore'
 
 interface CandidateRepoItem {
   id: string
@@ -129,9 +132,31 @@ export function SubmitCandidateModal({
   const [resumeName, setResumeName] = useState<string | null>(null)
   const [isParsing, setIsParsing] = useState(false)
 
-  if (!isOpen) return null
-
+  // Target Requirement Object
   const targetReq = requirements.find(r => r.id === targetReqId) || requirements[0]
+
+  // Duplicate Submission Check for Path 1 (Existing Candidate)
+  const existingDupResult = useMemo(() => {
+    if (!selectedCandidate || !targetReqId) return { isDuplicate: false }
+    return checkDuplicateSubmission(targetReqId, {
+      email: selectedCandidate.email,
+      phone: selectedCandidate.phone,
+      candidateId: selectedCandidate.candidateId,
+      name: selectedCandidate.name,
+    })
+  }, [targetReqId, selectedCandidate])
+
+  // Duplicate Submission Check for Path 2 (New Candidate)
+  const newDupResult = useMemo(() => {
+    if (!newCandidateName || !targetReqId) return { isDuplicate: false }
+    return checkDuplicateSubmission(targetReqId, {
+      email: newEmail,
+      phone: newPhone,
+      name: newCandidateName,
+    })
+  }, [targetReqId, newCandidateName, newEmail, newPhone])
+
+  if (!isOpen) return null
 
   // Filter existing candidates based on search
   const filteredCandidates = SAMPLE_EXISTING_CANDIDATES.filter(c => {
@@ -165,7 +190,7 @@ export function SubmitCandidateModal({
   // Handle Submission for Path 1 (Existing Candidate)
   const handleSubmitExisting = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedCandidate) return
+    if (!selectedCandidate || existingDupResult.isDuplicate) return
 
     const newSub: Submission = {
       id: `SUB-${Math.floor(Math.random() * 900 + 100)}`,
@@ -188,7 +213,7 @@ export function SubmitCandidateModal({
   // Handle Submission for Path 2 (New Candidate)
   const handleSubmitNew = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newCandidateName) return
+    if (!newCandidateName || newDupResult.isDuplicate) return
 
     const newSub: Submission = {
       id: `SUB-${Math.floor(Math.random() * 900 + 100)}`,
@@ -284,20 +309,36 @@ export function SubmitCandidateModal({
               <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                 {filteredCandidates.map(c => {
                   const isSelected = selectedCandidate?.id === c.id
+                  const dupInfo = checkDuplicateSubmission(targetReqId, {
+                    email: c.email,
+                    phone: c.phone,
+                    candidateId: c.candidateId,
+                    name: c.name,
+                  })
                   return (
                     <div
                       key={c.id}
                       onClick={() => setSelectedCandidate(c)}
                       className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                         isSelected
-                          ? 'border-[#6B3BF6] bg-purple-50/50 shadow-2xs'
+                          ? dupInfo.isDuplicate
+                            ? 'border-rose-400 bg-rose-50/70 shadow-2xs'
+                            : 'border-[#6B3BF6] bg-purple-50/50 shadow-2xs'
+                          : dupInfo.isDuplicate
+                          ? 'border-rose-200/90 bg-rose-50/30 hover:bg-rose-50/60'
                           : 'border-slate-200/80 bg-white hover:bg-slate-50'
                       }`}
                     >
                       <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-extrabold text-slate-900 text-xs truncate">{c.name}</span>
                           <span className="text-[10px] font-mono text-slate-400">ID: {c.candidateId}</span>
+                          {dupInfo.isDuplicate && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-700 border border-rose-200">
+                              <ShieldAlert className="w-3 h-3 text-rose-600" />
+                              <span>Duplicate Submission</span>
+                            </span>
+                          )}
                         </div>
                         <div className="text-xs font-bold text-slate-700 truncate">{c.technology}</div>
                         <div className="text-[11px] text-slate-500 font-medium truncate">
@@ -307,11 +348,11 @@ export function SubmitCandidateModal({
 
                       <div className="shrink-0 flex items-center gap-2">
                         {isSelected ? (
-                          <span className="w-6 h-6 rounded-full bg-[#6B3BF6] text-white flex items-center justify-center">
+                          <span className={`w-6 h-6 rounded-full flex items-center justify-center ${dupInfo.isDuplicate ? 'bg-rose-600 text-white' : 'bg-[#6B3BF6] text-white'}`}>
                             <Check className="w-3.5 h-3.5" />
                           </span>
                         ) : (
-                          <span className="px-3 py-1 bg-slate-100 text-slate-600 text-[11px] font-bold rounded-lg hover:bg-slate-200">
+                          <span className={`px-3 py-1 text-[11px] font-bold rounded-lg ${dupInfo.isDuplicate ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                             Select
                           </span>
                         )}
@@ -321,8 +362,32 @@ export function SubmitCandidateModal({
                 })}
               </div>
 
-              {/* Selected Candidate Quick Preview Box */}
-              {selectedCandidate && (
+              {/* Duplicate Submission Warning Alert Box */}
+              {existingDupResult.isDuplicate && existingDupResult.existingSubmission && (
+                <div className="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 space-y-2 animate-in fade-in">
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0" />
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold text-rose-900 text-xs uppercase tracking-wide bg-rose-600 text-white px-2 py-0.5 rounded-md">
+                        Duplicate Submission
+                      </span>
+                      <span className="text-xs font-bold text-rose-800">Submission Blocked</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-rose-950 font-medium leading-relaxed">
+                    Candidate <strong>{selectedCandidate?.name}</strong> has already been submitted for requirement <strong>{targetReq?.title} ({targetReq?.id})</strong> by another recruiter/vendor.
+                  </p>
+                  <div className="text-[11px] text-rose-900 bg-rose-100/80 p-2.5 rounded-xl border border-rose-200/80 flex flex-wrap gap-x-4 gap-y-1 font-semibold">
+                    <span>Submitted By: <strong>{existingDupResult.existingSubmission.recruiter || 'External Recruiter'}</strong></span>
+                    <span>Date: <strong>{existingDupResult.existingSubmission.date}</strong></span>
+                    <span>Status: <strong>{existingDupResult.existingSubmission.stage}</strong></span>
+                    <span>Match Info: <em>{existingDupResult.matchReason}</em></span>
+                  </div>
+                </div>
+              )}
+
+              {/* Selected Candidate Quick Preview Box (Only if NOT a duplicate) */}
+              {selectedCandidate && !existingDupResult.isDuplicate && (
                 <div className="bg-[#EFF6FF] border border-[#C7D2FE] rounded-2xl p-4 space-y-2">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-extrabold text-[#1E3A8A] flex items-center gap-1.5">
@@ -350,11 +415,24 @@ export function SubmitCandidateModal({
                 </button>
                 <button
                   type="submit"
-                  disabled={!selectedCandidate}
-                  className="px-6 py-2.5 bg-[#6B3BF6] hover:bg-[#5833E0] disabled:opacity-50 text-white text-xs font-extrabold rounded-xl shadow-md transition-all cursor-pointer active:scale-98 flex items-center gap-2"
+                  disabled={!selectedCandidate || existingDupResult.isDuplicate}
+                  className={`px-6 py-2.5 text-xs font-extrabold rounded-xl shadow-md transition-all flex items-center gap-2 ${
+                    existingDupResult.isDuplicate
+                      ? 'bg-rose-300 text-rose-800 cursor-not-allowed border border-rose-300 shadow-none'
+                      : 'bg-[#6B3BF6] hover:bg-[#5833E0] disabled:opacity-50 text-white cursor-pointer active:scale-98'
+                  }`}
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Submit to Client</span>
+                  {existingDupResult.isDuplicate ? (
+                    <>
+                      <ShieldAlert className="w-3.5 h-3.5" />
+                      <span>Duplicate Submission - Cannot Submit</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Submit to Client</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -378,6 +456,29 @@ export function SubmitCandidateModal({
                   {isParsing ? '⚡ Automatically parsing candidate skills...' : 'AI Parser automatically extracts contact info, experience & technology'}
                 </div>
               </div>
+
+              {/* Duplicate Warning for Path 2 */}
+              {newDupResult.isDuplicate && newDupResult.existingSubmission && (
+                <div className="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 space-y-2 animate-in fade-in">
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0" />
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold text-rose-900 text-xs uppercase tracking-wide bg-rose-600 text-white px-2 py-0.5 rounded-md">
+                        Duplicate Submission
+                      </span>
+                      <span className="text-xs font-bold text-rose-800">Submission Blocked</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-rose-950 font-medium leading-relaxed">
+                    Candidate <strong>{newCandidateName}</strong> ({newEmail || newPhone}) is already submitted for <strong>{targetReq?.title} ({targetReq?.id})</strong>.
+                  </p>
+                  <div className="text-[11px] text-rose-900 bg-rose-100/80 p-2.5 rounded-xl border border-rose-200/80 flex flex-wrap gap-x-4 gap-y-1 font-semibold">
+                    <span>Submitted By: <strong>{newDupResult.existingSubmission.recruiter || 'External Recruiter'}</strong></span>
+                    <span>Date: <strong>{newDupResult.existingSubmission.date}</strong></span>
+                    <span>Status: <strong>{newDupResult.existingSubmission.stage}</strong></span>
+                  </div>
+                </div>
+              )}
 
               {/* Auto-Populated Candidate Preview Fields */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -460,11 +561,24 @@ export function SubmitCandidateModal({
                 </button>
                 <button
                   type="submit"
-                  disabled={!newCandidateName}
-                  className="px-6 py-2.5 bg-[#6B3BF6] hover:bg-[#5833E0] disabled:opacity-50 text-white text-xs font-extrabold rounded-xl shadow-md transition-all cursor-pointer active:scale-98 flex items-center gap-2"
+                  disabled={!newCandidateName || newDupResult.isDuplicate}
+                  className={`px-6 py-2.5 text-xs font-extrabold rounded-xl shadow-md transition-all flex items-center gap-2 ${
+                    newDupResult.isDuplicate
+                      ? 'bg-rose-300 text-rose-800 cursor-not-allowed border border-rose-300 shadow-none'
+                      : 'bg-[#6B3BF6] hover:bg-[#5833E0] disabled:opacity-50 text-white cursor-pointer active:scale-98'
+                  }`}
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Submit to Client</span>
+                  {newDupResult.isDuplicate ? (
+                    <>
+                      <ShieldAlert className="w-3.5 h-3.5" />
+                      <span>Duplicate Submission - Cannot Submit</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Submit to Client</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

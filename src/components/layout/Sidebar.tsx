@@ -157,28 +157,23 @@ export function Sidebar({
         boxShadow: '4px 0 24px rgba(0,0,0,0.12)',
       }}
     >
-      {/* Header — metaforge logo + hamburger (matches reference) */}
+      {/* Header — metaforge logo + hamburger button */}
       <div className="h-[72px] flex items-center justify-between px-4 flex-shrink-0 border-b border-white/[0.06]">
         {!isCollapsed ? (
-          <MetaforgeLogo variant="light" size="xl" />
+          <>
+            <MetaforgeLogo variant="light" size="xl" />
+            <button
+              onClick={handleToggle}
+              className="text-slate-300 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+              aria-label="Toggle menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          </>
         ) : (
-          <div className="w-9 h-9 rounded-xl bg-[#6B3BF6]/25 flex items-center justify-center text-white text-xs font-extrabold mx-auto border border-[#6B3BF6]/30">
-            M
-          </div>
-        )}
-        {!isCollapsed && (
           <button
             onClick={handleToggle}
-            className="text-slate-300 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors"
-            aria-label="Toggle menu"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-        )}
-        {isCollapsed && (
-          <button
-            onClick={handleToggle}
-            className="absolute top-4 left-1/2 -translate-x-1/2 text-slate-300 hover:text-white p-1"
+            className="w-full flex items-center justify-center text-slate-300 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
             aria-label="Expand menu"
           >
             <Menu className="w-5 h-5" />
